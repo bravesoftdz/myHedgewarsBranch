@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,6 +179,7 @@ var
     cElastic        : hwFloat;
     cGravity        : hwFloat;
     cGravityf       : real;
+    cBuildMaxDist   : LongInt;
     cDamageModifier : hwFloat;
     cLaserSighting  : boolean;
     cVampiric       : boolean;
@@ -2565,6 +2566,7 @@ begin
     cElastic                := _0_9;
     cGravity                := cMaxWindSpeed * 2;
     cGravityf               := 0.00025 * 2;
+    cBuildMaxDist           := cDefaultBuildMaxDist;
     cDamageModifier         := _1;
     TargetPoint             := cTargetPointRef;
 

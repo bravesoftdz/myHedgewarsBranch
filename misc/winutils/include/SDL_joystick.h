@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -138,18 +138,18 @@ extern DECLSPEC Sint16 SDLCALL SDL_JoystickGetAxis(SDL_Joystick *joystick, int a
  *  The return value of SDL_JoystickGetHat() is one of the following positions:
  */
 /*@{*/
-#define SDL_HAT_CENTERED	0x00
-#define SDL_HAT_UP		0x01
-#define SDL_HAT_RIGHT		0x02
-#define SDL_HAT_DOWN		0x04
-#define SDL_HAT_LEFT		0x08
-#define SDL_HAT_RIGHTUP		(SDL_HAT_RIGHT|SDL_HAT_UP)
-#define SDL_HAT_RIGHTDOWN	(SDL_HAT_RIGHT|SDL_HAT_DOWN)
-#define SDL_HAT_LEFTUP		(SDL_HAT_LEFT|SDL_HAT_UP)
-#define SDL_HAT_LEFTDOWN	(SDL_HAT_LEFT|SDL_HAT_DOWN)
+#define SDL_HAT_CENTERED    0x00
+#define SDL_HAT_UP      0x01
+#define SDL_HAT_RIGHT       0x02
+#define SDL_HAT_DOWN        0x04
+#define SDL_HAT_LEFT        0x08
+#define SDL_HAT_RIGHTUP     (SDL_HAT_RIGHT|SDL_HAT_UP)
+#define SDL_HAT_RIGHTDOWN   (SDL_HAT_RIGHT|SDL_HAT_DOWN)
+#define SDL_HAT_LEFTUP      (SDL_HAT_LEFT|SDL_HAT_UP)
+#define SDL_HAT_LEFTDOWN    (SDL_HAT_LEFT|SDL_HAT_DOWN)
 /*@}*/
 
-/** 
+/**
  *  Get the current state of a POV hat on a joystick
  *
  *  @param[in] hat The hat indices start at index 0.

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$mode objfpc}
@@ -32,7 +32,8 @@ interface
     gl.hh
 }
 
-  procedure init;
+  procedure initModule;
+  procedure freeModule;
 
   const
     External_library='GLESv1_CM'; {Setup as you need}
@@ -1106,15 +1107,14 @@ implementation
       pointer(glPointSizePointerOES):=GetProcAddress(hlib,'glPointSizePointerOES');
     end;
 
-procedure init;
+procedure initModule;
 begin
     Loadgles11('libGLESv1_CM.so');
 end;
 
-
-initialization
-  Loadgles11('gles11');
-finalization
+procedure freeModule;
+begin
   Freegles11;
+end;
 
 end.

@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$IFNDEF FPC}
@@ -29,12 +29,8 @@
 
 {$DEFINE USE_LUA_SCRIPT}
 
-
-{$DEFINE GL2}
-
 {$IFDEF ANDROID}
     {$DEFINE MOBILE}
-    {$DEFINE USE_SDLTHREADS}
     {$DEFINE USE_CONTEXT_RESTORE}
     {$DEFINE Java_Prefix:= 'Java_org_hedgewars_hedgeroid_EngineProtocol_PascalExports_'}
 {$ENDIF}
@@ -44,20 +40,15 @@
 {$ENDIF}
 
 {$IFDEF MOBILE}
-    {$DEFINE SDL13}
     {$DEFINE HWLIBRARY}
-    {$DEFINE S3D_DISABLED}
     {$DEFINE GLunit:=gles11}
     {$DEFINE USE_LANDSCAPE_AMMOMENU}
     {$DEFINE USE_TOUCH_INTERFACE}
 {$ELSE}
     {$DEFINE USE_AM_NUMCOLUMN}
+    {$DEFINE USE_S3D_RENDERING}
 {$ENDIF}
 
-
-{$IFDEF GL2}
-    {$DEFINE S3D_DISABLED}
-{$ENDIF}
 
 {$IFDEF WIN32}
     {$DEFINE USE_CONTEXT_RESTORE}
@@ -69,10 +60,8 @@
     {$ENDIF}
 {$ENDIF}
 
-
-{$IFDEF PAS2C}
-    {$DEFINE NOCONSOLE}
-    {$DEFINE USE_SDLTHREADS}
+{$IFDEF USE_TOUCH_INTERFACE}
+    {$DEFINE SDL2}
 {$ENDIF}
 
 {$DEFINE _S:=}

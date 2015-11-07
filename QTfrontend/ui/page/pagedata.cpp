@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QGridLayout>
@@ -26,14 +26,13 @@
 #include <QDebug>
 #include <QProgressBar>
 #include <QBuffer>
+#include <QDesktopServices>
 
 #include "pagedata.h"
 #include "databrowser.h"
 #include "hwconsts.h"
 #include "DataManager.h"
-
-#include "quazip.h"
-#include "quazipfile.h"
+#include "FileEngine.h"
 
 QLayout * PageDataDownload::bodyLayoutDefinition()
 {
@@ -50,10 +49,23 @@ QLayout * PageDataDownload::bodyLayoutDefinition()
     return pageLayout;
 }
 
+QLayout * PageDataDownload::footerLayoutDefinition()
+{
+    QHBoxLayout * bottomLayout = new QHBoxLayout();
+    bottomLayout->setStretch(0, 1);
+
+    pbOpenDir = addButton(tr("Open packages directory"), bottomLayout, 1, false);
+
+    bottomLayout->setStretch(2, 1);
+
+    return bottomLayout;
+}
+
 void PageDataDownload::connectSignals()
 {
     connect(web, SIGNAL(anchorClicked(QUrl)), this, SLOT(request(const QUrl&)));
     connect(this, SIGNAL(goBack()), this, SLOT(onPageLeave()));
+    connect(pbOpenDir, SIGNAL(clicked()), this, SLOT(openPackagesDir()));
 }
 
 PageDataDownload::PageDataDownload(QWidget* parent) : AbstractPage(parent)
@@ -62,7 +74,10 @@ PageDataDownload::PageDataDownload(QWidget* parent) : AbstractPage(parent)
 
     web->setOpenLinks(false);
 //    fetchList();
-
+    web->setHtml(QString(
+        "<center><h2>Hedgewars Downloadable Content</h2><br><br>"
+        "<i>%1</i></center>")
+        .arg(tr("Loading, please wait.")));
     m_contentDownloaded = false;
 }
 
@@ -74,7 +89,7 @@ void PageDataDownload::request(const QUrl &url)
     else
         finalUrl = url;
 
-    if(url.path().endsWith(".zip"))
+    if(url.path().endsWith(".hwp") || url.path().endsWith(".zip"))
     {
         qWarning() << "Download Request" << url.toString();
         QString fileName = QFileInfo(url.toString()).fileName();
@@ -108,8 +123,7 @@ void PageDataDownload::pageDownloaded()
 {
     QNetworkReply * reply = qobject_cast<QNetworkReply *>(sender());
 
-    if(reply)
-    {
+    if (reply && (reply->error() == QNetworkReply::NoError)) {
         QString html = QString::fromUtf8(reply->readAll());
         int begin = html.indexOf("<!-- BEGIN -->");
         int end = html.indexOf("<!-- END -->");
@@ -119,7 +133,11 @@ void PageDataDownload::pageDownloaded()
             html.remove(0, begin);
         }
         web->setHtml(html);
-    }
+    } else
+        web->setHtml(QString(
+            "<center><h2>Hedgewars Downloadable Content</h2><br><br>"
+            "<p><i><h4>%1</i></h4></p></center>")
+            .arg(tr("This page requires an internet connection.")));
 }
 
 void PageDataDownload::fileDownloaded()
@@ -128,7 +146,6 @@ void PageDataDownload::fileDownloaded()
 
     if(reply)
     {
-        QByteArray fileContents = reply->readAll();
         QProgressBar *progressBar = progressBars.value(reply, 0);
 
         if(progressBar)
@@ -137,7 +154,26 @@ void PageDataDownload::fileDownloaded()
             progressBar->deleteLater();
         }
 
-        extractDataPack(&fileContents);
+        QDir extractDir(*cfgdir);
+        extractDir.cd("Data");
+
+        QString fileName = extractDir.filePath(QFileInfo(reply->url().path()).fileName());
+        if(fileName.endsWith(".zip"))
+            fileName = fileName.left(fileName.length() - 4) + ".hwp";
+
+        QFile out(fileName);
+        if(!out.open(QFile::WriteOnly))
+        {
+            qWarning() << "out.open():" << out.errorString();
+            return ;
+        }
+
+        out.write(reply->readAll());
+
+        out.close();
+
+        // now mount it
+        FileEngineHandler::mount(fileName);
     }
 }
 
@@ -162,92 +198,18 @@ void PageDataDownload::fetchList()
     request(QUrl("http://hedgewars.org/content.html"));
 }
 
-bool PageDataDownload::extractDataPack(QByteArray * buf)
-{
-    QBuffer buffer;
-    buffer.setBuffer(buf);
-
-    QuaZip zip;
-    zip.setIoDevice(&buffer);
-    if(!zip.open(QuaZip::mdUnzip))
-    {
-        qWarning("testRead(): zip.open(): %d", zip.getZipError());
-        return false;
-    }
-
-    QuaZipFile file(&zip);
-
-    QDir extractDir(*cfgdir);
-    extractDir.cd("Data");
-
-    for(bool more = zip.goToFirstFile(); more; more = zip.goToNextFile())
-    {
-        if(!file.open(QIODevice::ReadOnly))
-        {
-            qWarning("file.open(): %d", file.getZipError());
-            return false;
-        }
-
-
-        QString fileName = file.getActualFileName();
-        QString filePath = extractDir.filePath(fileName);
-        if (fileName.endsWith("/"))
-        {
-            QFileInfo fi(filePath);
-            QDir().mkpath(fi.filePath());
-        }
-        else
-        {
-            qDebug() << "Extracting" << filePath;
-            QFile out(filePath);
-            if(!out.open(QFile::WriteOnly))
-            {
-                qWarning() << "out.open():" << out.errorString();
-                return false;
-            }
-
-            out.write(file.readAll());
-
-            out.close();
-
-            if(file.getZipError() != UNZ_OK)
-            {
-                qWarning("file.getFileName(): %d", file.getZipError());
-                return false;
-            }
-
-            if(!file.atEnd())
-            {
-                qWarning("read all but not EOF");
-                return false;
-            }
-
-            if (this->isVisible())
-                m_contentDownloaded = true;
-            else
-                DataManager::instance().reload();
-        }
-
-        file.close();
-
-        if(file.getZipError()!=UNZ_OK)
-        {
-            qWarning("file.close(): %d", file.getZipError());
-            return false;
-        }
-    }
-
-    zip.close();
-
-    return true;
-}
-
 
 void PageDataDownload::onPageLeave()
 {
     if (m_contentDownloaded)
     {
         m_contentDownloaded = false;
-        DataManager::instance().reload();
+        //DataManager::instance().reload();
     }
+}
+
+void PageDataDownload::openPackagesDir()
+{
+    QString path = QDir::toNativeSeparators(cfgdir->absolutePath() + "/Data");
+    QDesktopServices::openUrl(QUrl("file:///" + path));
 }

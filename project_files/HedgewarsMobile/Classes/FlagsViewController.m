@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
  */
 
 
@@ -35,7 +35,7 @@
 
     NSMutableArray *array_na = [[NSMutableArray alloc] init];
     NSMutableArray *array_cm = [[NSMutableArray alloc] init];
-    
+
     for (NSString *name in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:FLAGS_DIRECTORY() error:NULL]) {
         if ([name hasPrefix:@"cm_"]) {
             NSString *processed = [name substringFromIndex:3];
@@ -43,7 +43,7 @@
         } else
              [array_na addObject:name];
     }
-    
+
     self.flagArray = array_na;
     [array_na release];
     self.communityArray = array_cm;
@@ -131,18 +131,18 @@
 #pragma mark -
 #pragma mark Table view delegate
 -(void) tableView:(UITableView *)aTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    int newRow = [indexPath row];
-    int oldRow = (lastIndexPath != nil) ? [lastIndexPath row] : -1;
-    int newSection = [indexPath section];
-    int oldSection = (lastIndexPath != nil) ? [lastIndexPath section] : -1;
-    
+    NSInteger newRow = [indexPath row];
+    NSInteger oldRow = (lastIndexPath != nil) ? [lastIndexPath row] : -1;
+    NSInteger newSection = [indexPath section];
+    NSInteger oldSection = (lastIndexPath != nil) ? [lastIndexPath section] : -1;
+
     if (newRow != oldRow || newSection != oldSection) {
         NSString *flag = nil;
         if ([indexPath section] == 0)
             flag = [self.flagArray objectAtIndex:newRow];
         else
             flag = [NSString stringWithFormat:@"cm_%@",[self.communityArray objectAtIndex:newRow]];
-        
+
         // if the two selected rows differ update data on the hog dictionary and reload table content
         [self.teamDictionary setValue:[flag stringByDeletingPathExtension] forKey:@"flag"];
 

@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,34 +13,41 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include "HWApplication.h"
 
 #include <QTranslator>
 #include <QLocale>
-#include <QMessageBox>
 #include <QPlastiqueStyle>
 #include <QRegExp>
 #include <QMap>
 #include <QSettings>
 #include <QStringListModel>
 #include <QDate>
+#include <QDesktopWidget>
+#include <QLabel>
 
 #include "hwform.h"
 #include "hwconsts.h"
 #include "newnetclient.h"
 
 #include "DataManager.h"
+#include "FileEngine.h"
+#include "MessageDialog.h"
 
 #ifdef _WIN32
 #include <Shlobj.h>
-#endif
-#ifdef __APPLE__
+#elif defined __APPLE__
 #include "CocoaInitializer.h"
 #endif
 
+// Program resources
+#ifdef __APPLE__
+static CocoaInitializer * cocoaInit = NULL;
+#endif
+static FileEngineHandler * engine = NULL;
 
 //Determines the day of easter in year
 //from http://aa.usno.navy.mil/faq/docs/easter.php,adapted to C/C++
@@ -85,26 +92,76 @@ void checkSeason()
         season = SEASON_NONE;
 }
 
+
 bool checkForDir(const QString & dir)
 {
-    QDir tmpdir;
-    if (!tmpdir.exists(dir))
-        if (!tmpdir.mkdir(dir))
+    QDir tmpdir(dir);
+    if (!tmpdir.exists())
+        if (!tmpdir.mkpath(dir))
         {
-            QMessageBox::critical(0,
-                                  QObject::tr("Error"),
-                                  QObject::tr("Cannot create directory %1").arg(dir),
-                                  QObject::tr("OK"));
+            MessageDialog::ShowErrorMessage(HWApplication::tr("Cannot create directory %1").arg(dir));
             return false;
         }
     return true;
 }
 
+// Guaranteed to be the last thing ran in the application's life time.
+// Closes resources that need to exist as long as possible.
+void closeResources(void)
+{
+#ifdef __APPLE__
+    if (cocoaInit != NULL)
+    {
+        delete cocoaInit;
+        cocoaInit = NULL;
+    }
+#endif
+    if (engine != NULL)
+    {
+        delete engine;
+        engine = NULL;
+    }
+}
+
+QString getUsage()
+{
+    return QString(
+"%1: hedgewars [%2...] [%3]\n"
+"\n"
+"%4:\n"
+"  --help              %5\n"
+"  --config-dir=PATH   %6\n"
+"  --data-dir=PATH     %7\n"
+"\n"
+"%8"
+"\n"
+).arg(HWApplication::tr("Usage", "command-line"))
+.arg(HWApplication::tr("OPTION", "command-line"))
+.arg(HWApplication::tr("CONNECTSTRING", "command-line"))
+.arg(HWApplication::tr("Options", "command-line"))
+.arg(HWApplication::tr("Display this help", "command-line"))
+.arg(HWApplication::tr("Custom path for configuration data and user data", "command-line"))
+.arg(HWApplication::tr("Custom path to the game data folder", "command-line"))
+.arg(HWApplication::tr("Hedgewars can use a %1 (e.g. \"%2\") to connect on start.", "command-line").arg(HWApplication::tr("CONNECTSTRING", "command-line")).arg(QString("hwplay://") + NETGAME_DEFAULT_SERVER));
+}
+
 int main(int argc, char *argv[])
 {
-    HWApplication app(argc, argv);
+    // Since we're calling this first, closeResources() will be the last thing called after main() returns.
+    atexit(closeResources);
 
+#ifdef __APPLE__
+    cocoaInit = new CocoaInitializer(); // Creates the autoreleasepool preventing cocoa object leaks on OS X.
+#endif
+
+    HWApplication app(argc, argv);
     app.setAttribute(Qt::AA_DontShowIconsInMenus,false);
+
+    // file engine and splash. to be initialized later
+    engine = NULL;
+    QLabel *splash = NULL;
+
+    // parse arguments
 
     QStringList arguments = app.arguments();
     QMap<QString, QString> parsedArgs;
@@ -114,6 +171,7 @@ int main(int argc, char *argv[])
         {
             QString arg = *i;
 
+
             QRegExp opt("--(\\S+)=(.+)");
             if(opt.exactMatch(arg))
             {
@@ -122,6 +180,21 @@ int main(int argc, char *argv[])
             }
             else
             {
+                if(arg.startsWith("--")) {
+                    if(arg == "--help")
+                    {
+                        printf("%s", getUsage().toUtf8().constData());
+                        return 0;
+                    }
+                    // argument is something wrong
+                    fprintf(stderr, "%s\n\n%s",
+                        HWApplication::tr("Malformed option argument: %1", "command-line").arg(arg).toUtf8().constData(),
+                        getUsage().toUtf8().constData());
+                    return 1;
+                }
+
+                // if not starting with --, then always skip
+                // (because we can't determine if executable path/call or not - on windows)
                 ++i;
             }
         }
@@ -130,6 +203,7 @@ int main(int argc, char *argv[])
     if(parsedArgs.contains("data-dir"))
     {
         QFileInfo f(parsedArgs["data-dir"]);
+        parsedArgs.remove("data-dir");
         if(!f.exists())
         {
             qWarning() << "WARNING: Cannot open DATA_PATH=" << f.absoluteFilePath();
@@ -141,11 +215,39 @@ int main(int argc, char *argv[])
     if(parsedArgs.contains("config-dir"))
     {
         QFileInfo f(parsedArgs["config-dir"]);
-        *cConfigDir = f.absoluteFilePath();
+        parsedArgs.remove("config-dir");
+        cfgdir->setPath(f.absoluteFilePath());
         custom_config = true;
     }
+    else
+    {
+        cfgdir->setPath(QDir::homePath());
+        custom_config = false;
+    }
 
-    app.setStyle(new QPlastiqueStyle);
+    if (!parsedArgs.isEmpty()) {
+        foreach (const QString & key, parsedArgs.keys())
+        {
+            fprintf(stderr, "%s\n", HWApplication::tr("Unknown option argument: %1", "command-line").arg(QString("--") + key).toUtf8().constData());
+        }
+        fprintf(stderr, "\n%s", getUsage().toUtf8().constData());
+        return 1;
+    }
+
+    // end of parameter parsing
+
+#if defined Q_OS_WIN
+    QPixmap pixmap(":res/splash.png");
+    splash = new QLabel(0, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
+    splash->setAttribute(Qt::WA_TranslucentBackground);
+    const QRect deskSize = HWApplication::desktop()->screenGeometry(-1);
+    QPoint splashCenter = QPoint( (deskSize.width() - pixmap.width())/2,
+                                  (deskSize.height() - pixmap.height())/2 );
+    splash->move(splashCenter);
+    splash->setPixmap(pixmap);
+    splash->show();
+#endif
+    app.setStyle(new QPlastiqueStyle());
 
     QDateTime now = QDateTime::currentDateTime();
     srand(now.toTime_t());
@@ -155,14 +257,9 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<HWTeam>("HWTeam");
 
-    bindir->cd("bin"); // workaround over NSIS installer
+    bindir->cd(QCoreApplication::applicationDirPath());
 
-    if(cConfigDir->length() == 0)
-        cfgdir->setPath(cfgdir->homePath());
-    else
-        cfgdir->setPath(*cConfigDir);
-
-    if(cConfigDir->length() == 0)
+    if(custom_config == false)
     {
 #ifdef __APPLE__
         checkForDir(cfgdir->absolutePath() + "/Library/Application Support/Hedgewars");
@@ -197,35 +294,46 @@ int main(int argc, char *argv[])
         checkForDir(cfgdir->absolutePath() + "/Screenshots");
         checkForDir(cfgdir->absolutePath() + "/Teams");
         checkForDir(cfgdir->absolutePath() + "/Logs");
+        checkForDir(cfgdir->absolutePath() + "/Videos");
+        checkForDir(cfgdir->absolutePath() + "/VideoTemp");
     }
 
     datadir->cd(bindir->absolutePath());
     datadir->cd(*cDataDir);
-    if(!datadir->cd("hedgewars/Data"))
+    if (!datadir->cd("Data"))
     {
-        QMessageBox::critical(0, QMessageBox::tr("Error"),
-                              QMessageBox::tr("Failed to open data directory:\n%1\n"
-                                              "Please check your installation").
-                              arg(datadir->absolutePath()+"/hedgewars/Data"));
+        MessageDialog::ShowFatalMessage(HWApplication::tr("Failed to open data directory:\n%1\n\nPlease check your installation!").arg(datadir->absolutePath()+"/Data"));
         return 1;
     }
 
-    DataManager & dataMgr = DataManager::instance();
+    // setup PhysFS
+    engine = new FileEngineHandler(argv[0]);
+    engine->mount(datadir->absolutePath());
+    engine->mount(cfgdir->absolutePath() + "/Data");
+    engine->mount(cfgdir->absolutePath());
+    engine->setWriteDir(cfgdir->absolutePath());
+    engine->mountPacks();
 
     QTranslator Translator;
     {
-        QSettings settings(cfgdir->absolutePath() + "/hedgewars.ini", QSettings::IniFormat);
+        QSettings settings(DataManager::instance().settingsFileName(), QSettings::IniFormat);
+        settings.setIniCodec("UTF-8");
+
         QString cc = settings.value("misc/locale", QString()).toString();
-        if(cc.isEmpty())
+        if (cc.isEmpty())
+        {
             cc = QLocale::system().name();
 
+            // Fallback to current input locale if "C" locale is returned
+            if(cc == "C")
+                cc = HWApplication::keyboardInputLocale().name();
+        }
+
         // load locale file into translator
-        Translator.load(
-            dataMgr.findFileForRead(
-                QString("Locale/hedgewars_" + cc)
-            )
-        );
+        if (!Translator.load(QString("physfs://Locale/hedgewars_%1").arg(cc)))
+            qWarning("Failed to install translation (%s)", qPrintable(cc));
         app.installTranslator(&Translator);
+        app.setLayoutDirection(QLocale(cc).textDirection());
     }
 
 #ifdef _WIN32
@@ -236,10 +344,6 @@ int main(int argc, char *argv[])
         registry_hklm.setValue("Software/Hedgewars/Frontend", bindir->absolutePath().replace("/", "\\") + "\\hedgewars.exe");
         registry_hklm.setValue("Software/Hedgewars/Path", bindir->absolutePath().replace("/", "\\"));
     }
-#endif
-#ifdef __APPLE__
-    // this creates the autoreleasepool that prevents leaking
-    CocoaInitializer initializer;
 #endif
 
     QString style = "";
@@ -263,27 +367,26 @@ int main(int argc, char *argv[])
             break;
         default :
             fname = "qt.css";
+            break;
     }
 
     // load external stylesheet if there is any
-    QFile extFile(dataMgr.findFileForRead("css/" + fname));
+    QFile extFile("physfs://css/" + fname);
 
     QFile resFile(":/res/css/" + fname);
 
-    QFile & file = (extFile.exists()?extFile:resFile);
+    QFile & file = (extFile.exists() ? extFile : resFile);
 
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream in(&file);
-        while (!in.atEnd())
-        {
-            QString line = in.readLine();
-            if(!line.isEmpty())
-                style.append(line);
-        }
-    }
+        style.append(file.readAll());
+
+    qWarning("Starting Hedgewars %s-r%d (%s)", qPrintable(*cVersionString), cRevisionString->toInt(), qPrintable(*cHashString));
 
     app.form = new HWForm(NULL, style);
     app.form->show();
+    if(splash)
+        splash->close();
+    if (app.urlString)
+        app.fakeEvent();
     return app.exec();
 }

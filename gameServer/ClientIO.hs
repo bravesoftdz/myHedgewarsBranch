@@ -1,3 +1,21 @@
+{-
+ * Hedgewars, a free turn based strategy game
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ \-}
+
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, Rank2Types #-}
 module ClientIO where
 
@@ -30,25 +48,27 @@ takePacks
             return (B.splitWith (== '\n') packet : packets)
 
 listenLoop :: Socket -> Chan CoreMessage -> ClientIndex -> IO ()
-listenLoop sock chan ci = recieveWithBufferLoop B.empty
+listenLoop sock chan ci = receiveWithBufferLoop B.empty
     where
-        recieveWithBufferLoop recvBuf = do
+        receiveWithBufferLoop recvBuf = do
             recvBS <- recv sock 4096
             unless (B.null recvBS) $ do
                 let (packets, newrecvBuf) = bs2Packets $ B.append recvBuf recvBS
                 forM_ packets sendPacket
-                recieveWithBufferLoop newrecvBuf
+                when (B.length newrecvBuf > 128 * 1024) $ sendPacket ["QUIT", "Protocol violation"]
+                receiveWithBufferLoop $ B.copy newrecvBuf
 
         sendPacket packet = writeChan chan $ ClientMessage (ci, packet)
 
 clientRecvLoop :: Socket -> Chan CoreMessage -> Chan [B.ByteString] -> ClientIndex -> (forall a. IO a -> IO a) -> IO ()
 clientRecvLoop s chan clChan ci restore =
     (myThreadId >>=
-    \t -> (restore $ forkIO (clientSendLoop s t clChan ci) >>
+      (\t -> (restore $ forkIO (clientSendLoop s t clChan ci) >>
         listenLoop s chan ci >> return "Connection closed")
         `Exception.catch` (\(e :: ShutdownThreadException) -> return . B.pack . show $ e)
         `Exception.catch` (\(e :: Exception.IOException) -> return . B.pack . show $ e)
         `Exception.catch` (\(e :: Exception.SomeException) -> return . B.pack . show $ e)
+      )
         >>= clientOff) `Exception.finally` remove
     where
         clientOff msg = writeChan chan $ ClientMessage (ci, ["QUIT", msg])
@@ -66,12 +86,11 @@ clientSendLoop s tId chan ci = do
         killReciever . B.unpack $ quitMessage answer
 
     Exception.handle
-        (\(e :: Exception.IOException) -> unless (isQuit answer) . killReciever $ show e) $
+        (\(e :: Exception.SomeException) -> unless (isQuit answer) . killReciever $ show e) $
             sendAll s $ B.unlines answer `B.snoc` '\n'
 
     if isQuit answer then
-        do
-        Exception.handle (\(_ :: Exception.IOException) -> putStrLn "error on sClose") $ sClose s
+        sClose s
         else
         clientSendLoop s tId chan ci
 

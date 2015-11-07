@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -49,6 +49,7 @@ class MapModel : public QStandardItemModel
             Invalid,
             GeneratedMap,
             GeneratedMaze,
+            GeneratedPerlin,
             HandDrawnMap,
             MissionMap,
             StaticMap
@@ -63,33 +64,53 @@ class MapModel : public QStandardItemModel
             quint32 limit; ///< The maximum allowed number of hedgehogs.
             QString scheme; ///< Default scheme name or "locked", for mission-maps.
             QString weapons; ///< Default weaponset name or "locked", for missions-maps.
+            QString desc; ///< The brief 1-2 sentence description of the mission, for mission-maps.
+            bool dlc; ///< True if this map was not packaged with the game
         };
 
-        /**
-         * @brief Returns the row-index of the given map.
-         * @param map map of which to get the row-index of.
-         * @return row-index of map or -1 if not available.
-         */
-        int indexOf(const QString & map) const;
+        MapModel(MapType maptype, QObject *parent = 0);
 
         /**
-         * @brief Returns the row-index of a random map with a specified type.
-         * @param type desired type of map.
-         * @return row-index of a map with the desired type, -1 if none found.
+         * @brief Searches maps in model to find out if one exists
+         * @param map map of which to check existence
+         * @return true if it exists
          */
-        int randomMap(MapType type) const;
+        bool mapExists(const QString & map);
 
-    public slots:
-        /// Reloads the maps using the DataManager.
-        void loadMaps();
+        /**
+         * @brief Finds a map index (column, row) for a map name
+         * @param map map of which to find index+column
+         * @return QPair<int, int> with column, index, or (-1, -1) if map not found
+         */
+        //QPair<int, int> findMap(const QString & map) const;
+
+        /**
+         * @brief Finds a map index for a map name
+         * @param map map of which to find index
+         * @return int of index, or -1 if map not found
+         */
+        int findMap(const QString & map);
+
+        /**
+         * @brief Finds and returns a map item for a map name
+         * @param map map
+         * @return QStandardItem of map, or NULL if map not found
+         */
+        QStandardItem * getMap(const QString & map);
+
+        // Static MapInfos for drawn and generated maps
+        static MapInfo MapInfoRandom, MapInfoMaze, MapInfoPerlin, MapInfoDrawn;
+
+        /// Loads the maps
+        bool loadMaps();
 
 
     private:
-        /// start-index and map count for each map-type.
-        QMap<MapType, QPair<int,int> > m_typeLoc;
-
-        /// map index lookup table
+        /// map index lookup table. QPair<int, int> contains: <column, index>
+        //QHash<QString, QPair<int, int> > m_mapIndexes;
         QHash<QString, int> m_mapIndexes;
+        MapType m_maptype;
+        bool m_loaded;
 
         /**
          * @brief Creates a QStandardItem, that holds the map info and item appearance.
@@ -102,9 +123,10 @@ class MapModel : public QStandardItemModel
          * @param limit the hedgehog limit of the map.
          * @param scheme mission map: default scheme name or "locked".
          * @param weapons mission map: default weaponset name or "locked".
+         * @param desc mission map: description of mission.
          * @return pointer to item representing the map info: at Qt::UserRole + 1.
          */
-        QStandardItem * infoToItem(
+        static QStandardItem * infoToItem(
             const QIcon & icon,
             const QString caption,
             MapType type = Invalid,
@@ -112,7 +134,9 @@ class MapModel : public QStandardItemModel
             QString theme = "",
             quint32 limit = 0,
             QString scheme = "",
-            QString weapons = "") const;
+            QString weapons = "",
+            QString desc = "",
+            bool dlc = false);
 };
 
 Q_DECLARE_METATYPE(MapModel::MapInfo)

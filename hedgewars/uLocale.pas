@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -30,49 +30,50 @@ function  FormatA(fmt: ansistring; var arg: ansistring): ansistring;
 function  GetEventString(e: TEventId): ansistring;
 
 {$IFDEF HWLIBRARY}
-procedure LoadLocaleWrapper(str: pchar); cdecl; export;
+procedure LoadLocaleWrapper(path: pchar; filename: pchar); cdecl; export;
 {$ENDIF}
 
 implementation
-uses uRandom, uUtils, uVariables, uDebug;
+uses uRandom, uUtils, uVariables, uDebug, uPhysFSLayer;
 
 var trevt: array[TEventId] of array [0..Pred(MAX_EVENT_STRINGS)] of ansistring;
     trevt_n: array[TEventId] of integer;
 
 procedure LoadLocale(FileName: shortstring);
 var s: ansistring;
-    f: textfile;
+    f: pfsFile;
     a, b, c: LongInt;
     first: array[TEventId] of boolean;
     e: TEventId;
-    loaded: boolean;
 begin
-loaded:= false;
 for e:= Low(TEventId) to High(TEventId) do
     first[e]:= true;
 
-{$I-} // iochecks off
-Assign(f, FileName);
-filemode:= 0; // readonly
-Reset(f);
-if IOResult = 0 then
-    loaded:= true;
-TryDo(loaded, 'Cannot load locale "' + FileName + '"', false);
-if loaded then
+f:= pfsOpenRead(FileName);
+TryDo(f <> nil, 'Cannot load locale "' + FileName + '"', false);
+
+s:= '';
+
+if f <> nil then
     begin
-    while not eof(f) do
+    while not pfsEof(f) do
         begin
-        readln(f, s);
+        pfsReadLnA(f, s);
         if Length(s) = 0 then
             continue;
         if (s[1] < '0') or (s[1] > '9') then
             continue;
         TryDo(Length(s) > 6, 'Load locale: empty string', true);
+        {$IFNDEF PAS2C}
         val(s[1]+s[2], a, c);
-        TryDo(c = 0, 'Load locale: numbers should be two-digit: ' + s, true);
-        TryDo(s[3] = ':', 'Load locale: ":" expected', true);
+        TryDo(c = 0, ansistring('Load locale: numbers should be two-digit: ') + s, true);
         val(s[4]+s[5], b, c);
-        TryDo(c = 0, 'Load locale: numbers should be two-digit' + s, true);
+        TryDo(c = 0, ansistring('Load locale: numbers should be two-digit: ') + s, true);
+        {$ELSE}
+        val(s[1]+s[2], a);
+        val(s[4]+s[5], b);
+        {$ENDIF}
+        TryDo(s[3] = ':', 'Load locale: ":" expected', true);
         TryDo(s[6] = '=', 'Load locale: "=" expected', true);
         Delete(s, 1, 6);
         case a of
@@ -99,9 +100,8 @@ if loaded then
                 trgoal[TGoalStrId(b)]:= s;
            end;
        end;
-   Close(f);
+   pfsClose(f);
    end;
-{$I+}
 end;
 
 function GetEventString(e: TEventId): ansistring;
@@ -133,9 +133,19 @@ else
 end;
 
 {$IFDEF HWLIBRARY}
-procedure LoadLocaleWrapper(str: pchar); cdecl; export;
+procedure LoadLocaleWrapper(path: pchar; filename: pchar); cdecl; export;
 begin
-    LoadLocale(Strpas(str));
+    PathPrefix := Strpas(path);
+ 
+    uUtils.initModule(false);
+    uVariables.initModule;
+    uPhysFSLayer.initModule;
+ 
+    LoadLocale(Strpas(filename));
+ 
+    uPhysFSLayer.freeModule;
+    uVariables.freeModule;
+    uUtils.freeModule;
 end;
 {$ENDIF}
 

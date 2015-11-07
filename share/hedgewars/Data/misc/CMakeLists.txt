@@ -1,10 +1,10 @@
-if(DEFINED DATA_INSTALL_DIR)                                                                                                            
-    set(HEDGEWARS_DATADIR ${DATA_INSTALL_DIR})                                                                                          
-else()                                                                                                                                  
-    set(HEDGEWARS_DATADIR ${CMAKE_INSTALL_PREFIX}/share/)                                                                               
-endif()  
-configure_file(hwengine.desktop.in hwengine.desktop)
 
-file(GLOB miscfiles *.xml *.desktop)
+if(UNIX AND NOT APPLE)
+    configure_file(hwengine.desktop.in hwengine.desktop)
 
-install(FILES ${miscfiles} DESTINATION ${SHAREPATH}Data/misc)
+    file(GLOB miscfiles *.xml *.desktop)
+
+    install(FILES ${miscfiles} DESTINATION ${SHAREPATH}/Data/misc)
+    install(FILES hedgewars.xpm DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps)
+endif()
+

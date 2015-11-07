@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef DRAWMAPSCENE_H
@@ -29,6 +29,7 @@ struct PathParams
 {
     quint8 width;
     bool erasing;
+    QPoint initialPoint;
     QList<QPoint> points;
 };
 
@@ -38,6 +39,12 @@ class DrawMapScene : public QGraphicsScene
 {
         Q_OBJECT
     public:
+        enum PathType {
+            Polyline  = 0,
+            Rectangle = 1,
+            Ellipse   = 2
+        };
+
         explicit DrawMapScene(QObject *parent = 0);
 
         QByteArray encode();
@@ -51,9 +58,11 @@ class DrawMapScene : public QGraphicsScene
         void undo();
         void clearMap();
         void simplifyLast();
+        void optimize();
         void setErasing(bool erasing);
         void showCursor();
         void hideCursor();
+        void setPathType(PathType pathType);
 
     private:
         QPen m_pen;
@@ -66,6 +75,8 @@ class DrawMapScene : public QGraphicsScene
         QList<QGraphicsItem *> oldItems;
         QGraphicsEllipseItem * m_cursor;
         bool m_isCursorShown;
+        QByteArray m_specialPoints;
+        PathType m_pathType;
 
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent);
         virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
@@ -76,6 +87,8 @@ class DrawMapScene : public QGraphicsScene
 
         quint8 serializePenWidth(int width);
         int deserializePenWidth(quint8 width);
+        QList<QPointF> makeEllipse(const QPointF & center, const QPointF & corner);
+        QPointF putSomeConstraints(const QPointF & initialPoint, const QPointF & point);
 };
 
 #endif // DRAWMAPSCENE_H

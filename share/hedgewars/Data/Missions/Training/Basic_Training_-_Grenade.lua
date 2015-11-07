@@ -13,7 +13,7 @@
 -- about translations.
 -- We can use the function loc(text) to localize a string.
 
-loadfile(GetDataPath() .. "Scripts/Locale.lua")()
+HedgewarsScriptLoad("/Scripts/Locale.lua")
 
 -- This variable will hold the number of destroyed targets.
 local score = 0
@@ -44,12 +44,12 @@ function spawnTarget()
 	
 	-- move it to a random position within 0 and
 	-- LAND_WIDTH - the width of the map
-	FindPlace(gear, true, 0, LAND_WIDTH-1350)
+	FindPlace(gear, true, 0, LAND_WIDTH-326)
 	
 	-- move the target to a higher vertical position
 	-- to ensure it's not somewhere down below
 	x, y = GetGearPosition(gear)
-	SetGearPosition(gear, x, 500)
+	SetGearPosition(gear, x, 0)
 end
 
 -- This function is called before the game loads its
@@ -87,7 +87,7 @@ function onGameInit()
 	AddTeam(loc("Grenadiers"), 14483456, "Simple", "Island", "Default")
 	-- And add a hog to it
 	player = AddHog(loc("Nade Boy"), 0, 1, "war_grenadier1")
-	SetGearPosition(player, 1530, 1100)
+	SetGearPosition(player, 506, 76)
 end
 
 -- This function is called when the round starts
@@ -107,7 +107,7 @@ function onGameStart()
 end
 
 function onNewTurn()
-	ParseCommand("setweap " .. string.char(amGrenade))
+	SetWeapon(amGrenade)
 end
 
 -- This function is called every game tick.
@@ -134,14 +134,14 @@ function onGameTick20()
 		if end_timer == 0 then
 			-- Override the 'Draw' message with the appropriate message.
 			if game_lost then
-				AddCaption("Mission lost!", 0xffba00ff,capgrpGameState)
+				AddCaption(loc("Mission lost!"), 0xffba00ff,capgrpGameState)
 			else
-				AddCaption("Mission won!", 0xffba00ff,capgrpGameState)
+				AddCaption(loc("Mission won!"), 0xffba00ff,capgrpGameState)
 			end
 			-- Remove the team to end the game. Only do this once.
 			if team_death == false then
 				team_death = true
-				ParseCommand("teamgone " .. "Grenadiers")
+				DismissTeam(loc("Grenadiers"))
 			end
 		else
 			-- ... or just lower the timer by 1.

@@ -54,8 +54,10 @@
 00:51=Blatová guľa
 00:52=Žiadna zbraň nie je vybraná
 00:53=TARDIS
-00:54=Budova
-00:55=Postrek zeme
+; 00:54=Budova
+00:54=Postrek zeme
+00:55=Zmrazovač
+00:56=Sekáčik
 
 01:00=Do boja!
 01:01=Remíza
@@ -78,6 +80,7 @@
 01:18=Vysoký
 01:19=Extrémny
 01:20=%1 odskok
+01:21=Vypnutý zvuk
 
 ; Správy o udalostiach
 ; Ježko (%1) zomrel
@@ -266,8 +269,8 @@
 03:51=Nájdené na zemi
 03:52=NEPOUŽÍVANÉ
 03:53=Typ 40
-03:54=Postavte niečo
-03:55=Pomôcka
+;03:54=Postavte niečo
+03:54=Pomôcka
 
 ; Popis zbraní (ako oddeľovač riadkov použite |)
 04:00=Zaútočte na vašich nepriateľov obyčajným granátom.|Vybuchne vtedy, keď vyprší časomiera.|1‐5: Nastavenie časovača granátu|Útok: Držanie tlačidla zvyšuje silu hodu|
@@ -324,8 +327,8 @@
 04:51=Nemíňajte muníciu - hod blatom je zdarma.|Trošku štípe a dokáže ježka zhodiť.
 04:52=NEPOUŽITÉ
 04:53=Vyberte sa na cestu časom a priestorom|a nechajte vašich priateľov bojovať bez vás.|Buďte pripravený vrátiť sa kedykoľvek,|buď pri Náhlej smrti alebo keď sú všetci porazení.|Poznámka: Nefunguje počas Náhlej smrti,|ak ste sám alebo ak ste kráľom.
-04:54=NEKOMPLETNÉ
-04:55=Rozprášte prúd lepkavej hliny.|Postavte mosty, pochovajte nepriateľov,|zapečaťte tunely. Buďte|však opatrný a nezašpinte sa|od nej aj vy.
+;04:54=NEKOMPLETNÉ
+04:54=Rozprášte prúd lepkavej hliny.|Postavte mosty, pochovajte nepriateľov,|zapečaťte tunely. Buďte|však opatrný a nezašpinte sa|od nej aj vy.
 
 
 ; Reťazce pre ciele hry

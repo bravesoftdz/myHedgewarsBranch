@@ -54,8 +54,11 @@
 00:51=Kula błotna
 00:52=Nie wybrano broni
 00:53=TARDIS
-00:54=Budynek
-00:55=Miotacz błota
+; 00:54=Budynek
+00:54=Miotacz błota
+00:55=Zamrażarka
+00:56=Tasak
+00:57=Guma
 
 01:00=Walczmy!
 01:01=Remis
@@ -78,6 +81,10 @@
 01:18=Duże
 01:19=Ekstremalne
 01:20=%1 odbicie
+01:21=Dźwięk wyciszony
+01:22=Tryb AFK
+01:23=Automatyczne wyłączanie kamery
+01:24=Automatyczne włączanie kamery
 
 ; Event messages
 ; Hog (%1) died
@@ -171,7 +178,7 @@
 02:01=%1 śpi z rybami
 02:01=%1 uważa, że fizyka płynów w tej grze jest do bani!
 02:01=%1 wygląda na spragnionego
-02:01=Morze Ciebie wzywa, %1
+02:01=Morze Cię wzywa, %1
 02:01=%1 zaginął na morzu
 02:01=%1 powinien przynieść zestaw do nurkowania
 02:01=%1 ma pogrzeb na morzu
@@ -190,7 +197,6 @@
 02:01=%1 będzie grał w "Uwolnić Orkę"
 02:01=%1 szuka rybek do akwarium!
 02:01=%1 odnalazł Atlantydę!
-02:01=%1 chce być główną postacią w Bioshock 3
 02:01=Trzeba było się uczyć pływać...
 02:01=%1 powinien ze sobą zabrać narty wodne
 02:01=%1 nie lubi sportów wodnych
@@ -244,14 +250,14 @@
 02:02=Możesz uważać się za szczęśliwca jeżeli nie grasz przeciwko Jessorowi
 02:02=Dajcie z siebie wszystko!
 02:02=Przegrany sprząta teren.
-02:02=Niech rozpocznie się walka millenium 
-02:02=Niech rozpocznie się walka wieku 
-02:02=Niech rozpocznie się walka dekady 
+02:02=Niech rozpocznie się walka millenium
+02:02=Niech rozpocznie się walka wieku
+02:02=Niech rozpocznie się walka dekady
 02:02=Niech rozpocznie się walka roku
 02:02=Niech rozpocznie się walka miesiąca
 02:02=Niech rozpocznie się walka tygodnia
 02:02=Niech rozpocznie się walka dnia
-02:02=Niech rozpocznie się walka godziny 
+02:02=Niech rozpocznie się walka godziny
 02:02=Graj jak najlepiej!
 02:02=Zniszcz przeciwnika!
 02:02=Powodzenia
@@ -284,7 +290,7 @@
 02:05=Dobre życie... w formie skrzyneczki!
 02:05=Ktoś dzwonił po doktora?
 02:05=Świeże bandaże!
-02:05=To pomoże poczuć się Tobie lepiej
+02:05=Po tym poczujesz sie lepiej!
 02:05=Pomniejszy Eliksir Żywotności! Eeee... To chyba nie ta nazwa.
 02:05=Zbierz mnie!
 02:05=Zbierz to!
@@ -307,6 +313,7 @@
 02:05=W Hedgewars opieka zdrowotna naprawdę wymiata!
 02:05=Na zdrowie!
 02:05=Szczepionka!
+02:05=Ostatnio coś niewyraźnie wyglądasz. Weź tę apteczkę!
 
 ; New ammo crate
 02:06=Więcej broni!
@@ -537,8 +544,11 @@
 03:51=Znalezione na ziemi
 03:52=UNUSED
 03:53=Typ 40
-03:54=Zbuduj coś przydatnego
-03:55=Narzędzie
+;03:54=Zbuduj coś przydatnego
+03:54=Narzędzie
+03:55=Przełammy lody!
+03:56=Nie przytnij sobie igieł!
+03:57=Narzędzie
 
 ; Weapon Descriptions (use | as line breaks)
 04:00=Atakuj przeciwników zwykłym granatem.|Wybuchnie kiedy zapalnik skończy odliczanie.|1-5: Ustawia zapalnik|Atak: Przytrzymaj by rzucić z większą siłą
@@ -546,9 +556,9 @@
 04:02=Atakuj przeciwników pociskiem balistycznym,|który jest podatny na wiatr.|Atak: Przytrzymaj by strzelić z większą siłą
 04:03=Wypuść zdenerwowaną Pszczołę, która "użądli"|zaznaczony cel. By zwiększyć precyzję nie|strzelaj pełną mocą|Kursor: Wybierz cel|Atak: Przytrzymaj by strzelić z większą siłą
 04:04=Atakuj przeciwników strzelbą z dwoma strzałami.|Działa obszarowo, więc nie musisz dokładnie|celować by zranić przeciwników.|Atak: Strzel (kilka razy)
-04:05=Schowaj się pod ziemię! Użyj młota pneumatycznego|do wywiercenia dziury w podłożu i dostania się do|innych miejsc.|Atak: Zacznij/Zakończ kopać 
+04:05=Schowaj się pod ziemię! Użyj młota pneumatycznego|do wywiercenia dziury w podłożu i dostania się do|innych miejsc.|Atak: Zacznij/Zakończ kopać
 04:06=Znudzony? Brak motywacji do ataku? Oszczędzasz broń?|No problemo! Po prostu pomiń turę, tchórzu!|Atak: Pomiń turę bez walki
-04:07=Skróć wielkie odległości używając liny. Rozpędź się|by wślizgnąć się w inne jeże lub upuścić na nich|granat albo inną broń.|Atak: Rozwiń albo odłącz linę|Długi skok: Upuść granat lub podobną broń      
+04:07=Skróć wielkie odległości używając liny. Rozpędź się|by wślizgnąć się w inne jeże lub upuścić na nich|granat albo inną broń.|Atak: Rozwiń albo odłącz linę|Długi skok: Upuść granat lub podobną broń
 04:08=Trzymaj przeciwników na dystans przez upuszczenie|miny w wąskim przejściu lub zaraz obok ich stóp. I nie|zapomnij uciec zanim się włączy!|Atak: Upuść minę obok siebie
 04:09=Niepewny co do umiejętności w celowaniu?|Weź pistolet i powystrzelaj ich jak kaczki.|Atak: Strzel (kilka razy)
 04:10=Brutalna siła zawsze jest rozwiązaniem. Upuść ten|wybuchową laskę dynamitu obok przeciwnika i|uciekaj gdzie pieprz rośnie.|Atak: Upuść dynamit obok siebie
@@ -562,15 +572,15 @@
 04:18=Potrzebujesz dodatkowej ochrony albo chcesz|przejść przez teren nie do przejścia? Umieść|konstrukcje gdzie chcesz.|Lewo/Prawo: Wybierz konstrukcję do umieszczenia|Kursor: Umieść konstrukcję w odpowiednim miejscu
 04:19=Teleport użyty w odpowiednim momencie, staje|się potężniejszy niż każda inna broń,|ponieważ potrafi wyzwolić jeża z tarapatów|w przeciągu sekund.|Kursor: Wybierz region
 04:20=Pozwala w tej turze zagrać innym jeżem.|Atak: Uaktywnij wybieranie jeża
-04:21=Odpal moździerz, który po uderzeniu|wypuści kilka bomb.|Atak: Strzel z całą mocą      
+04:21=Odpal moździerz, który po uderzeniu|wypuści kilka bomb.|Atak: Strzel z całą mocą
 04:22=Nie tylko dla Indiana Jones! Ten bicz może|być użyteczny w wielu wypadkach. Szczególnie|kiedy chcesz kogoś zrzucić z urwiska.|Atak: Ubiczuj wszystko co jest przed tobą
 04:23=Jeśli nie masz nic do stracenia, ten atak może być|całkiem użyteczny. Poświęć swojego jeża i poślij|go w odpowiednim kierunku, raniąc wszystkich po|drodze i eksplodując na końcu.|Atak: Odpal tę niszczycielską i zabójczą technikę
 04:24=Sto lat! Uruchom ciasto i pozwól mu pójść w stronę|twoich przeciwników urządzając im wybuchowe przyjęcie.|Może chodzić prawie po wszystkim, ale wtedy|wcześniej eksploduje.|Atak: Odpal ciasto albo zatrzymaj je, by wybuchło
 04:25=Użyj kostiumu by sprawić, żeby twój wróg zakochał się|w Tobie (i spadł w przepaść lub dziurę).|Atak: Użyj kostiumu i uwiedź jeża
 04:26=Rzuć tego smacznego arbuza w przeciwników. Kiedy jego|zapalnik wskaże zero, podzieli się na mniejsze kawałki.|1-5: Ustawia zapalnik arbuza|Atak: Przytrzymaj by rzucić z większą siłą
 04:27=Niech ognie piekielne ogarną twoich przeciwników!|Nie podchodź zbyt blisko po wybuchu, gdyż ogień|pali się przez dłuższy czas|Atak: Przytrzymaj by rzucić z większą siłą
-04:28=Krótko po wystrzeleniu, rakieta zacznie wiercić tunel w ziemi|i eksploduje gdy zapalnik zostanie uruchomiony lub|jeśli pojawi się po drugiej stronie terenu.|Atak: Przytrzymaj by strzelić z większą siłą   
-04:29=Tego nie powinny używać dzieci!|Pistolet na kulki wystrzeliwuje tony małych|kolorowych kulek wypełnionych materiałem wybuchowym.|Atak: Strzel kulkami|Góra/Dół: Kontynuuj celowanie      
+04:28=Krótko po wystrzeleniu, rakieta zacznie wiercić tunel w ziemi|i eksploduje gdy zapalnik zostanie uruchomiony lub|jeśli pojawi się po drugiej stronie terenu.|Atak: Przytrzymaj by strzelić z większą siłą
+04:29=Tego nie powinny używać dzieci!|Pistolet na kulki wystrzeliwuje tony małych|kolorowych kulek wypełnionych materiałem wybuchowym.|Atak: Strzel kulkami|Góra/Dół: Kontynuuj celowanie
 04:30=Wezwij samolot, żeby zrzucić dużą ilość|napalmu. Dzięki dobremu celowi ten atak|może zlikwidować dużą część mapy, w tym|znajdujące się tam nieszczęsne jeże.|Lewo/Prawo: Określ kierunek ataku|Kursor: Wybierz region
 04:31=Zaatakuj odległych przeciwników, bądź zbierz|skrzynki! Nie zapomnij o zrzuceniu bomb!|Góra/Dół: Steruj samolotem|Atak: Zrzuć bombę (3x) |Długi skok: Niech walkirie wkroczą na pole bitwy!
 04:32=Niska grawitacja jest lepsza od diety! Skacz|wyżej i dalej albo pozwól przeciwnikom fruwać.|Atak: Aktywuj
@@ -595,8 +605,11 @@
 04:51=Obrzuć kogoś błotem! Broń ta nie zadaje dużych|obrażeń ale może Gogol zepchnąć z krawędzi!|Atak: Przytrzymaj by strzelić z większą siłą
 04:52=UNUSED
 04:53=Wybierz się na podróż w czasie i przestrzeni|zostawiając inne jeże na polu walki.|Bądź przygotowany na powrót w dowolnym momencie.|Gdy rozpocznie się|Nagła Śmierć lub większość jeży zostanie wybita.|Uwaga. Nie zadziała podczas Nagłej Śmierci,|gdy jesteś sam lub jeśli jesteś Królem.
-04:54=INCOMPLETE                                                                                                                                     
-04:55=Wystrzel strumień kleistej mazi.|Buduj mosty, zasypuj wrogów, zatykaj tunele.|Uważaj by nie zasypać samego siebie!
+;04:54=INCOMPLETE
+04:54=Wystrzel strumień kleistej mazi.|Buduj mosty, zasypuj wrogów, zatykaj tunele.|Uważaj by nie zasypać samego siebie!
+04:55=Epoka lodowcowa powraca!!|Zamroź jeże, uczyń podłoże śliskim lub zapobiegnij|utonięciu zamrażając wodę.|Atak: Strzał
+04:56=Rzuć w przeciwnika dwoma tasakami i zablokuj mu |drogę lub użyj ich do wspinaczki! Jednak uważaj! |Te tasaki są naprawdę ostre!|Atak: Przytrzymaj by rzucić z większą siłą (dwukrotnie)
+04:57=Budowanie elastyczny pasek wykonany z gumy,|z których jeże i inne rzeczy|odbijają się bez obrażeń upadku.|Lewo/Prawo: Zmiana orientacji pasek gumy|Kursor: Umieść pasek gumy w aktualnej pozycji
 
 ; Game goal strings
 05:00=Ustawienia gry

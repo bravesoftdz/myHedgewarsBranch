@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 #define _SDL_thread_h
 
 /** @file SDL_thread.h
- *  Header for the SDL thread management routines 
+ *  Header for the SDL thread management routines
  *
  *  @note These are independent of the other SDL routines.
  */
@@ -66,16 +66,11 @@ typedef struct SDL_Thread SDL_Thread;
 #endif
 
 #ifdef __OS2__
-typedef int (*pfnSDL_CurrentBeginThread)(void (*func)(void *), void *, unsigned, void *arg); 
+typedef int (*pfnSDL_CurrentBeginThread)(void (*func)(void *), void *, unsigned, void *arg);
 typedef void (*pfnSDL_CurrentEndThread)(void);
-#elif __GNUC__
-typedef unsigned long (__cdecl *pfnSDL_CurrentBeginThread) (void *, unsigned,
-        unsigned (__stdcall *func)(void *), void *arg, 
-        unsigned, unsigned *threadID);
-typedef void (__cdecl *pfnSDL_CurrentEndThread)(unsigned code);
 #else
 typedef uintptr_t (__cdecl *pfnSDL_CurrentBeginThread) (void *, unsigned,
-        unsigned (__stdcall *func)(void *), void *arg, 
+        unsigned (__stdcall *func)(void *), void *arg,
         unsigned, unsigned *threadID);
 typedef void (__cdecl *pfnSDL_CurrentEndThread)(unsigned code);
 #endif

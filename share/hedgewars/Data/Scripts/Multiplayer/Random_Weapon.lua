@@ -1,10 +1,10 @@
 -- Random Weapons, example for gameplay scripts
 
 -- Load the library for localisation ("loc" function)
-loadfile(GetDataPath() .. "Scripts/Locale.lua")()
+HedgewarsScriptLoad("/Scripts/Locale.lua")
 
 -- Load the gear tracker
-loadfile(GetDataPath() .. "Scripts/Tracker.lua")()
+HedgewarsScriptLoad("/Scripts/Tracker.lua")
 
 -- List of available weapons
 local weapons = { amGrenade, amClusterBomb, amBazooka, amBee, amShotgun,
@@ -46,7 +46,8 @@ end
 
 function onGameInit()
     -- Limit flags that can be set, but allow game schemes to be used
-    GameFlags = band(bor(GameFlags, gfResetWeps), bnot(gfInfAttack))
+    DisableGameFlags(gfInfAttack)
+    EnableGameFlags(gfResetWeps)
     -- Set a custom game goal that will show together with the scheme ones
     Goals = loc("Each turn you get one random weapon")
 end

@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -25,8 +25,12 @@
 #include "SDL_mixer.h"
 
 #include "HWApplication.h"
+#include "hwform.h" /* you know, we could just put a config singleton lookup function in gameuiconfig or something... */
+#include "gameuiconfig.h"
 
 #include "SDLInteraction.h"
+
+#include "physfsrwops.h"
 
 extern char sdlkeys[1024][2][128];
 extern char xb360buttons[][128];
@@ -50,6 +54,7 @@ SDLInteraction::SDLInteraction()
     m_music = NULL;
     m_musicTrack = "";
     m_isPlayingMusic = false;
+    lastchannel = 0;
     if(SDL_NumJoysticks())
         addGameControllerKeys();
     SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
@@ -171,6 +176,9 @@ void SDLInteraction::addGameControllerKeys() const
         SDL_JoystickClose(joy);
     }
 
+    if(i >= 1024)
+        i = 1023;
+
     // Terminate the list
     sdlkeys[i][0][0] = '\0';
     sdlkeys[i][1][0] = '\0';
@@ -184,16 +192,18 @@ void SDLInteraction::SDLAudioInit()
         return;
 
     SDL_Init(SDL_INIT_AUDIO);
-    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
-    m_audioInitialized = true;
+    if(!Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024)) /* should we keep trying, or just turn off permanently? */
+        m_audioInitialized = true;
 }
 
 
 void SDLInteraction::playSoundFile(const QString & soundFile)
 {
+    if (!HWForm::config || !HWForm::config->isFrontendSoundEnabled()) return;
     SDLAudioInit();
+    if (!m_audioInitialized) return;
     if (!m_soundMap->contains(soundFile))
-        m_soundMap->insert(soundFile, Mix_LoadWAV(soundFile.toLocal8Bit().constData()));
+        m_soundMap->insert(soundFile, Mix_LoadWAV_RW(PHYSFSRWOPS_openRead(soundFile.toLocal8Bit().constData()), 1));
 
     //FIXME: this is a hack, but works as long as we have few concurrent playing sounds
     if (Mix_Playing(lastchannel) == false)
@@ -230,11 +240,12 @@ void SDLInteraction::startMusic()
         return;
 
     SDLAudioInit();
+    if (!m_audioInitialized) return;
 
     if (m_music == NULL)
-        m_music = Mix_LoadMUS(m_musicTrack.toLocal8Bit().constData());
+        m_music = Mix_LoadMUS_RW(PHYSFSRWOPS_openRead(m_musicTrack.toLocal8Bit().constData()));
 
-    Mix_VolumeMusic(MIX_MAX_VOLUME - 28);
+    Mix_VolumeMusic(MIX_MAX_VOLUME/4);
     Mix_FadeInMusic(m_music, -1, 1750);
 }
 

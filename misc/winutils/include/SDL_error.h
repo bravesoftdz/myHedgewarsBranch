@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-/** 
+/**
  *  @name Public functions
  */
 /*@{*/
@@ -50,15 +50,15 @@ extern DECLSPEC void SDLCALL SDL_ClearError(void);
  *  @internal Private error message function - used internally
  */
 /*@{*/
-#define SDL_OutOfMemory()	SDL_Error(SDL_ENOMEM)
-#define SDL_Unsupported()	SDL_Error(SDL_UNSUPPORTED)
+#define SDL_OutOfMemory()   SDL_Error(SDL_ENOMEM)
+#define SDL_Unsupported()   SDL_Error(SDL_UNSUPPORTED)
 typedef enum {
-	SDL_ENOMEM,
-	SDL_EFREAD,
-	SDL_EFWRITE,
-	SDL_EFSEEK,
-	SDL_UNSUPPORTED,
-	SDL_LASTERROR
+    SDL_ENOMEM,
+    SDL_EFREAD,
+    SDL_EFWRITE,
+    SDL_EFSEEK,
+    SDL_UNSUPPORTED,
+    SDL_LASTERROR
 } SDL_errorcode;
 extern DECLSPEC void SDLCALL SDL_Error(SDL_errorcode code);
 /*@}*/

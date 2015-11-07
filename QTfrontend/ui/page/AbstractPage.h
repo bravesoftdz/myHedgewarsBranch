@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -70,19 +70,42 @@ class AbstractPage : public QWidget
         *
         * @param text the defaut desc
         */
-        void setDefautDescription(QString text);
+        void setDefaultDescription(QString text);
 
         /**
         * @brief Get the desc defaut text
         */
-        QString * getDefautDescription();
+        QString * getDefaultDescription();
 
     signals:
+
         /**
          * @brief This signal is emitted when going back to the previous is
          * requested - e.g. when the back-button is clicked.
          */
         void goBack();
+
+        /**
+         * @brief This signal is emitted when the page is displayed
+         */
+        void pageEnter();
+
+        /**
+         * @brief This signal is emitted when this page is left
+         */
+        void pageLeave();
+
+    public slots:
+
+        /**
+         * @brief This slot is called to trigger this page's pageEnter signal
+         */
+        void triggerPageEnter();
+
+        /**
+         * @brief This slot is called to trigger this page's pageLeave signal
+         */
+        void triggerPageLeave();
 
     protected:
         /**
@@ -121,6 +144,17 @@ class AbstractPage : public QWidget
          * @brief Used during page construction.
          * You can implement this method in your subclass.
          *
+         * Use it to define layout (not behavior) of the page's footer to the left of the help text.
+         */
+        virtual QLayout * footerLayoutLeftDefinition()
+        {
+            return NULL;
+        };
+
+        /**
+         * @brief Used during page construction.
+         * You can implement this method in your subclass.
+         *
          * This is a good place to connect signals within your page in order
          * to get the desired page behavior.<br />
          * Keep in mind not to expose twidgets as public!
@@ -138,6 +172,7 @@ class AbstractPage : public QWidget
          * @return the button.
          */
         QPushButtonWithSound * formattedButton(const QString & name, bool hasIcon = false);
+        QPushButton * formattedSoundlessButton(const QString & name, bool hasIcon = false);
 
         /**
          * @brief Creates a default formatted button and adds it to a
@@ -167,6 +202,7 @@ class AbstractPage : public QWidget
          * @return the button.
          */
         QPushButtonWithSound * addButton(const QString & name, QBoxLayout * box, int where, bool hasIcon = false);
+        QPushButton* addSoundlessButton(const QString & name, QBoxLayout * box, int where, bool hasIcon = false);
 
         /**
          * @brief Changes visibility of the back-button.

@@ -1,7 +1,7 @@
 #ifndef COLORWIDGET_H
 #define COLORWIDGET_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QModelIndex>
 
 namespace Ui {
@@ -10,10 +10,10 @@ class ColorWidget;
 
 class QStandardItemModel;
 
-class ColorWidget : public QWidget
+class ColorWidget : public QFrame
 {
     Q_OBJECT
-    
+
 public:
     explicit ColorWidget(QStandardItemModel *colorsModel, QWidget *parent = 0);
     ~ColorWidget();
@@ -24,7 +24,7 @@ public:
 
 signals:
     void colorChanged(int color);
-    
+
 private:
     int m_color;
     QStandardItemModel * m_colorsModel;
@@ -35,6 +35,8 @@ private slots:
 protected:
     void mousePressEvent(QMouseEvent * event);
     void wheelEvent(QWheelEvent * event);
+    void nextColor();
+    void previousColor();
 };
 
 #endif // COLORWIDGET_H

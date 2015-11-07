@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
  */
 
 
@@ -62,7 +62,7 @@
     [seed release];
 
     // perform as if user clicked on an entry
-    NSIndexPath *theIndex = [NSIndexPath indexPathForRow:(random()%[source count]) inSection:0];
+    NSIndexPath *theIndex = [NSIndexPath indexPathForRow:arc4random_uniform((int)[source count]) inSection:0];
     [self tableView:self.tableView didSelectRowAtIndexPath:theIndex];
     if (IS_NOT_POWERFUL([HWUtils modelType]) == NO)
         [self.tableView scrollToRowAtIndexPath:theIndex atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
@@ -150,8 +150,8 @@
 // this set details for a static map (called by didSelectRowAtIndexPath)
 -(void) setDetailsForStaticMap:(NSInteger) index {
     NSArray *source = [self.dataSourceArray objectAtIndex:scIndex];
-    
-    NSString *fileCfg = [[NSString alloc] initWithFormat:@"%@/%@/map.cfg", 
+
+    NSString *fileCfg = [[NSString alloc] initWithFormat:@"%@/%@/map.cfg",
                          (scIndex == 1) ? MAPS_DIRECTORY() : MISSIONS_DIRECTORY(),[source objectAtIndex:index]];
     NSString *contents = [[NSString alloc] initWithContentsOfFile:fileCfg encoding:NSUTF8StringEncoding error:NULL];
     [fileCfg release];
@@ -166,7 +166,7 @@
     else
         max = @"18";
     [self setMaxLabelText:max];
-    
+
     self.themeCommand = [NSString stringWithFormat:@"etheme %@", [split objectAtIndex:0]];
     self.staticMapCommand = [NSString stringWithFormat:@"emap %@", [source objectAtIndex:index]];
 
@@ -179,8 +179,8 @@
 #pragma mark -
 #pragma mark Table view delegate
 -(void) tableView:(UITableView *)aTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    int newRow = [indexPath row];
-    int oldRow = (lastIndexPath != nil) ? [lastIndexPath row] : -1;
+    NSInteger newRow = [indexPath row];
+    NSInteger oldRow = (lastIndexPath != nil) ? [lastIndexPath row] : -1;
 
     if (newRow != oldRow) {
         NSArray *source = [self.dataSourceArray objectAtIndex:scIndex];
@@ -352,12 +352,21 @@
     oldPage = newPage;
 }
 
+- (void)localizeSegmentedControl
+{
+    for (NSUInteger i = 0; i < self.segmentedControl.numberOfSegments; i++)
+    {
+        NSString *oldTitle = [self.segmentedControl titleForSegmentAtIndex:i];
+        [self.segmentedControl setTitle:NSLocalizedString(oldTitle, nil) forSegmentAtIndex:i];
+    }
+}
+
 #pragma mark -
 #pragma mark view management
 -(NSArray *) dataSourceArray {
     if (dataSourceArray == nil) {
         NSString *model = [HWUtils modelType];
-        
+
         // only folders containing icon.png are a valid theme
         NSArray *themeArrayFull = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:THEMES_DIRECTORY() error:NULL];
         NSMutableArray *themeArray = [[NSMutableArray alloc] init];
@@ -367,7 +376,7 @@
                 [themeArray addObject:themeName];
             [checkPath release];
         }
-        
+
         // remove images that are too big for certain devices without loading the whole image
         NSArray *mapArrayFull = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:MAPS_DIRECTORY() error:NULL];
         NSMutableArray *mapArray = [[NSMutableArray alloc] init];
@@ -379,7 +388,7 @@
                 continue;
             [mapArray addObject:str];
         }
-        
+
         NSArray *missionArrayFull = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:MISSIONS_DIRECTORY() error:NULL];
         NSMutableArray *missionArray = [[NSMutableArray alloc] init];
         for (NSString *str in missionArrayFull) {
@@ -394,7 +403,7 @@
         [missionArray release];
         [themeArray release];
         [mapArray release];
-        
+
         self.dataSourceArray = array;
         [array release];
     }
@@ -403,7 +412,8 @@
 
 -(void) viewDidLoad {
     [super viewDidLoad];
-    srandom(time(NULL));
+    
+    [self localizeSegmentedControl];
     
     // initialize some "default" values
     self.slider.value = 0.05f;

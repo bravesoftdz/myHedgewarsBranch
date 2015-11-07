@@ -1,16 +1,16 @@
-#version 130
 
-in vec2 vertex;
-in vec2 texcoord;
-in vec4 colors;
 
-out vec2 tex;
+attribute vec2 vertex;
+attribute vec2 texcoord;
+attribute vec4 colors;
+
+varying vec2 tex;
 
 uniform mat4 mvp;
 
 void main()
 {
-    vec4 p = mvp * vec4(vertex, 0.0f, 1.0f);
+    vec4 p = mvp * vec4(vertex, 0.0, 1.0);
     gl_Position = p;
     tex = texcoord;
 }

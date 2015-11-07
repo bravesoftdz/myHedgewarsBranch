@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QGridLayout>
@@ -72,7 +72,12 @@ QLayout * PageNet::footerLayoutDefinition()
 
     BtnNetSvrStart = formattedButton(QPushButton::tr("Start server"));
     BtnNetSvrStart->setMinimumWidth(180);
-    BtnNetSvrStart->setVisible(haveServer);
+    QString serverPath = bindir->absolutePath() + "/hedgewars-server";
+#ifdef Q_OS_WIN
+    serverPath += + ".exe";
+#endif
+    QFile server(serverPath);
+    BtnNetSvrStart->setVisible(server.exists());
 
     footerLayout->addStretch();
     footerLayout->addWidget(BtnNetSvrStart);
@@ -108,7 +113,12 @@ void PageNet::slotConnect()
     QModelIndex mi = tvServersList->currentIndex();
     if(!mi.isValid())
     {
-        QMessageBox::information(this, tr("Error"), tr("Please select server from the list above"));
+        QMessageBox serverMsg(this);
+        serverMsg.setIcon(QMessageBox::Warning);
+        serverMsg.setWindowTitle(QMessageBox::tr("Netgame - Error"));
+        serverMsg.setText(QMessageBox::tr("Please select a server from the list"));
+        serverMsg.setWindowModality(Qt::WindowModal);
+        serverMsg.exec();
         return;
     }
     QString host = model->index(mi.row(), 1).data().toString();

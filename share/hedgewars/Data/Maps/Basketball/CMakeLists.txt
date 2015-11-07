@@ -1,7 +1,6 @@
 install(FILES
-	map.png
-	map.cfg
-	map.lua
-	mask.png
-	preview.png
-	DESTINATION ${SHAREPATH}Data/Maps/Basketball)
+    map.cfg
+    map.lua
+    preview.png
+    desc.txt
+    DESTINATION ${SHAREPATH}Data/Maps/Basketball)

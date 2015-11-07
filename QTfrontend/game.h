@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef GAME_H
@@ -29,6 +29,18 @@ class GameUIConfig;
 class GameCFGWidget;
 class TeamSelWidget;
 
+enum GameType
+{
+    gtNone     = 0,
+    gtLocal    = 1,
+    gtQLocal   = 2,
+    gtDemo     = 3,
+    gtNet      = 4,
+    gtTraining = 5,
+    gtCampaign = 6,
+    gtSave     = 7,
+};
+
 enum GameState
 {
     gsNotStarted = 0,
@@ -40,7 +52,21 @@ enum GameState
     gsHalted = 6
 };
 
+enum RecordType
+{
+    rtDemo,
+    rtSave,
+    rtNeither,
+};
+
 bool checkForDir(const QString & dir);
+
+// last game info
+extern QList<QVariant> lastGameStartArgs;
+extern GameType lastGameType;
+extern GameCFGWidget * lastGameCfg;
+extern QString lastGameAmmo;
+extern TeamSelWidget * lastGameTeamSel;
 
 class HWGame : public TCPBase
 {
@@ -54,7 +80,7 @@ class HWGame : public TCPBase
         void StartQuick();
         void StartNet();
         void StartTraining(const QString & file);
-        void StartCampaign(const QString & file);
+        void StartCampaign(const QString & camp, const QString & campScript, const QString & campTeam);
         void abort();
         GameState gameState;
         bool netSuspend;
@@ -70,30 +96,23 @@ class HWGame : public TCPBase
         void SendTeamMessage(const QString & msg);
         void GameStateChanged(GameState gameState);
         void GameStats(char type, const QString & info);
-        void HaveRecord(bool isDemo, const QByteArray & record);
+        void HaveRecord(RecordType type, const QByteArray & record);
         void ErrorMessage(const QString &);
+        void CampStateChanged(int);
+        void SendConsoleCommand(const QString & command);
 
     public slots:
         void FromNet(const QByteArray & msg);
         void FromNetChat(const QString & msg);
 
     private:
-        enum GameType
-        {
-            gtLocal    = 1,
-            gtQLocal   = 2,
-            gtDemo     = 3,
-            gtNet      = 4,
-            gtTraining = 5,
-            gtCampaign = 6,
-            gtSave     = 7,
-        };
         char msgbuf[MAXMSGCHARS];
         QString ammostr;
         GameUIConfig * config;
         GameCFGWidget * gamecfg;
         TeamSelWidget* m_pTeamSelWidget;
         GameType gameType;
+        QByteArray m_netSendBuffer;
 
         void commonConfig();
         void SendConfig();
@@ -103,6 +122,9 @@ class HWGame : public TCPBase
         void SendCampaignConfig();
         void ParseMessage(const QByteArray & msg);
         void SetGameState(GameState state);
+        void sendCampaignVar(const QByteArray & varToSend);
+        void writeCampaignVar(const QByteArray &varVal);
+        void flushNetBuffer();
 };
 
 #endif

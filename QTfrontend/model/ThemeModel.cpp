@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -21,12 +21,16 @@
  * @brief ThemeModel class implementation
  */
 
+#include "physfs.h"
 #include "ThemeModel.h"
+#include "hwconsts.h"
 
 ThemeModel::ThemeModel(QObject *parent) :
     QAbstractListModel(parent)
 {
     m_data = QList<QMap<int, QVariant> >();
+
+    m_themesLoaded = false;
 }
 
 int ThemeModel::rowCount(const QModelIndex &parent) const
@@ -34,7 +38,11 @@ int ThemeModel::rowCount(const QModelIndex &parent) const
     if(parent.isValid())
         return 0;
     else
+    {
+        if(!m_themesLoaded)
+            loadThemes();
         return m_data.size();
+    }
 }
 
 
@@ -43,13 +51,20 @@ QVariant ThemeModel::data(const QModelIndex &index, int role) const
     if(index.column() > 0 || index.row() >= m_data.size())
         return QVariant();
     else
+    {
+        if(!m_themesLoaded)
+            loadThemes();
+
         return m_data.at(index.row()).value(role);
+    }
 }
 
 
-void ThemeModel::loadThemes()
+void ThemeModel::loadThemes() const
 {
-    beginResetModel();
+    qDebug("[LAZINESS] ThemeModel::loadThemes()");
+
+    m_themesLoaded = true;
 
 
     DataManager & datamgr = DataManager::instance();
@@ -66,32 +81,31 @@ void ThemeModel::loadThemes()
     foreach (QString theme, themes)
     {
         // themes without icon are supposed to be hidden
-        QString iconpath =
-            datamgr.findFileForRead(QString("Themes/%1/icon.png").arg(theme));
+        QString iconpath = QString("physfs://Themes/%1/icon.png").arg(theme);
 
         if (!QFile::exists(iconpath))
             continue;
 
         QMap<int, QVariant> dataset;
 
-        // set name
-        dataset.insert(Qt::DisplayRole, theme);
+        // detect if theme is dlc
+        QString themeDir = PHYSFS_getRealDir(QString("Themes/%1/icon.png").arg(theme).toLocal8Bit().data());
+        bool isDLC = !themeDir.startsWith(datadir->absolutePath());
+        dataset.insert(IsDlcRole, isDLC);
 
-        // load and set icon
-        QIcon icon(iconpath);
-        dataset.insert(Qt::DecorationRole, icon);
+        // set icon path
+        dataset.insert(IconPathRole, iconpath);
+
+        // set name
+        dataset.insert(ActualNameRole, theme);
+
+        // set displayed name
+        dataset.insert(Qt::DisplayRole, (isDLC ? "*" : "") + theme);
 
         // load and set preview icon
-        QIcon preview(datamgr.findFileForRead(QString("Themes/%1/icon@2x.png").arg(theme)));
-        dataset.insert(Qt::UserRole, preview);
+        QIcon preview(QString("physfs://Themes/%1/icon@2x.png").arg(theme));
+        dataset.insert(Qt::DecorationRole, preview);
 
         m_data.append(dataset);
     }
-
-
-    endResetModel();
 }
-
-
-
-

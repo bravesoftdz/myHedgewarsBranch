@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QVBoxLayout>
@@ -27,10 +27,8 @@
 #include "pagetraining.h"
 #include "pagenetserver.h"
 #include "pageoptions.h"
-#include "pagefeedback.h"
 #include "pageingame.h"
 #include "pagescheme.h"
-#include "pagenettype.h"
 #include "pageroomslist.h"
 #include "pageinfo.h"
 #include "pagenetgame.h"
@@ -46,6 +44,7 @@
 #include "pagegamestats.h"
 #include "pageplayrecord.h"
 #include "pagedata.h"
+#include "pagevideos.h"
 #include "hwconsts.h"
 
 void Ui_HWForm::setupUi(HWForm *HWForm)
@@ -55,11 +54,15 @@ void Ui_HWForm::setupUi(HWForm *HWForm)
     HWForm->setObjectName(QString::fromUtf8("HWForm"));
     HWForm->resize(QSize(640, 480).expandedTo(HWForm->minimumSizeHint()));
     HWForm->setMinimumSize(QSize(720, 450));
-    HWForm->setWindowTitle(QMainWindow::tr("Hedgewars %1").arg(*cVersionString));
+    QString title = QMainWindow::tr("Hedgewars %1").arg(*cVersionString);
+#ifdef QT_DEBUG
+    title += QString("-r%1 (%2)").arg(*cRevisionString, *cHashString);
+#endif
+    HWForm->setWindowTitle(title);
     centralWidget = new QWidget(HWForm);
     centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
 
-    SetupPages(centralWidget, HWForm);
+    SetupPages(centralWidget);
 
     HWForm->setCentralWidget(centralWidget);
 
@@ -73,7 +76,7 @@ void Ui_HWForm::SetupFonts()
     font14 = new QFont("MS Shell Dlg", 14);
 }
 
-void Ui_HWForm::SetupPages(QWidget *Parent, HWForm *HWForm)
+void Ui_HWForm::SetupPages(QWidget *Parent)
 {
     Pages = new QStackedLayout(Parent);
 
@@ -92,7 +95,7 @@ void Ui_HWForm::SetupPages(QWidget *Parent, HWForm *HWForm)
     pageNet = new PageNet();
     Pages->addWidget(pageNet);
 
-    pageNetGame = new PageNetGame(Parent, HWForm->gameSettings);
+    pageNetGame = new PageNetGame(Parent);
     Pages->addWidget(pageNetGame);
 
     pageInfo = new PageInfo();
@@ -119,7 +122,7 @@ void Ui_HWForm::SetupPages(QWidget *Parent, HWForm *HWForm)
     pageInGame = new PageInGame();
     Pages->addWidget(pageInGame);
 
-    pageRoomsList = new PageRoomsList(Parent, HWForm->gameSettings);
+    pageRoomsList = new PageRoomsList(Parent);
     Pages->addWidget(pageRoomsList);
 
     pageConnecting = new PageConnecting();
@@ -131,9 +134,6 @@ void Ui_HWForm::SetupPages(QWidget *Parent, HWForm *HWForm)
     pageAdmin = new PageAdmin();
     Pages->addWidget(pageAdmin);
 
-    pageNetType = new PageNetType();
-    Pages->addWidget(pageNetType);
-
     pageCampaign = new PageCampaign();
     Pages->addWidget(pageCampaign);
 
@@ -143,6 +143,6 @@ void Ui_HWForm::SetupPages(QWidget *Parent, HWForm *HWForm)
     pageDataDownload = new PageDataDownload();
     Pages->addWidget(pageDataDownload);
 
-    pageFeedback = new PageFeedback();
-    Pages->addWidget(pageFeedback);
+    pageVideos = new PageVideos();
+    Pages->addWidget(pageVideos);
 }

@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QFile>
@@ -62,8 +62,43 @@ void DrawMapWidget::resizeEvent(QResizeEvent * event)
 {
     Q_UNUSED(event);
 
+    int height = this->height();
+    int width = this->width();
+
+    if ((m_scene->height() > 0) && (m_scene->width() > 0) && (height > 0))
+    {
+        qreal saspect = m_scene->width() / m_scene->height();
+
+        qreal h = height;
+        qreal w = width;
+        qreal waspect = w / h;
+
+        if (waspect < saspect)
+        {
+            h = w / saspect;
+        }
+        else if (waspect > saspect)
+        {
+            w = saspect * h;
+        }
+
+        int fixedh = (int)h;
+        int fixedw = (int)w;
+
+        if (ui->graphicsView->width() != fixedw)
+        {
+            ui->graphicsView->setFixedWidth(fixedw);
+        }
+
+        if (ui->graphicsView->height() != fixedh)
+        {
+            ui->graphicsView->setFixedHeight(fixedh);
+        }
+
+    }
+
     if(ui->graphicsView && ui->graphicsView->scene())
-        ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(), Qt::KeepAspectRatio);
+        ui->graphicsView->fitInView(m_scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void DrawMapWidget::showEvent(QShowEvent * event)
@@ -83,9 +118,19 @@ void DrawMapWidget::clear()
     if(m_scene) m_scene->clearMap();
 }
 
+void DrawMapWidget::optimize()
+{
+    if(m_scene) m_scene->optimize();
+}
+
 void DrawMapWidget::setErasing(bool erasing)
 {
     if(m_scene) m_scene->setErasing(erasing);
+}
+
+void DrawMapWidget::setPathType(DrawMapScene::PathType pathType)
+{
+    if(m_scene) m_scene->setPathType(pathType);
 }
 
 void DrawMapWidget::save(const QString & fileName)
@@ -95,7 +140,14 @@ void DrawMapWidget::save(const QString & fileName)
         QFile file(fileName);
 
         if(!file.open(QIODevice::WriteOnly))
-            QMessageBox::warning(this, tr("File error"), tr("Cannot open file '%1' for writing").arg(fileName));
+        {
+            QMessageBox errorMsg(this);
+            errorMsg.setIcon(QMessageBox::Warning);
+            errorMsg.setWindowTitle(QMessageBox::tr("File error"));
+            errorMsg.setText(QMessageBox::tr("Cannot open '%1' for writing").arg(fileName));
+            errorMsg.setWindowModality(Qt::WindowModal);
+            errorMsg.exec();
+        }
         else
             file.write(qCompress(m_scene->encode()).toBase64());
     }
@@ -108,9 +160,17 @@ void DrawMapWidget::load(const QString & fileName)
         QFile f(fileName);
 
         if(!f.open(QIODevice::ReadOnly))
-            QMessageBox::warning(this, tr("File error"), tr("Cannot read file '%1'").arg(fileName));
+        {
+            QMessageBox errorMsg(this);
+            errorMsg.setIcon(QMessageBox::Warning);
+            errorMsg.setWindowTitle(QMessageBox::tr("File error"));
+            errorMsg.setText(QMessageBox::tr("Cannot open '%1' for reading").arg(fileName));
+            errorMsg.setWindowModality(Qt::WindowModal);
+            errorMsg.exec();
+        }
         else
             m_scene->decode(qUncompress(QByteArray::fromBase64(f.readAll())));
+            //m_scene->decode(f.readAll());
     }
 }
 
@@ -142,7 +202,7 @@ void DrawMapView::setScene(DrawMapScene *scene)
     QGraphicsView::setScene(scene);
 }
 
-// Why don't I ever recieve this event?
+// Why don't I ever receive this event?
 void DrawMapView::enterEvent(QEvent *event)
 {
     if(m_scene)

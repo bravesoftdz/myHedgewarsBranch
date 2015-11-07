@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QLabel>
@@ -40,10 +40,15 @@ void FitGraphicsView::resizeEvent(QResizeEvent * event)
 
 QLayout * PageGameStats::bodyLayoutDefinition()
 {
+    kindOfPoints = QString("");
+    defaultGraphTitle = true;
     QGridLayout * pageLayout = new QGridLayout();
     pageLayout->setSpacing(20);
     pageLayout->setColumnStretch(0, 1);
     pageLayout->setColumnStretch(1, 1);
+    pageLayout->setRowStretch(0, 1);
+    pageLayout->setRowStretch(1, 20);
+    //pageLayout->setRowStretch(1, -1); this should work but there is unnecessary empty space betwin lines if used
     pageLayout->setContentsMargins(7, 7, 7, 0);
 
     QGroupBox * gb = new QGroupBox(this);
@@ -61,15 +66,15 @@ QLayout * PageGameStats::bodyLayoutDefinition()
     gbl->addWidget(l);
     gbl->addWidget(labelGameStats);
     gb->setLayout(gbl);
-    pageLayout->addWidget(gb, 1, 1, 1, 2);
+    pageLayout->addWidget(gb, 1, 1);
 
     // graph
     graphic = new FitGraphicsView(gb);
-    l = new QLabel(this);
-    l->setTextFormat(Qt::RichText);
-    l->setText("<br><h1><img src=\":/res/StatsH.png\"> " + PageGameStats::tr("Health graph") + "</h1>");
-    l->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    gbl->addWidget(l);
+    labelGraphTitle = new QLabel(this);
+    labelGraphTitle->setTextFormat(Qt::RichText);
+    labelGraphTitle->setText("<br><h1><img src=\":/res/StatsH.png\"> " + PageGameStats::tr("Health graph") + "</h1>");
+    labelGraphTitle->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    gbl->addWidget(labelGraphTitle);
     gbl->addWidget(graphic);
     graphic->scale(1.0, -1.0);
     graphic->setBackgroundBrush(QBrush(Qt::black));
@@ -97,20 +102,35 @@ QLayout * PageGameStats::bodyLayoutDefinition()
     return pageLayout;
 }
 
+//TODO button placement, image etc
 QLayout * PageGameStats::footerLayoutDefinition()
 {
     QHBoxLayout * bottomLayout = new QHBoxLayout();
 
-    btnSave = addButton(":/res/Save.png", bottomLayout, 0, true);
+    mainNote = new QLabel(this);
+    mainNote->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    mainNote->setWordWrap(true);
+
+    bottomLayout->addWidget(mainNote, 0);
+    bottomLayout->setStretch(0,1);
+
+    btnRestart = addButton(":/res/Start.png", bottomLayout, 1, true);
+    btnRestart->setWhatsThis(tr("Play again"));
+    btnRestart->setFixedWidth(58);
+    btnRestart->setFixedHeight(81);
+    btnRestart->setStyleSheet("QPushButton{margin-top:24px}");
+    btnSave = addButton(":/res/Save.png", bottomLayout, 2, true);
+    btnSave->setWhatsThis(tr("Save"));
     btnSave->setStyleSheet("QPushButton{margin: 24px 0 0 0;}");
-    bottomLayout->setAlignment(btnSave, Qt::AlignRight | Qt::AlignBottom);
 
     return bottomLayout;
 }
 
 void PageGameStats::connectSignals()
 {
+    connect(this, SIGNAL(pageEnter()), this, SLOT(renderStats()));
     connect(btnSave, SIGNAL(clicked()), this, SIGNAL(saveDemoRequested()));
+    connect(btnRestart, SIGNAL(clicked()), this, SIGNAL(restartGameRequested()));
 }
 
 PageGameStats::PageGameStats(QWidget* parent) : AbstractPage(parent)
@@ -132,30 +152,48 @@ void PageGameStats::clear()
     lastColor = 0;
 }
 
+void PageGameStats::restartBtnVisible(bool visible)
+{
+    btnRestart->setVisible(visible);
+}
+
 void PageGameStats::renderStats()
 {
-    QGraphicsScene * scene = new QGraphicsScene();
-
-    QMap<quint32, QVector<quint32> >::const_iterator i = healthPoints.constBegin();
-    while (i != healthPoints.constEnd())
-    {
-        quint32 c = i.key();
-        QColor clanColor = QColor(qRgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
-        QVector<quint32> hps = i.value();
-
-        QPainterPath path;
-        if (hps.size())
-            path.moveTo(0, hps[0]);
-
-        for(int t = 1; t < hps.size(); ++t)
-            path.lineTo(t, hps[t]);
-
-        scene->addPath(path, QPen(c));
-        ++i;
+    graphic->show();
+    labelGraphTitle-> show();
+    if(defaultGraphTitle) {
+        labelGraphTitle->setText("<br><h1><img src=\":/res/StatsH.png\"> " + PageGameStats::tr("Health graph") + "</h1>");
+    } else {
+        defaultGraphTitle = true;
     }
+    // if not health data sent
+    if(healthPoints.size() == 0) {
+        labelGraphTitle->hide();
+        graphic->hide();
+    } else {
+        QGraphicsScene * scene = new QGraphicsScene();
 
-    graphic->setScene(scene);
-    graphic->fitInView(graphic->sceneRect());
+        QMap<quint32, QVector<quint32> >::const_iterator i = healthPoints.constBegin();
+        while (i != healthPoints.constEnd())
+        {
+            quint32 c = i.key();
+            //QColor clanColor = QColor(qRgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
+            QVector<quint32> hps = i.value();
+
+            QPainterPath path;
+            if (hps.size())
+                path.moveTo(0, hps[0]);
+
+            for(int t = 1; t < hps.size(); ++t)
+                path.lineTo(t, hps[t]);
+
+            scene->addPath(path, QPen(c));
+            ++i;
+        }
+
+        graphic->setScene(scene);
+        graphic->fitInView(graphic->sceneRect());
+    }
 }
 
 void PageGameStats::GameStats(char type, const QString & info)
@@ -170,7 +208,8 @@ void PageGameStats::GameStats(char type, const QString & info)
         case 'D' :
         {
             int i = info.indexOf(' ');
-            QString message = "<p><img src=\":/res/StatsBestShot.png\"> " + PageGameStats::tr("The best shot award was won by <b>%1</b> with <b>%2</b> pts.").arg(info.mid(i + 1), info.left(i)) + "</p>";
+            int num = info.left(i).toInt();
+            QString message = "<p><img src=\":/res/StatsBestShot.png\"> " + PageGameStats::tr("The best shot award was won by <b>%1</b> with <b>%2</b> pts.", "", num).arg(info.mid(i + 1), info.left(i)) + "</p>";
             AddStatText(message);
             break;
         }
@@ -197,6 +236,13 @@ void PageGameStats::GameStats(char type, const QString & info)
             healthPoints[clan].append(hp);
             break;
         }
+        case 'g' :
+        {
+            // TODO: change default picture or add change pic capability
+            defaultGraphTitle = false;
+            labelGraphTitle->setText("<br><h1><img src=\":/res/StatsR.png\"> " + info + "</h1>");
+            break;
+        }
         case 'T':   // local team stats
         {
             //AddStatText("<p>local team: " + info + "</p>");
@@ -212,7 +258,11 @@ void PageGameStats::GameStats(char type, const QString & info)
             }
             break;
         }
-
+        case 'p' :
+        {
+            kindOfPoints = info;
+            break;
+        }
         case 'P' :
         {
             int i = info.indexOf(' ');
@@ -249,7 +299,13 @@ void PageGameStats::GameStats(char type, const QString & info)
             }
 
             QString message;
-            QString killstring = PageGameStats::tr("(%1 kill)", "", kills).arg(kills);
+            QString killstring;
+            if(kindOfPoints.compare("") == 0) {
+                killstring = PageGameStats::tr("(%1 kill)", "", kills).arg(kills);
+            } else {
+                killstring = PageGameStats::tr("(%1 %2)", "", kills).arg(kills).arg(kindOfPoints);
+                kindOfPoints = QString("");
+            }
 
             message = QString("<p><h2>%1 %2. <font color=\"%4\">%3</font> ").arg(image, QString::number(playerPosition), playername, clanColor.name()) + killstring + "</h2></p>";
 
@@ -277,6 +333,12 @@ void PageGameStats::GameStats(char type, const QString & info)
             int i = info.indexOf(' ');
             int num = info.left(i).toInt();
             QString message = "<p><img src=\":/res/StatsSkipped.png\"> " + PageGameStats::tr("<b>%1</b> was scared and skipped turn <b>%2</b> times.", "", num).arg(info.mid(i + 1)).arg(num) + "</p>";
+            AddStatText(message);
+            break;
+        }
+        case 'c' :
+        {
+            QString message = "<p><img src=\":/res/StatsCustomAchievement.png\"> "+info+" </p>";
             AddStatText(message);
             break;
         }

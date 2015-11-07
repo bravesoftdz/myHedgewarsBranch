@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,13 +13,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef PAGE_ADMIN_H
 #define PAGE_ADMIN_H
 
 #include "AbstractPage.h"
+
+class QTableWidget;
 
 class PageAdmin : public AbstractPage
 {
@@ -32,6 +34,7 @@ class PageAdmin : public AbstractPage
         void serverMessageNew(const QString & str);
         void serverMessageOld(const QString & str);
         void protocol(int proto);
+        void setBansList(const QStringList & bans);
 
     signals:
         void setServerMessageNew(const QString & str);
@@ -39,6 +42,10 @@ class PageAdmin : public AbstractPage
         void setProtocol(int proto);
         void askServerVars();
         void clearAccountsCache();
+        void bansListRequest();
+        void removeBan(const QString &);
+        void banIP(const QString & ip, const QString & reason, int seconds);
+        void banNick(const QString & nick, const QString & reason, int seconds);
 
     protected:
         QLayout * bodyLayoutDefinition();
@@ -52,9 +59,13 @@ class PageAdmin : public AbstractPage
         QSpinBox * sbProtocol;
         QTextBrowser * tb;
         QPushButton * pbClearAccountsCache;
+        QTableWidget * twBans;
 
     private slots:
         void smChanged();
+        void onAddClicked();
+        void onRemoveClicked();
+        void onRefreshClicked();
 };
 
 #endif

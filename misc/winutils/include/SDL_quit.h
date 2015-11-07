@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
  *  An SDL_QUITEVENT is generated when the user tries to close the application
  *  window.  If it is ignored or filtered out, the window will remain open.
  *  If it is not ignored or filtered, it is queued normally and the window
- *  is allowed to close.  When the window is closed, screen updates will 
+ *  is allowed to close.  When the window is closed, screen updates will
  *  complete, but have no effect.
  *
  *  SDL_Init() installs signal handlers for SIGINT (keyboard interrupt)
@@ -46,7 +46,7 @@
  */
 
 /** @file SDL_quit.h
- *  There are no functions directly affecting the quit event 
+ *  There are no functions directly affecting the quit event
  */
 
 #define SDL_QuitRequested() \

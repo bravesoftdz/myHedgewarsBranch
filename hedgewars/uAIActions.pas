@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -44,7 +44,8 @@ const MAXACTIONS     = 96;
     aia_Wait       = $8009;
     aia_Put        = $800A;
     aia_waitAngle  = $800B;
-    
+    aia_waitAmmoXY = $800C;
+
     aim_push       = $8000;
     aim_release    = $8001;
     ai_specmask    = $8000;
@@ -54,7 +55,7 @@ type TAction = record
         X, Y, Param: LongInt;
         Time: Longword;
         end;
-        
+
     TActions = record
         Count, Pos: Longword;
         actions: array[0..Pred(MAXACTIONS)] of TAction;
@@ -66,12 +67,12 @@ procedure AddAction(var Actions: TActions; Action: Longword; Param: LongInt; Tim
 procedure ProcessAction(var Actions: TActions; Me: PGear);
 
 implementation
-uses uAIMisc, uAI, uAmmos, uVariables, uCommands, uUtils, uDebug, uIO{$IFDEF TRACEAIACTIONS}, uConsole{$ENDIF};
+uses uAIMisc, uAI, uAmmos, uVariables, uCommands, uUtils, uIO{$IFDEF TRACEAIACTIONS}, uConsole{$ENDIF};
 
 var PrevX: LongInt = 0;
     timedelta: Longword = 0;
 
-const ActionIdToStr: array[0..8] of string[16] = (
+const ActionIdToStr: array[0..7] of string[16] = (
 {aia_none}           '',
 {aia_Left}           'left',
 {aia_Right}          'right',
@@ -79,12 +80,11 @@ const ActionIdToStr: array[0..8] of string[16] = (
 {aia_attack}         'attack',
 {aia_Up}             'up',
 {aia_Down}           'down',
-{aia_Switch}         'switch',
-{aia_waitAngle}      'waitAngle'
+{aia_Switch}         'switch'
                      );
 
 {$IFDEF TRACEAIACTIONS}
-const SpecActionIdToStr: array[$8000..$8009] of string[16] = (
+const SpecActionIdToStr: array[$8000..$800C] of string[16] = (
 {aia_Weapon}             'aia_Weapon',
 {aia_WaitX}              'aia_WaitX',
 {aia_WaitY}              'aia_WaitY',
@@ -94,7 +94,10 @@ const SpecActionIdToStr: array[$8000..$8009] of string[16] = (
 {aia_HJump}              'aia_HJump',
 {aia_LJump}              'aia_LJump',
 {aia_Skip}               'aia_Skip',
-{aia_Wait}               'aia_Wait'
+{aia_Wait}               'aia_Wait',
+{aia_Put}                'aia_Put',
+{aia_waitAngle}          'aia_waitAngle',
+{aia_waitAmmoXY}         'aia_waitAmmoXY'
 );
 
 procedure DumpAction(Action: TAction; Me: PGear);
@@ -106,7 +109,7 @@ else
     WriteLnToConsole('AI action: '+SpecActionIdToStr[Action.Action]);
     if (Action.Action = aia_WaitXL) or (Action.Action = aia_WaitXR) then
         WriteLnToConsole('AI action Wait X = '+IntToStr(Action.Param)+', current X = '+IntToStr(hwRound(Me^.X)))
-        
+
     else if (Action.Action = aia_AwareExpl) then
         WriteLnToConsole('Aware X = ' + IntToStr(Action.X) + ', Y = ' + IntToStr(Action.Y));
     end
@@ -115,19 +118,19 @@ end;
 
 procedure AddAction(var Actions: TActions; Action: Longword; Param: LongInt; TimeDelta: Longword; X, Y: LongInt);
 begin
-with Actions do
-    begin
-    actions[Count].Action:= Action;
-    actions[Count].Param:= Param;
-    actions[Count].X:= X;
-    actions[Count].Y:= Y;
-    if Count > 0 then
-        actions[Count].Time:= TimeDelta
-    else
-        actions[Count].Time:= GameTicks + TimeDelta;
-    inc(Count);
-    TryDo(Count < MAXACTIONS, 'AI: actions overflow', true);
-    end
+if Actions.Count < MAXACTIONS then
+    with Actions do
+        begin
+        actions[Count].Action:= Action;
+        actions[Count].Param:= Param;
+        actions[Count].X:= X;
+        actions[Count].Y:= Y;
+        if Count > 0 then
+            actions[Count].Time:= TimeDelta
+        else
+            actions[Count].Time:= GameTicks + TimeDelta;
+        inc(Count);
+        end
 end;
 
 procedure CheckHang(Me: PGear);
@@ -162,10 +165,10 @@ with Actions.actions[Actions.Pos] do
     {$ENDIF}
     if (Action and ai_specmask) <> 0 then
         case Action of
-            aia_Weapon: 
+            aia_Weapon:
                 SetWeapon(TAmmoType(Param));
-            
-            aia_WaitXL: 
+
+            aia_WaitXL:
                 if hwRound(Me^.X) = Param then
                     begin
                     Action:= aia_LookLeft;
@@ -179,12 +182,12 @@ with Actions.actions[Actions.Pos] do
                         exit
                         end
                     else
-                        begin 
+                        begin
                         CheckHang(Me);
                         exit
                         end;
-                            
-            aia_WaitXR: 
+
+            aia_WaitXR:
                 if hwRound(Me^.X) = Param then
                     begin
                     Action:= aia_LookRight;
@@ -198,7 +201,7 @@ with Actions.actions[Actions.Pos] do
                         exit
                         end
                     else
-                        begin 
+                        begin
                         CheckHang(Me);
                         exit
                         end;
@@ -219,21 +222,25 @@ with Actions.actions[Actions.Pos] do
                 else ParseCommand('-right', true);
             aia_AwareExpl:
                 AwareOfExplosion(X, Y, Param);
-            
+
             aia_HJump:
                 ParseCommand('hjump', true);
-            
+
             aia_LJump:
                 ParseCommand('ljump', true);
-            
+
             aia_Skip:
                 ParseCommand('skip', true);
-            
+
             aia_Put:
                 doPut(X, Y, true);
-                
+
             aia_waitAngle:
-                if Me^.Angle <> Abs(Param) then exit;
+                if LongInt(Me^.Angle) <> Abs(Param) then exit;
+
+            aia_waitAmmoXY:
+                if (CurAmmoGear <> nil) and ((hwRound(CurAmmoGear^.X) <> X) or (hwRound(CurAmmoGear^.Y) <> Y)) then
+                    exit;
             end
         else
             begin
@@ -242,7 +249,7 @@ with Actions.actions[Actions.Pos] do
                 case Param of
                 aim_push:
                 s:= '+' + s;
-                
+
                 aim_release:
                 s:= '-' + s;
             end

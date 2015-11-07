@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 0211-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
  */
 
 
@@ -31,7 +31,6 @@
 #pragma mark View lifecycle
 -(void) viewDidLoad {
     [super viewDidLoad];
-    srandom(time(NULL));
 
     NSArray *array = [[NSArray alloc] initWithObjects:
                       NSLocalizedString(@"Brutal",@""),
@@ -48,19 +47,15 @@
 
 -(void) viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
+
     if ([[[[self.teamDictionary objectForKey:@"hedgehogs"] objectAtIndex:0] objectForKey:@"level"] intValue] == 0)
         numberOfSections = 1;
     else
         numberOfSections = 2;
-    
+
     [self.tableView reloadData];
     // this moves the tableview to the top
     [self.tableView setContentOffset:CGPointMake(0,0) animated:NO];
-}
-
--(void) viewWillDisappear:(BOOL)animated {
- // stuff like checking that at least 1 field was selected   
 }
 
 #pragma mark -
@@ -84,7 +79,7 @@
     NSInteger row = [indexPath row];
     NSInteger section = [indexPath section];
     UITableViewCell *cell;
-    
+
     if (section == 0) {
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier0];
         if (cell == nil) {
@@ -104,7 +99,7 @@
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier1];
         if (cell == nil)
             cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier1] autorelease];
-        
+
         cell.textLabel.text = [levelArray objectAtIndex:row];
         NSDictionary *hog = [[self.teamDictionary objectForKey:@"hedgehogs"] objectAtIndex:0];
         if ([[hog objectForKey:@"level"] intValue] == row+1) {
@@ -113,14 +108,14 @@
         } else {
             cell.accessoryType = UITableViewCellAccessoryNone;
         }
-        
+
         NSString *botlevelPath = [[NSString alloc] initWithFormat:@"%@/bot%d.png",[[NSBundle mainBundle] resourcePath],row+1];
         UIImage *levelImage = [[UIImage alloc] initWithContentsOfFile:botlevelPath];
         [botlevelPath release];
         cell.imageView.image = levelImage;
         [levelImage release];
     }
-    
+
     return cell;
 }
 
@@ -129,11 +124,11 @@
     NSIndexSet *sections = [[NSIndexSet alloc] initWithIndex:1];
     NSMutableArray *hogs = [self.teamDictionary objectForKey:@"hedgehogs"];
     NSInteger level;
-    
+
     if (theSwitch.on) {
         numberOfSections = 2;
         [self.tableView insertSections:sections withRowAnimation:UITableViewRowAnimationFade];
-        level = 1 + (random() % ([levelArray count] - 1));
+        level = 1 + arc4random_uniform((int)[levelArray count] - 1);
     } else {
         numberOfSections = 1;
         [self.tableView deleteSections:sections withRowAnimation:UITableViewRowAnimationFade];
@@ -141,9 +136,9 @@
     }
     [sections release];
 
-    DLog(@"New level is %d",level);
+    DLog(@"New level is %ld", (long)level);
     for (NSMutableDictionary *hog in hogs)
-        [hog setObject:[NSNumber numberWithInt:level] forKey:@"level"];
+        [hog setObject:[NSNumber numberWithInteger:level] forKey:@"level"];
 
     [self.tableView reloadData];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"setWriteNeedTeams" object:nil];
@@ -153,22 +148,22 @@
 #pragma mark -
 #pragma mark Table view delegate
 -(void) tableView:(UITableView *)aTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    int newRow = [indexPath row];
-    int oldRow = (self.lastIndexPath != nil) ? [self.lastIndexPath row] : -1;
+    NSInteger newRow = [indexPath row];
+    NSInteger oldRow = (self.lastIndexPath != nil) ? [self.lastIndexPath row] : -1;
 
-    if ([indexPath section] != 0) { 
+    if ([indexPath section] != 0) {
         if (newRow != oldRow) {
             NSMutableArray *hogs = [self.teamDictionary objectForKey:@"hedgehogs"];
-            
+
             NSInteger level = newRow + 1;
             for (NSMutableDictionary *hog in hogs)
-                [hog setObject:[NSNumber numberWithInt:level] forKey:@"level"];
-            DLog(@"New level is %d",level);
-            
+                [hog setObject:[NSNumber numberWithInteger:level] forKey:@"level"];
+            DLog(@"New level is %ld", (long)level);
+
             // tell our boss to write this new stuff on disk
             [[NSNotificationCenter defaultCenter] postNotificationName:@"setWriteNeedTeams" object:nil];
             [self.tableView reloadData];
-            
+
             self.lastIndexPath = indexPath;
             [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
         }

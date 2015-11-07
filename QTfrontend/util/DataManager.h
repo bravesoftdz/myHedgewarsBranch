@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -70,28 +70,6 @@ class DataManager: public QObject
                              ) const;
 
         /**
-         * @brief Returns the path for the desires data file.
-         *
-         * Use this method if you want to read an existing data file.
-         *
-         * @param relativeDataFilePath relative path of the data file.
-         * @return real path to the file.
-         */
-        QString findFileForRead(const QString & relativeDataFilePath) const;
-
-
-        /**
-         * @brief Returns the path for the data file that is to be written.
-         *
-         * Use this method if you want to create or write into a data file.
-         *
-         * @param relativeDataFilePath relative path of data file write path.
-         * @return destination of path data file.
-         */
-        QString findFileForWrite(const QString & relativeDataFilePath) const;
-
-
-        /**
          * @brief Returns pointer to a model of available game styles.
          *
          * The model is updated automatically on data reload.
@@ -110,13 +88,22 @@ class DataManager: public QObject
         HatModel * hatModel();
 
         /**
-         * @brief Returns pointer to a model of available maps.
+         * @brief Returns pointer to a model of available static maps.
          *
          * The model is updated automatically on data reload.
          *
          * @return map model pointer.
          */
-        MapModel * mapModel();
+        MapModel * staticMapModel();
+
+        /**
+         * @brief Returns pointer to a model of available mission maps.
+         *
+         * The model is updated automatically on data reload.
+         *
+         * @return map model pointer.
+         */
+        MapModel * missionMapModel();
 
         /**
          * @brief Returns pointer to a model of available themes.
@@ -130,9 +117,16 @@ class DataManager: public QObject
         QStandardItemModel * colorsModel();
         QStandardItemModel * bindsModel();
 
+        QString settingsFileName();
+
+        static QString safeFileName(QString fileName);
+
+        static bool ensureFileExists(const QString & fileName);
+
     public slots:
         /// Reloads data from storage.
         void reload();
+        void resetColors();
 
 
     signals:
@@ -151,15 +145,14 @@ class DataManager: public QObject
          */
         DataManager();
 
-        QDir * m_defaultData; ///< directory of the installed data
-        QDir * m_userData;    ///< directory of custom data in the user's directory
-
         GameStyleModel * m_gameStyleModel; ///< game style model instance
         HatModel * m_hatModel; ///< hat model instance
-        MapModel * m_mapModel; ///< map model instance
+        MapModel * m_staticMapModel; ///< static map model instance
+        MapModel * m_missionMapModel; ///< mission map model instance
         ThemeModel * m_themeModel; ///< theme model instance
         QStandardItemModel * m_colorsModel;
         QStandardItemModel * m_bindsModel;
+        QString m_settingsFileName;
 };
 
 #endif // HEDGEWARS_DATAMANAGER_H

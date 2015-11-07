@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -26,8 +26,20 @@ uses    SDLh, uFloat, GLunit;
 {$INCLUDE "config.inc"}
 
 const
+    HaltNoError         =  0;
+    HaltUsageError      =  1;
+    HaltFatalError      =  2;
+    HaltStartupError    =  3;
+    HaltFatalErrorNoIPC =  4;
+
+    // for automatic tests
+    HaltTestSuccess     =  0;
+    HaltTestFailed      =  10;
+    HaltTestLuaError    =  11;
+    HaltTestUnexpected  =  12;
+
+
     sfMax = 1000;
-    cDefaultParamNum = 17;
 
     // message constants
     errmsgCreateSurface   = 'Error creating SDL surface';
@@ -37,6 +49,7 @@ const
     errmsgIncorrectUse    = 'Incorrect use';
     errmsgShouldntRun     = 'This program shouldn''t be run manually';
     errmsgWrongNumber     = 'Wrong parameters number';
+    errmsgLuaTestTerm     = 'WARNING: Lua test terminated before the test was properly finished with EndLuaTest()!';
 
     msgLoading           = 'Loading ';
     msgOK                = 'ok';
@@ -44,9 +57,12 @@ const
     msgFailedSize        = 'failed due to size';
     msgGettingConfig     = 'Getting game config...';
 
+    // camera movement multipliers
+    cameraKeyboardSpeed : ShortInt = 10;
+
     // color constants
-    cWhiteColorChannels : TSDL_Color = (r:$FF; g:$FF; b:$FF; unused:$FF);
-    cNearBlackColorChannels : TSDL_Color = (r:$00; g:$00; b:$10; unused:$FF);
+    cWhiteColorChannels : TSDL_Color = (r:$FF; g:$FF; b:$FF; a:$FF);
+    cNearBlackColorChannels : TSDL_Color = (r:$00; g:$00; b:$10; a:$FF);
 
     cWhiteColor           : Longword = $FFFFFFFF;
     cYellowColor          : Longword = $FFFFFF00;
@@ -89,12 +105,22 @@ const
 // To allow these to layer, going to treat them as masks. The bottom byte is reserved for objects
 // TODO - set lfBasic for all solid land, ensure all uses of the flags can handle multiple flag bits
 // lfObject and lfBasic are only to be different *graphically*  in all other ways they should be treated the same
-    lfBasic          = $8000;  // white
+    lfBasic          = $8000;  // black
     lfIndestructible = $4000;  // red
-    lfObject         = $2000;  
+    lfObject         = $2000;  // white
     lfDamaged        = $1000;  //
     lfIce            = $0800;  // blue
     lfBouncy         = $0400;  // green
+    lfLandMask       = $FF00;  // upper byte is used for terrain, not objects.
+
+    lfCurrentHog     = $0080;  // CurrentHog.  It is also used to flag crates, for convenience of AI.  Since an active hog would instantly collect the crate, this does not impact play
+    lfNotCurrentMask = $FF7F;  // inverse of above. frequently used
+    lfObjMask        = $007F;  // lower 7 bits used for hogs
+    lfNotObjMask     = $FF80;  // inverse of above.
+    // lower byte is for objects.
+    // consists of 0-127 counted for object checkins and $80 as a bit flag for current hog.
+    lfAllObjMask     = $00FF;  // lfCurrentHog or lfObjMask
+
 
     cMaxPower     = 1500;
     cMaxAngle     = 2048;
@@ -111,17 +137,13 @@ const
     GL_TEXTURE_PRIORITY = $8066;
     {$ENDIF}
 
-    cSendCursorPosTime  : LongWord = 50;
     cVisibleWater       : LongInt = 128;
-    cCursorEdgesDist    : LongInt = 100;
     cTeamHealthWidth    : LongInt = 128;
 
     cifRandomize = $00000001;
     cifTheme     = $00000002;
     cifMap       = $00000002; // either theme or map (or map+theme)
     cifAllInited = cifRandomize or cifTheme or cifMap;
-
-    cTransparentColor: Longword = $00000000;
 
     RGB_LUMINANCE_RED    = 0.212671;
     RGB_LUMINANCE_GREEN  = 0.715160;
@@ -130,50 +152,31 @@ const
     cMaxTeams        = 8;
     cMaxHHIndex      = 7;
     cMaxHHs          = 48;
-    cMaxSpawnPoints  = 1024;
 
-    cMaxEdgePoints = 16384;
+    cMaxEdgePoints = 32768;
 
     cHHRadius = 9;
     cHHStepTicks = 29;
 
-    cUsualZ = 500;
-    cSmokeZ = 499;
     cHHZ = 1000;
     cCurrHHZ = Succ(cHHZ);
-    cOnHHZ = 2000;
 
     cBarrelHealth = 60;
     cShotgunRadius = 22;
     cBlowTorchC    = 6;
+    cakeDmg =   75;
 
-    cKeyMaxIndex = 1023;
+    cKeyMaxIndex = 1600;
     cKbdMaxIndex = 65536;//need more room for the modifier keys
 
-    cHHFileName = 'Hedgehog';
-    cCHFileName = 'Crosshair';
-    cThemeCFGFilename = 'theme.cfg';
-
     cFontBorder = 2;
+
+    cDefaultBuildMaxDist = 256;
 
     // do not change this value
     cDefaultZoomLevel = 2.0;
 
-{$IFDEF MOBILE}
-    cMaxZoomLevel = 0.5;
-    cMinZoomLevel = 3.5;
-    cZoomDelta = 0.20;
-{$ELSE}
-    cMaxZoomLevel = 1.0;
-    cMinZoomLevel = 3.0;
-    cZoomDelta = 0.25;
-{$ENDIF}
-
-    cMinMaxZoomLevelDelta = cMaxZoomLevel - cMinZoomLevel;
-
-    cSendEmptyPacketTime = 1000;
-    trigTurns = $80000001;
-
+    // game flags
     gfAny                = $FFFFFFFF;
     gfOneClanMode        = $00000001;           // used in trainings
     gfMultiWeapon        = $00000002;           // used in trainings
@@ -202,17 +205,19 @@ const
     gfMoreWind           = $01000000;
     gfTagTeam            = $02000000;
     gfBottomBorder       = $04000000;
+    gfShoppaBorder       = $08000000;
     // NOTE: When adding new game flags, ask yourself
     // if a "game start notice" would be useful. If so,
     // add one in uWorld.pas - look for "AddGoal".
 
+    // gear states
     gstDrowning       = $00000001;
     gstHHDriven       = $00000002;
     gstMoving         = $00000004;
     gstAttacked       = $00000008;
     gstAttacking      = $00000010;
     gstCollision      = $00000020;
-    gstHHChooseTarget = $00000040;
+    gstChooseTarget   = $00000040;
     gstHHJumping      = $00000100;
     gsttmpFlag        = $00000200;
     gstHHThinking     = $00000800;
@@ -226,31 +231,46 @@ const
     gstLoser          = $00080000;
     gstHHGone         = $00100000;
     gstInvisible      = $00200000;
+    gstSubmersible    = $00400000;
+    gstFrozen         = $00800000;
+    gstNoGravity      = $01000000;
 
-    gmLeft   = $00000001;
-    gmRight  = $00000002;
-    gmUp     = $00000004;
-    gmDown   = $00000008;
-    gmSwitch = $00000010;
-    gmAttack = $00000020;
-    gmLJump  = $00000040;
-    gmHJump  = $00000080;
-    gmDestroy= $00000100;
-    gmSlot   = $00000200; // with param
-    gmWeapon = $00000400; // with param
-    gmTimer  = $00000800; // with param
-    gmAnimate= $00001000; // with param
-    gmPrecise= $00002000;
+    // gear messages
+    gmLeft           = $00000001;
+    gmRight          = $00000002;
+    gmUp             = $00000004;
+    gmDown           = $00000008;
+    gmSwitch         = $00000010;
+    gmAttack         = $00000020;
+    gmLJump          = $00000040;
+    gmHJump          = $00000080;
+    gmDestroy        = $00000100;
+    gmSlot           = $00000200; // with param
+    gmWeapon         = $00000400; // with param
+    gmTimer          = $00000800; // with param
+    gmAnimate        = $00001000; // with param
+    gmPrecise        = $00002000;
+
+    gmRemoveFromList = $00004000;
+    gmAddToList      = $00008000;
+    gmDelete         = $00010000;
     gmAllStoppable = gmLeft or gmRight or gmUp or gmDown or gmAttack or gmPrecise;
 
     cMaxSlotIndex       = 9;
     cMaxSlotAmmoIndex   = 5;
 
+    // ai hints
+    aihUsualProcessing    = $00000000;
+    aihDoesntMatter       = $00000001;
+
+    // ammo properties
     ammoprop_Timerable    = $00000001;
     ammoprop_Power        = $00000002;
     ammoprop_NeedTarget   = $00000004;
     ammoprop_ForwMsgs     = $00000008;
     ammoprop_AttackInMove = $00000010;
+    ammoprop_DoesntStopTimerWhileAttacking
+                          = $00000020;
     ammoprop_NoCrosshair  = $00000040;
     ammoprop_AttackingPut = $00000080;
     ammoprop_DontHold     = $00000100;
@@ -260,13 +280,17 @@ const
     ammoprop_Utility      = $00001000;
     ammoprop_Effect       = $00002000;
     ammoprop_SetBounce    = $00004000;
-    ammoprop_NeedUpDown   = $00008000;//Used by TouchInterface to show or hide up/down widgets 
+    ammoprop_NeedUpDown   = $00008000;//Used by TouchInterface to show or hide up/down widgets
     ammoprop_OscAim       = $00010000;
     ammoprop_NoMoveAfter  = $00020000;
+    ammoprop_Track        = $00040000;
+    ammoprop_DoesntStopTimerInMultiShoot
+                          = $00080000;
     ammoprop_NoRoundEnd   = $10000000;
 
     AMMO_INFINITE = 100;
 
+    // explosion flags
     //EXPLAllDamageInRadius = $00000001;  Completely unused for ages
     EXPLAutoSound         = $00000002;
     EXPLNoDamage          = $00000004;
@@ -283,43 +307,23 @@ const
     posCaseExplode = $00000010;
     posCasePoison  = $00000020;
 
-    NoPointX = Low(LongInt);
-    cTargetPointRef : TPoint = (X: NoPointX; Y: 0);
+    cCaseHealthRadius = 14;
 
     // hog tag mask
-    htNone        = $00;
+    //htNone        = $00;
     htTeamName    = $01;
     htName        = $02;
     htHealth      = $04;
     htTransparent = $08;
 
-    AMAnimDuration = 200;
-    AMHidden    = 0;//AMState values
-    AMShowingUp = 1;
-    AMShowing   = 2;
-    AMHiding    = 3;
+    NoPointX = Low(LongInt);
+    cTargetPointRef : TPoint = (x: NoPointX; y: 0);
 
-    AMTypeMaskX     = $00000001;
-    AMTypeMaskY     = $00000002;
-    AMTypeMaskAlpha = $00000004;
-    AMTypeMaskSlide = $00000008;
+    kSystemSoundID_Vibrate = $00000FFF;
 
-{$IFDEF MOBILE}
-    AMSlotSize = 48;
-    AMTITLE = 30;
-{$ELSE}
-    AMSlotSize = 32;
-{$ENDIF}
-    AMSlotPadding = (AMSlotSize - 32) shr 1;
+    cMinPlayWidth = 200;
+    cWorldEdgeDist = 200;
 
-{$IFDEF USE_TOUCH_INTERFACE}
-    FADE_ANIM_TIME = 500;
-    MOVE_ANIM_TIME = 500;
-{$ENDIF}
-
-    cTagsMasks : array[0..15] of byte = (7, 0, 0, 0, 15, 6, 4, 5, 0, 0, 0, 0, 0, 14, 12, 13);
-    cTagsMasksNoHealth: array[0..15] of byte = (3, 2, 11, 1, 0, 0, 0, 0, 0, 10, 0, 9, 0, 0, 0, 0);
-       
 implementation
 
 end.

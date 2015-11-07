@@ -2,6 +2,20 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="sv">
 <context>
+    <name>About</name>
+    <message>
+        <source>Unknown Compiler</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AbstractPage</name>
+    <message>
+        <source>Go back</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>AmmoSchemeModel</name>
     <message>
         <source>new</source>
@@ -9,22 +23,100 @@
     </message>
     <message>
         <source>copy of</source>
-        <translation>kopia av</translation>
+        <translation type="obsolete">kopia av</translation>
+    </message>
+    <message>
+        <source>copy of %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>DrawMapWidget</name>
+    <name>BanDialog</name>
     <message>
-        <source>File error</source>
-        <translation>Fel på fil</translation>
+        <source>IP</source>
+        <translation type="unfinished">IP</translation>
     </message>
     <message>
-        <source>Cannot open file &apos;%1&apos; for writing</source>
-        <translation>Kan inte skriva till &apos;%1&apos;</translation>
+        <source>Nick</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cannot read file &apos;%1&apos;</source>
-        <translation>Kan inte läsa &apos;%1&apos;</translation>
+        <source>IP/Nick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reason</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ok</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
+    </message>
+    <message>
+        <source>you know why</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please, specify %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>nickname</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>permanent</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DataManager</name>
+    <message>
+        <source>Use Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FeedbackDialog</name>
+    <message>
+        <source>View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
+    </message>
+    <message>
+        <source>Send Feedback</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>We are always happy about suggestions, ideas, or bug reports.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send us feedback!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>If you found a bug, you can see if it&apos;s already been reported here: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your email address is optional, but necessary if you want us to get back at you.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -48,44 +140,145 @@
         <translation>Redigera vapenset</translation>
     </message>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>Illegal ammo scheme</source>
-        <translation>Ogiltigt vapenschema</translation>
-    </message>
-    <message>
         <source>Edit schemes</source>
         <translation>Redigera spelscheman</translation>
     </message>
     <message>
-        <source>When this option is enabled selecting a game scheme will auto-select a weapon</source>
-        <translation>När det här valet är aktivt kommer vapnen att ändras när du ändrar spelschema</translation>
+        <source>Game Options</source>
+        <translation type="obsolete">Spelinställningar</translation>
     </message>
     <message>
-        <source>Game Options</source>
-        <translation type="unfinished">Spelinställningar</translation>
+        <source>Game scheme will auto-select a weapon</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Map</source>
+        <translation type="unfinished">Karta</translation>
+    </message>
+    <message>
+        <source>Game options</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GameUIConfig</name>
+    <message>
+        <source>Guest</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HWApplication</name>
+    <message numerus="yes">
+        <source>%1 minutes</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 hour</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 hours</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 day</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 days</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Scheme &apos;%1&apos; not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot create directory %1</source>
+        <translation type="unfinished">Kan inte skapa katalog %1</translation>
+    </message>
+    <message>
+        <source>Failed to open data directory:
+%1
+
+Please check your installation!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Usage</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OPTION</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CONNECTSTRING</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Display this help</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom path for configuration data and user data</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom path to the game data folder</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars can use a %1 (e.g. &quot;%2&quot;) to connect on start.</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Malformed option argument: %1</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown option argument: %1</source>
+        <comment>command-line</comment>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HWAskQuitDialog</name>
+    <message>
+        <source>Do you really want to quit?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>HWChatWidget</name>
-    <message>
-        <source>%1 *** %2 has been removed from your ignore list</source>
-        <translation type="obsolete">%1 *** %2 har tagits bort från din ignoreringslista</translation>
-    </message>
-    <message>
-        <source>%1 *** %2 has been added to your ignore list</source>
-        <translation type="obsolete">%1 *** %2 har lagts till i din ignoreringslista</translation>
-    </message>
-    <message>
-        <source>%1 *** %2 has been removed from your friends list</source>
-        <translation type="obsolete">%1 *** %2 har tagits bort från din kompislista</translation>
-    </message>
-    <message>
-        <source>%1 *** %2 has been added to your friends list</source>
-        <translation type="obsolete">%1 *** %2 har lagts till i din kompislista</translation>
-    </message>
     <message>
         <source>%1 has been removed from your ignore list</source>
         <translation type="unfinished"></translation>
@@ -127,39 +320,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>%1 is not a valid command!</source>
+        <source>%1 has joined</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Kicking %1 ...</source>
+        <source>%1 has left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 has left (%2)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>HWForm</name>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
-    <message>
-        <source>Unable to start the server</source>
-        <translation>Kunde inte starta servern</translation>
-    </message>
-    <message>
         <source>Cannot save record to file %1</source>
         <translation>Kan inte spara inspelning till fil %1</translation>
-    </message>
-    <message>
-        <source>new</source>
-        <translation type="obsolete">ny</translation>
-    </message>
-    <message>
-        <source>Please select record from the list above</source>
-        <translation>Var god välj inspelning från listan ovanför</translation>
     </message>
     <message>
         <source>DefaultTeam</source>
@@ -188,39 +365,86 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Password</source>
-        <translation type="unfinished">Lösenord</translation>
-    </message>
-    <message>
-        <source>Your nickname %1 is
-registered on Hedgewars.org
-Please provide your password below
-or pick another nickname in game config:</source>
-        <translation type="unfinished">Ditt smeknamn (%1) är
-registrerat på Hedgewars.org
-Var god ange ditt lösenord eller välj
-ett annat smeknamn i spelinställningarna:</translation>
-    </message>
-    <message>
-        <source>No password supplied.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Nickname</source>
         <translation type="unfinished">Smeknamn</translation>
     </message>
     <message>
-        <source>Some one already uses
- your nickname %1
-on the server.
-Please pick another nickname:</source>
-        <translation type="unfinished">Någon använder redan
-ditt smeknamn %1
-på servern.
-Välj ett annat smeknamn:</translation>
+        <source>No nickname supplied.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>No nickname supplied.</source>
+        <source>Someone already uses your nickname %1 on the server.
+Please pick another nickname:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1&apos;s Team</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Nick registered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This nick is registered, and you haven&apos;t specified a password.
+
+If this nick isn&apos;t yours, please register your own nick at www.hedgewars.org
+
+Password:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your nickname is not registered.
+To prevent someone else from using it,
+please register it at www.hedgewars.org</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>
+
+Your password wasn&apos;t saved either.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Empty nickname</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Wrong password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You entered a wrong password.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Try Again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Connection error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You reconnected too fast.
+Please wait a few seconds and try again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This page requires an internet connection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Guest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The room is protected with password.
+Please, enter the password:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -234,21 +458,20 @@ Välj ett annat smeknamn:</translation>
         <source>Cannot open demofile %1</source>
         <translation>Kan inte öppna demofil %1</translation>
     </message>
+    <message>
+        <source>A Fatal ERROR occured! - The game engine had to stop.
+
+We are very sorry for the inconvenience :(
+
+If this keeps happening, please click the &apos;%1&apos; button in the main menu!
+
+Last two engine messages:
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>HWMapContainer</name>
-    <message>
-        <source>Map</source>
-        <translation>Karta</translation>
-    </message>
-    <message>
-        <source>Themes</source>
-        <translation>Teman</translation>
-    </message>
-    <message>
-        <source>Filter</source>
-        <translation>Filter</translation>
-    </message>
     <message>
         <source>All</source>
         <translation>Alla</translation>
@@ -274,10 +497,6 @@ Välj ett annat smeknamn:</translation>
         <translation>Galen</translation>
     </message>
     <message>
-        <source>Type</source>
-        <translation>Typ</translation>
-    </message>
-    <message>
         <source>Small tunnels</source>
         <translation>Små tunnlar</translation>
     </message>
@@ -286,28 +505,104 @@ Välj ett annat smeknamn:</translation>
         <translation>Medelstora tunnlar</translation>
     </message>
     <message>
-        <source>Large tunnels</source>
-        <translation>Stora tunnlar</translation>
-    </message>
-    <message>
-        <source>Small floating islands</source>
-        <translation>Små flytande öar</translation>
-    </message>
-    <message>
-        <source>Medium floating islands</source>
-        <translation>Medelstora flytande öar</translation>
-    </message>
-    <message>
-        <source>Large floating islands</source>
-        <translation>Stora flytande öar</translation>
-    </message>
-    <message>
         <source>Seed</source>
         <translation>Frö</translation>
     </message>
     <message>
-        <source>Set</source>
-        <translation>Ange</translation>
+        <source>Map type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Image map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mission map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hand-drawn</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Randomly generated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random maze</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random</source>
+        <translation type="unfinished">Slumpad</translation>
+    </message>
+    <message>
+        <source>Map preview:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Load map drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit map drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Small islands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Medium islands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Large islands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Map size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maze style:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mission:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Map:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Load drawn map</source>
+        <translation type="unfinished">Läs in ritad karta</translation>
+    </message>
+    <message>
+        <source>Drawn Maps</source>
+        <translation type="unfinished">Ritade kartor</translation>
+    </message>
+    <message>
+        <source>All files</source>
+        <translation type="unfinished">Alla filer</translation>
+    </message>
+    <message>
+        <source>Large tunnels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Theme: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random perlin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Style:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -348,26 +643,12 @@ Välj ett annat smeknamn:</translation>
         <translation>Du sparkades ut</translation>
     </message>
     <message>
-        <source>Password</source>
-        <translation type="obsolete">Lösenord</translation>
-    </message>
-    <message>
-        <source>Your nickname %1 is
-registered on Hedgewars.org
-Please provide your password
-or pick another nickname:</source>
-        <translation type="obsolete">Ditt smeknamn (%1) är
-registrerat på Hedgewars.org
-Var god ange ditt lösenord
-eller välj ett annat smeknamn:</translation>
-    </message>
-    <message>
         <source>%1 *** %2 has joined the room</source>
         <translation>%1 *** %2 har gått med i rummet</translation>
     </message>
     <message>
         <source>%1 *** %2 has joined</source>
-        <translation>%1 *** %2 har gått med</translation>
+        <translation type="obsolete">%1 *** %2 har gått med</translation>
     </message>
     <message>
         <source>%1 *** %2 has left (%3)</source>
@@ -378,31 +659,74 @@ eller välj ett annat smeknamn:</translation>
         <translation>%1 *** %2 har lämnat</translation>
     </message>
     <message>
-        <source>Your nickname %1 is
-registered on Hedgewars.org
-Please provide your password below
-or pick another nickname in game config:</source>
-        <translation type="obsolete">Ditt smeknamn (%1) är
-registrerat på Hedgewars.org
-Var god ange ditt lösenord eller välj
-ett annat smeknamn i spelinställningarna:</translation>
-    </message>
-    <message>
-        <source>Nickname</source>
-        <translation type="obsolete">Smeknamn</translation>
-    </message>
-    <message>
-        <source>Some one already uses
- your nickname %1
-on the server.
-Please pick another nickname:</source>
-        <translation type="obsolete">Någon använder redan
-ditt smeknamn %1
-på servern.
-Välj ett annat smeknamn:</translation>
-    </message>
-    <message>
         <source>User quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remote host has closed connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server is too old. Disconnecting now.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server authentication error</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HWPasswordDialog</name>
+    <message>
+        <source>Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To connect to the server, please log in.
+
+If you don&apos;t have an account on www.hedgewars.org,
+just enter your nickname.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nickname:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Password:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HWUploadVideoDialog</name>
+    <message>
+        <source>Upload video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HatButton</name>
+    <message>
+        <source>Change hat (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HatPrompt</name>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
+    </message>
+    <message>
+        <source>Use selected hat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search for a hat:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -410,19 +734,48 @@ Välj ett annat smeknamn:</translation>
     <name>KB</name>
     <message>
         <source>SDL_ttf returned error while rendering text, most propably it is related to the bug in freetype2. It&apos;s recommended to update your freetype lib.</source>
-        <translation>Fel uppstod då SDL_ttf skulle rendera text. Det beror högst troligen på felet i freetype2. Du rekommenderas att uppdatera ditt freetype-bibliotek.</translation>
+        <translation type="obsolete">Fel uppstod då SDL_ttf skulle rendera text. Det beror högst troligen på felet i freetype2. Du rekommenderas att uppdatera ditt freetype-bibliotek.</translation>
+    </message>
+</context>
+<context>
+    <name>KeyBinder</name>
+    <message>
+        <source>Category</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>LibavInteraction</name>
+    <message>
+        <source>Audio: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duration: %1m %2s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video: %1x%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 fps</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MapModel</name>
+    <message>
+        <source>No description available.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>PageAdmin</name>
-    <message>
-        <source>Server message:</source>
-        <translation type="obsolete">Servermeddelande</translation>
-    </message>
-    <message>
-        <source>Set message</source>
-        <translation type="obsolete">Ställ in meddelande</translation>
-    </message>
     <message>
         <source>Clear Accounts Cache</source>
         <translation>Töm användarcache</translation>
@@ -451,6 +804,38 @@ Välj ett annat smeknamn:</translation>
         <source>Set data</source>
         <translation>Ange data</translation>
     </message>
+    <message>
+        <source>General</source>
+        <translation type="unfinished">Allmänt</translation>
+    </message>
+    <message>
+        <source>Bans</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP/Nick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expiration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reason</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PageConnecting</name>
@@ -458,9 +843,20 @@ Välj ett annat smeknamn:</translation>
         <source>Connecting...</source>
         <translation>Ansluter...</translation>
     </message>
+</context>
+<context>
+    <name>PageDataDownload</name>
     <message>
-        <source>Cancel</source>
-        <translation type="obsolete">Avbryt</translation>
+        <source>Loading, please wait.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This page requires an internet connection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open packages directory</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -486,10 +882,6 @@ Välj ett annat smeknamn:</translation>
         <translation>Läs in ritad karta</translation>
     </message>
     <message>
-        <source>Drawn Maps (*.hwmap);;All files (*.*)</source>
-        <translation type="obsolete">Ritade kartor (*.hwmap);;Alla filer (*.*)</translation>
-    </message>
-    <message>
         <source>Save drawn map</source>
         <translation>Spara ritad karta</translation>
     </message>
@@ -501,6 +893,26 @@ Välj ett annat smeknamn:</translation>
         <source>All files</source>
         <translation>Alla filer</translation>
     </message>
+    <message>
+        <source>Eraser</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ellipse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optimize</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PageEditTeam</name>
@@ -509,30 +921,44 @@ Välj ett annat smeknamn:</translation>
         <translation>Allmänt</translation>
     </message>
     <message>
-        <source>Advanced</source>
-        <translation>Avancerat</translation>
+        <source>Select an action to choose a custom key bind for this team</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use my default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset all binds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom Controls</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hat</source>
+        <translation type="unfinished">Hatt</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished">Namn</translation>
+    </message>
+    <message>
+        <source>This hedgehog&apos;s name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Randomize this hedgehog&apos;s name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random Team</source>
+        <translation type="unfinished">Slumpat lag</translation>
     </message>
 </context>
 <context>
     <name>PageGameStats</name>
-    <message>
-        <source>&lt;p&gt;The best shot award was won by &lt;b&gt;%1&lt;/b&gt; with &lt;b&gt;%2&lt;/b&gt; pts.&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p&gt;Priset för bästa skott går till &lt;b&gt;%1&lt;/b&gt; med &lt;b&gt;%2&lt;/b&gt; poäng.&lt;/p&gt;</translation>
-    </message>
-    <message numerus="yes">
-        <source>&lt;p&gt;The best killer is &lt;b&gt;%1&lt;/b&gt; with &lt;b&gt;%2&lt;/b&gt; kills in a turn.&lt;/p&gt;</source>
-        <translation type="obsolete">
-            <numerusform>&lt;p&gt;Den bästa mördaren är &lt;b&gt;%1&lt;/b&gt; med &lt;b&gt;%2&lt;/b&gt; dödad på samma tur.&lt;/p&gt;</numerusform>
-            <numerusform>&lt;p&gt;Den bästa mördaren är &lt;b&gt;%1&lt;/b&gt; med &lt;b&gt;%2&lt;/b&gt; dödade på samma tur.&lt;/p&gt;</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>&lt;p&gt;A total of &lt;b&gt;%1&lt;/b&gt; hedgehog(s) were killed during this round.&lt;/p&gt;</source>
-        <translation type="obsolete">
-            <numerusform>&lt;p&gt;Totalt &lt;b&gt;%1&lt;/b&gt; igelkott dödades denna omgång.&lt;/p&gt;</numerusform>
-            <numerusform>&lt;p&gt;Totalt &lt;b&gt;%1&lt;/b&gt; igelkottar dödades denna omgång.&lt;/p&gt;</numerusform>
-        </translation>
-    </message>
     <message>
         <source>Details</source>
         <translation>Detaljer</translation>
@@ -545,9 +971,12 @@ Välj ett annat smeknamn:</translation>
         <source>Ranking</source>
         <translation>Rankning</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <source>The best shot award was won by &lt;b&gt;%1&lt;/b&gt; with &lt;b&gt;%2&lt;/b&gt; pts.</source>
-        <translation>Bästa skott-priset vanns av &lt;b&gt;%1&lt;/b&gt; med &lt;b&gt;%2&lt;/b&gt; poäng.</translation>
+        <translation type="unfinished">
+            <numerusform>Bästa skott-priset vanns av &lt;b&gt;%1&lt;/b&gt; med &lt;b&gt;%2&lt;/b&gt; poäng.</numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <source>The best killer is &lt;b&gt;%1&lt;/b&gt; with &lt;b&gt;%2&lt;/b&gt; kills in a turn.</source>
@@ -570,10 +999,6 @@ Välj ett annat smeknamn:</translation>
             <numerusform>(%1 döda)</numerusform>
         </translation>
     </message>
-    <message>
-        <source>(%1 kills)</source>
-        <translation type="obsolete">(%1 döda)</translation>
-    </message>
     <message numerus="yes">
         <source>&lt;b&gt;%1&lt;/b&gt; thought it&apos;s good to shoot his own hedgehogs with &lt;b&gt;%2&lt;/b&gt; pts.</source>
         <translation>
@@ -595,6 +1020,21 @@ Välj ett annat smeknamn:</translation>
             <numerusform>&lt;b&gt;%1&lt;/b&gt; var rädd och hoppade över turer &lt;b&gt;%2&lt;/b&gt; gånger.</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Play again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation type="unfinished">Spara</translation>
+    </message>
+    <message numerus="yes">
+        <source>(%1 %2)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>PageInGame</name>
@@ -604,288 +1044,69 @@ Välj ett annat smeknamn:</translation>
     </message>
 </context>
 <context>
+    <name>PageInfo</name>
+    <message>
+        <source>Open the snapshot folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>PageMain</name>
-    <message>
-        <source>Local Game (Play a game on a single computer)</source>
-        <translation>Lokalt spel (Spela en omgång på en enskild dator)</translation>
-    </message>
-    <message>
-        <source>Network Game (Play a game across a network)</source>
-        <translation>Nätverkspel (Spela en omgång över ett nätverk)</translation>
-    </message>
-    <message>
-        <source>Simply pick the same color as a friend to play together as a team. Each of you will still control his or her own hedgehogs but they&apos;ll win or lose together.</source>
-        <comment>Tips</comment>
-        <translation>Välj bara samma färg som en vän för att spela i som ett lag. Varje spelare kontrollerar fortfarande själva sina igelkottar men de vinner eller förlorar tillsammans.</translation>
-    </message>
-    <message>
-        <source>Some weapons might do only low damage but they can be a lot more devastating in the right situation. Try to use the Desert Eagle to knock multiple hedgehogs into the water.</source>
-        <comment>Tips</comment>
-        <translation>Några vapen kanske bara gör liten skada men de kan vara mycket mer förödande i rätt situation. Försök att använda Desert Eagle för att putta ner flera igelkottar ner i vattnet.</translation>
-    </message>
-    <message>
-        <source>If you&apos;re unsure what to do and don&apos;t want to waste ammo, skip one round. But don&apos;t let too much time pass as there will be Sudden Death!</source>
-        <comment>Tips</comment>
-        <translation>Om du inte är säker på vad du ska göra och inte vill slösa på ammunition, hoppa över en tur. Men låt inte för lång tid passera eftersom sudden death kommer!</translation>
-    </message>
-    <message>
-        <source>Want to save ropse? Release the rope in mid air and then shoot again. As long as you don&apos;t touch the ground you&apos;ll reuse your rope without wasting ammo!</source>
-        <comment>Tips</comment>
-        <translation type="obsolete">Vill du spara rep? Släpp repet i luften och sedan sjut igen. Så länge du inte nuddar marken använder du samma rep utan att slösa på ammunition!</translation>
-    </message>
-    <message>
-        <source>If you&apos;d like to keep others from using your preferred nickname on the official server, register an account at http://www.hedgewars.org/.</source>
-        <comment>Tips</comment>
-        <translation>Om du vill förhindra andra från att använda ditt favoritnamn på den officiella servern kan du registrera ett konto på http://www.hedgewars.org/.</translation>
-    </message>
-    <message>
-        <source>You&apos;re bored of default gameplay? Try one of the missions - they&apos;ll offer different gameplay depending on the one you picked.</source>
-        <comment>Tips</comment>
-        <translation>Är du trött på att spela vanligt? Pröva ett av uppdragen - de erbjuder annorlunda spel beroende på vilken du väljer.</translation>
-    </message>
-    <message>
-        <source>By default the game will always record the last game played as a demo. Select &apos;Local Game&apos; and pick the &apos;Demos&apos; button on the lower right corner to play or manage them.</source>
-        <comment>Tips</comment>
-        <translation>Som standard spelar spelet alltid in den senaste matchen som en demo. Välj &apos;Lokalt Spel&apos; och tryck på &apos;Demo&apos;-knappen nere till höger för att spela eller hantera dem.</translation>
-    </message>
-    <message>
-        <source>Hedgewars is Open Source and Freeware we create in our spare time. If you&apos;ve got problems, ask on our forums but please don&apos;t expect 24/7 support!</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars är ett öppet källkods- och gratisprogram som vi skapar på vår fritid. Om du har problem, fråga på vårat forum men snälla förvänta dig inte dygnet runt-support!</translation>
-    </message>
-    <message>
-        <source>Hedgewars is Open Source and Freeware we create in our spare time. If you like it, help us with a small donation or contribute your own work!</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars är ett öppet källkods- och gratisprogram som vi skapar på vår fritid. Om du gillar det, hjälp oss med en liten donation eller bidra med något eget!</translation>
-    </message>
-    <message>
-        <source>Hedgewars is Open Source and Freeware we create in our spare time. Share it with your family and friends as you like!</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars är ett öppet källkods- och gratisprogram som vi skapar på vår fritid. Dela med dig av det till familj och vänner som du vill!</translation>
-    </message>
-    <message>
-        <source>From time to time there will be official tournaments. Upcoming events will be announced at http://www.hedgewars.org/ some days in advance.</source>
-        <comment>Tips</comment>
-        <translation>Då och då kommer det hållas officiella turneringer. Kommande händelser kommer att annonseras på http://www.hedgewars.org/ några dagar i förväg.</translation>
-    </message>
-    <message>
-        <source>Hedgewars is available in many languages. If the translation in your language seems to be missing or outdated, feel free to contact us!</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars finns på många språk. Om översättningen på ditt språk verkar saknas eller är gammal får du gärna kontakta oss!</translation>
-    </message>
-    <message>
-        <source>Hedgewars can be run on lots of different operating systems including Microsoft Windows, Mac OS X and Linux.</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars kan köras på många operativsystem som Microsoft Windows, Mac OS X och Linux.</translation>
-    </message>
-    <message>
-        <source>Always remember you&apos;re able to set up your own games in local and network/online play. You&apos;re not restricted to the &apos;Simple Game&apos; option.</source>
-        <comment>Tips</comment>
-        <translation>Kom alltid ihåg att du kan starta en egen match i lokalt och netverk/online-spel. Du är inte begränsad till &apos;Enkelt spel&apos;-valet.</translation>
-    </message>
-    <message>
-        <source>While playing you should give yourself a short break at least once an hour.</source>
-        <comment>Tips</comment>
-        <translation>När du spelar borde du ta en pause åt minståne en gång i timman.</translation>
-    </message>
-    <message>
-        <source>If your graphics card isn&apos;t able to provide hardware accelerated OpenGL, try to enable the low quality mode to improve performance.</source>
-        <comment>Tips</comment>
-        <translation>Om ditt grafikkort inte klarar av att ge hårdvaruaccellererad OpenGL, pröva att sänka kvaliteten för att öka prestandan.</translation>
-    </message>
-    <message>
-        <source>We&apos;re open to suggestions and constructive feedback. If you don&apos;t like something or got a great idea, let us know!</source>
-        <comment>Tips</comment>
-        <translation>Vi är öppna för förslag och konstruktiv kritik. Om du inte gillar något eller har en bra idé, hör av dig!</translation>
-    </message>
-    <message>
-        <source>Especially while playing online be polite and always remember there might be some minors playing with or against you as well!</source>
-        <comment>Tips</comment>
-        <translation>Speciellt när du spelar över netet, var artig och kom alltid ihåg att det kan vara minderåriga som du spelar mot också!</translation>
-    </message>
-    <message>
-        <source>Special game modes such as &apos;Vampirism&apos; or &apos;Karma&apos; allow you to develop completely new tactics. Try them in a custom game!</source>
-        <comment>Tips</comment>
-        <translation>Speciella spellägen som &apos;Vampyrism&apos; eller &apos;Karma&apos; låter dig utveckla helt nya taktiker. Pröva dem i ett eget spel!</translation>
-    </message>
-    <message>
-        <source>The Windows version of Hedgewars supports Xfire. Make sure to add Hedgwars to its game list so your friends can see you playing.</source>
-        <comment>Tips</comment>
-        <translation type="obsolete">Windows-versionen av Hedgewars har stöd för Xfire. Se till att lägga till Hedgewars till spellistan så att dina vänner kan se dig spela.</translation>
-    </message>
-    <message>
-        <source>You should never install Hedgewars on computers you don&apos;t own (school, university, work, etc.). Please ask the responsible person instead!</source>
-        <comment>Tips</comment>
-        <translation>Du ska aldrig installera Hedgewars på en dator som du inte äger (skola, universitet, arbete, etc.). Fråga den ansvarige personen istället!</translation>
-    </message>
-    <message>
-        <source>Hedgewars can be perfect for short games during breaks. Just ensure you don&apos;t add too many hedgehogs or use an huge map. Reducing time and health might help as well.</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars kan vara perfekt för korta matcher under raster. Se bara till att du inte lägger till för många igelkottar eller använder en stor bana. Att minska tiden och hälsa kan också hjälpa.</translation>
-    </message>
-    <message>
-        <source>No hedgehogs were harmed in making this game.</source>
-        <comment>Tips</comment>
-        <translation>Inga igelkottar skadades under produktionen av spelet.</translation>
-    </message>
-    <message>
-        <source>Hedgewars is Open Source and Freeware we create in our spare time. If someone sold you the game, you should try get a refund!</source>
-        <comment>Tips</comment>
-        <translation>Hedgewars är ett öppet källkods- och gratisprogram som vi skapar på vår fritid. Om någon sålde spelet till dig ska du försöka att få pengarna tillbaka!</translation>
-    </message>
-    <message>
-        <source>Connect one or more gamepads before starting the game to be able to assign their controls to your teams.</source>
-        <comment>Tips</comment>
-        <translation>Koppla ihop en eller flera spelplattor innan du startar spelet för att kunna välja att kontrollera era lag med dem.</translation>
-    </message>
-    <message>
-        <source>Create an account on %1 to keep others from using your most favourite nickname while playing on the official server.</source>
-        <comment>Tips</comment>
-        <translation>Skapa ett konto på %1 för att förhindra andra från att använda ditt favoritnamn när du spelar på den officiella servern.</translation>
-    </message>
-    <message>
-        <source>If your graphics card isn&apos;t able to provide hardware accelerated OpenGL, try to update the associated drivers.</source>
-        <comment>Tips</comment>
-        <translation>Om ditt grafikkort inte klarar av att ge hårdvaruaccellererad OpenGL, pröva att uppdatera dina drivrutiner.</translation>
-    </message>
-    <message>
-        <source>There are three different jumps available. Tap [high jump] twice to do a very high/backwards jump.</source>
-        <comment>Tips</comment>
-        <translation>Det finns tre olika hopp tillgängliga. Tryck på [högt hopp] två gånger för att göra ett ett högt bakåt-hopp.</translation>
-    </message>
-    <message>
-        <source>Afraid of falling off a cliff? Hold down [precise] to turn [left] or [right] without actually moving.</source>
-        <comment>Tips</comment>
-        <translation>Är du rädd att falla ner för an kant? Håll ner [exakt] för att vrida [vänster] eller [höger] utan att egentligen röra dig.</translation>
-    </message>
-    <message>
-        <source>Some weapons require special strategies or just lots of training, so don&apos;t give up on a particular tool if you miss an enemy once.</source>
-        <comment>Tips</comment>
-        <translation>Några vapen kräver speciella strategier eller bara mycket träning, så ge inte upp ett vapen bara för att du missade en fiende någon gång.</translation>
-    </message>
-    <message>
-        <source>Most weapons won&apos;t work once they touch the water. The Homing Bee as well as the Cake are exceptions to this.</source>
-        <comment>Tips</comment>
-        <translation>De flesta vapen fungerar inte när de har rört vattenet. Målsökande bi och även Tårta är två undantag.</translation>
-    </message>
-    <message>
-        <source>The Old Limbuger only causes a small explosion. However the wind affected smelly cloud can poison lots of hogs at once.</source>
-        <comment>Tips</comment>
-        <translation>Den gamla Limburgaren skapar bara en liten explosition. Men det vindpåverkade stinkmålnet kan förgifta många igelkottar samtidigt.</translation>
-    </message>
-    <message>
-        <source>The Piano Strike is the most damaging air strike. You&apos;ll lose the hedgehog performing it, so there&apos;s a huge downside as well.</source>
-        <comment>Tips</comment>
-        <translation>Pianoanfall är det farligaste luftanfallet. Du blir av med en igelkott när du använder det, så det finns en stor nackdel också.</translation>
-    </message>
-    <message>
-        <source>The Homing Bee can be tricky to use. It&apos;s turn radius depends on it&apos;s velocity, so try to not use full power.</source>
-        <comment>Tips</comment>
-        <translation type="obsolete">Målsökande biet kan vara svårt att använda. Biets sväng beror på hastigheten, så försök inte att använda full kraft.</translation>
-    </message>
-    <message>
-        <source>Sticky Mines are a perfect tool to create small chain reactions knocking enemy hedgehogs into dire situations ... or water.</source>
-        <comment>Tips</comment>
-        <translation>Fästande minor är ett perfekt verktyg för att skapa små kedjereaktioner som slår ner fiender i farliga situationer ... eller vatten.</translation>
-    </message>
-    <message>
-        <source>The Hammer is most effective when used on bridges or girders. Hit hogs will just break through the ground.</source>
-        <comment>Tips</comment>
-        <translation>Hammaren är mest effektiv när den används på broar eller balkar. När du slår till igelkottarna kommer de att falla nergenom hålet.</translation>
-    </message>
-    <message>
-        <source>If you&apos;re stuck behind an enemy hedgehog, use the Hammer to free yourself without getting damaged by an explosion.</source>
-        <comment>Tips</comment>
-        <translation>Om du är fast bakom en fiende, använd hammaren för att göra dig fri utan att skadas av en explosition.</translation>
-    </message>
-    <message>
-        <source>The Cake&apos;s maximum walking distance depends on the ground it has to pass. Use [attack] to detonate it early.</source>
-        <comment>Tips</comment>
-        <translation>Tårtans längsta gångsträcka beror på vägen den måste ta. Använd [attack] för att spränga den tidigt.</translation>
-    </message>
-    <message>
-        <source>The Flame Thrower is a weapon but it can be used for tunnel digging as well.</source>
-        <comment>Tips</comment>
-        <translation>Eldkastaren är ett vapen, men den kan användas för att gräva tunnlar också.</translation>
-    </message>
-    <message>
-        <source>Use the Incinerating Grenade to temporary keep hedgehogs from passing terrain such as tunnels or platforms.</source>
-        <comment>Tips</comment>
-        <translation type="obsolete">Använd Molotov för att tillfälligt förhindra igelkottar från att passera terräng såsom tunnlar och platformer.</translation>
-    </message>
-    <message>
-        <source>Want to know who&apos;s behind the game? Click on the Hedgewars logo in the main menu to see the credits.</source>
-        <comment>Tips</comment>
-        <translation>Vill du veta vilka som ligger bakom spelet? Tryck på Hedgewars-loggan i huvudmenyn för att se medverkande.</translation>
-    </message>
-    <message>
-        <source>Like Hedgewars? Become a fan on %1 or follow us on %2!</source>
-        <comment>Tips</comment>
-        <translation>Gillar du Hedgewars? Bli ett fan på %1 eller följ oss på %2!</translation>
-    </message>
-    <message>
-        <source>Feel free to draw your own graves, hats, flags or even maps and themes! But note that you&apos;ll have to share them somewhere to use them online.</source>
-        <comment>Tips</comment>
-        <translation>Du är välkommen att rita dina egna gravar, hattar, flaggor eller till och med banor eller teman! Men notera att du måste lägga ut dem någonstans för att använda dem online.</translation>
-    </message>
-    <message>
-        <source>Really want to wear a specific hat? Donate to us and receive an exclusive hat of your choice!</source>
-        <comment>Tips</comment>
-        <translation>Vill du verkligen ha en specifik hatt? Ge os en donation och få en exklusiv hatt som du väljer!</translation>
-    </message>
-    <message>
-        <source>Keep your video card drivers up to date to avoid issues playing the game.</source>
-        <comment>Tips</comment>
-        <translation>Se till att hålla dina grafikdrivrutiner uppdaterade för att undvika problem när du spalar.</translation>
-    </message>
-    <message>
-        <source>You can find your Hedgewars configuration files under &quot;My Documents\Hedgewars&quot;. Create backups or take the files with you, but don&apos;t edit them by hand.</source>
-        <comment>Tips</comment>
-        <translation>Du kan hitta dina konfigurationsfiler under &quot;Mina Dokument\Hedgewars&quot;. Gör en säkerhetskopia eller ta med dig filerna, men redigera dem inte för hand.</translation>
-    </message>
-    <message>
-        <source>You can find your Hedgewars configuration files under &quot;Hedgewars&quot; in your home directory. Create backups or take the files with you, but don&apos;t edit them by hand.</source>
-        <comment>Tips</comment>
-        <translation type="obsolete">Du kan hitta dina konfigurationsfiler under &quot;Hedgewars&quot; i din hem-mapp. Gör en säkerhetskopia eller ta med dig filerna, men redigera dem inte för hand.</translation>
-    </message>
-    <message>
-        <source>You&apos;re able to associate Hedgewars related files (savegames and demo recordings) with the game to launch them right from your favorite file or internet browser.</source>
-        <comment>Tips</comment>
-        <translation>Du kan associera Hedgewars-relaterade filer (sparfiler och demo-inspelningar) med spelet för att köra dem direkt från den filhanterare eller webbläsare du tycker bäst om.</translation>
-    </message>
-    <message>
-        <source>Want to save ropes? Release the rope in mid air and then shoot again. As long as you don&apos;t touch the ground you&apos;ll reuse your rope without wasting ammo!</source>
-        <comment>Tips</comment>
-        <translation>Vill du spara rep? Släpp repet i luften och sedan sjut igen. Så länge du inte nuddar marken använder du samma rep utan att slösa på ammunition!</translation>
-    </message>
-    <message>
-        <source>You can find your Hedgewars configuration files under &quot;Library/Application Support/Hedgewars&quot; in your home directory. Create backups or take the files with you, but don&apos;t edit them by hand.</source>
-        <comment>Tips</comment>
-        <translation>Du kan hitta dina konfigurationsfiler under &quot;Library/Application Support/Hedgewars&quot; i din hem-mapp. Gör en säkerhetskopia eller ta med dig filerna, men redigera dem inte för hand.</translation>
-    </message>
-    <message>
-        <source>You can find your Hedgewars configuration files under &quot;.hedgewars&quot; in your home directory. Create backups or take the files with you, but don&apos;t edit them by hand.</source>
-        <comment>Tips</comment>
-        <translation>Du kan hitta dina konfigurationsfiler under &quot;.hedgewars&quot; i din hem-mapp. Gör en säkerhetskopia eller ta med dig filerna, men redigera dem inte för hand.</translation>
-    </message>
-    <message>
-        <source>The Windows version of Hedgewars supports Xfire. Make sure to add Hedgewars to its game list so your friends can see you playing.</source>
-        <comment>Tips</comment>
-        <translation>Windows-versionen av Hedgewars har stöd för Xfire. Se till att lägga till Hedgewars till spellistan så att dina vänner kan se dig spela.</translation>
-    </message>
-    <message>
-        <source>Use the Molotov or Flame Thrower to temporary keep hedgehogs from passing terrain such as tunnels or platforms.</source>
-        <comment>Tips</comment>
-        <translation>Använd molotov eller eldkastaren för att temporärt förhindra att igelkottar passerar terräng så som tunnlar eller platformar.</translation>
-    </message>
-    <message>
-        <source>The Homing Bee can be tricky to use. Its turn radius depends on its velocity, so try to not use full power.</source>
-        <comment>Tips</comment>
-        <translation>Målsökande bin kan vara kluriga att använda. Svängradien beror på hastigheten, så försök att inte använda full kraft.</translation>
-    </message>
     <message>
         <source>Downloadable Content</source>
         <translation>Nedladdningsbart innehåll</translation>
+    </message>
+    <message>
+        <source>Play a game on a single computer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play a game across a network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Read about who is behind the Hedgewars Project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leave a feedback here reporting issues, suggesting features or just saying how you like Hedgewars</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Access the user created content downloadable from our website</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exit game</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage videos recorded from game</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit game preferences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play a game across a local area network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play a game on an official server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Feedback</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play local network game</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play official network game</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -894,46 +1115,43 @@ Välj ett annat smeknamn:</translation>
         <source>Start</source>
         <translation>Starta</translation>
     </message>
-</context>
-<context>
-    <name>PageNet</name>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>Please select server from the list above</source>
-        <translation>Var god välj server från listan ovanför</translation>
+        <source>Edit game preferences</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>PageNetGame</name>
     <message>
         <source>Control</source>
-        <translation>Kontroll</translation>
+        <translation type="obsolete">Kontroll</translation>
     </message>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
+        <source>Edit game preferences</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Please enter room name</source>
-        <translation>Skriv in rummets namn</translation>
+        <source>Start</source>
+        <translation type="unfinished">Starta</translation>
     </message>
     <message>
-        <source>OK</source>
-        <translation>OK</translation>
+        <source>Update</source>
+        <translation type="unfinished">Uppdatera</translation>
+    </message>
+    <message>
+        <source>Room controls</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>PageNetType</name>
+    <name>PageNetServer</name>
     <message>
-        <source>LAN game</source>
-        <translation>LAN-spel</translation>
+        <source>Click here for details</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Official server</source>
-        <translation>Officiell server</translation>
+        <source>Insert your address here</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -949,18 +1167,6 @@ Välj ett annat smeknamn:</translation>
     <message>
         <source>Delete team</source>
         <translation>Ta bort lag</translation>
-    </message>
-    <message>
-        <source>New weapon scheme</source>
-        <translation type="obsolete">Nytt vapenschema</translation>
-    </message>
-    <message>
-        <source>Edit weapon scheme</source>
-        <translation type="obsolete">Redigera vapenschema</translation>
-    </message>
-    <message>
-        <source>Delete weapon scheme</source>
-        <translation type="obsolete">Ta bort vapenschema</translation>
     </message>
     <message>
         <source>You can&apos;t edit teams from team selection. Go back to main menu to add, edit or delete teams.</source>
@@ -990,17 +1196,137 @@ Välj ett annat smeknamn:</translation>
         <source>Delete weapon set</source>
         <translation>Ta bort vapenset</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation type="unfinished">Avancerat</translation>
+    </message>
+    <message>
+        <source>Reset to default colors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy host</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Socks5 proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>System proxy settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select an action to change what key controls it</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset to default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset all binds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Game</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Graphics</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Controls</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video Recording</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Teams</source>
+        <translation type="unfinished">Lag</translation>
+    </message>
+    <message>
+        <source>Schemes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Weapons</source>
+        <translation type="unfinished">Vapen</translation>
+    </message>
+    <message>
+        <source>Frontend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom colors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Game audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Frontend audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Account</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Miscellaneous</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check for updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video recording options</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PagePlayDemo</name>
-    <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
     <message>
         <source>Rename dialog</source>
         <translation>Namnbytesdialig</translation>
@@ -1009,40 +1335,16 @@ Välj ett annat smeknamn:</translation>
         <source>Enter new file name:</source>
         <translation>Skriv in nytt filnamn:</translation>
     </message>
-    <message>
-        <source>Cannot rename to</source>
-        <translation>Kan inte byta namn till</translation>
-    </message>
-    <message>
-        <source>Cannot delete file</source>
-        <translation>Kan inte ta bort fil</translation>
-    </message>
-    <message>
-        <source>Please select record from the list</source>
-        <translation>Välj inspelning från listan</translation>
-    </message>
 </context>
 <context>
     <name>PageRoomsList</name>
     <message>
         <source>Create</source>
-        <translation>Skapa</translation>
+        <translation type="obsolete">Skapa</translation>
     </message>
     <message>
         <source>Join</source>
-        <translation>Anslut</translation>
-    </message>
-    <message>
-        <source>Refresh</source>
-        <translation>Uppdatera</translation>
-    </message>
-    <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
+        <translation type="obsolete">Anslut</translation>
     </message>
     <message>
         <source>Admin features</source>
@@ -1050,95 +1352,23 @@ Välj ett annat smeknamn:</translation>
     </message>
     <message>
         <source>Room Name:</source>
-        <translation>Rumnamn:</translation>
-    </message>
-    <message>
-        <source>This game is in lobby.
-You may join and start playing once the game starts.</source>
-        <translation>Detta spel är i lobby.
-Du kan gå med och börja spela när spelet börjar.</translation>
-    </message>
-    <message>
-        <source>This game is in progress.
-You may join and spectate now but you&apos;ll have to wait for the game to end to start playing.</source>
-        <translation>Detta spel pågår.
-Du kan gå med och se på men du måste vänta tills spelet är slut för att kunna börja spela.</translation>
-    </message>
-    <message>
-        <source>%1 is the host. He may adjust settings and start the game.</source>
-        <translation>%1 är ägaren. Han kan ändra inställningar och starta spelet.</translation>
-    </message>
-    <message>
-        <source>Random Map</source>
-        <translation>Slumpad karta</translation>
-    </message>
-    <message>
-        <source>Games may be played on precreated or randomized maps.</source>
-        <translation>Spel kan spelas på färdiga eller slumpade kartor.</translation>
-    </message>
-    <message>
-        <source>The Game Scheme defines general options and preferences like Round Time, Sudden Death or Vampirism.</source>
-        <translation>Spelschemat anger allmäna inställningar som tid per person, Sudden Death eller Vampyrism.</translation>
-    </message>
-    <message>
-        <source>The Weapon Scheme defines available weapons and their ammunition count.</source>
-        <translation>Vapenschemat anger tillgängliga vapen och deras ammunitionsantal.</translation>
-    </message>
-    <message numerus="yes">
-        <source>There are %1 clients connected to this room.</source>
-        <translation>
-            <numerusform>Det är %1 klient uppkopplad till detta rum.</numerusform>
-            <numerusform>Det är %1 klienter uppkopplade till detta rum.</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>There are %1 teams participating in this room.</source>
-        <translation>
-            <numerusform>Det är %1 deltagande lag i detta rum.</numerusform>
-            <numerusform>Det är %1 deltagande lag i detta rum.</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Please enter room name</source>
-        <translation>Skriv in rummets namn</translation>
-    </message>
-    <message>
-        <source>Please select room from the list</source>
-        <translation>Välj ett rum från listan</translation>
-    </message>
-    <message>
-        <source>Random Maze</source>
-        <translation>Slumpad labyrint</translation>
-    </message>
-    <message>
-        <source>State:</source>
-        <translation type="obsolete">Status:</translation>
+        <translation type="obsolete">Rumnamn:</translation>
     </message>
     <message>
         <source>Rules:</source>
-        <translation>Regler:</translation>
+        <translation type="obsolete">Regler:</translation>
     </message>
     <message>
         <source>Weapons:</source>
-        <translation>Vapen:</translation>
+        <translation type="obsolete">Vapen:</translation>
     </message>
     <message>
         <source>Search:</source>
-        <translation>Sök:</translation>
+        <translation type="obsolete">Sök:</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>Rensa</translation>
-    </message>
-    <message>
-        <source>Warning</source>
-        <translation>Varning</translation>
-    </message>
-    <message>
-        <source>The game you are trying to join has started.
-Do you still want to join the room?</source>
-        <translation>Spelet du försöker gå med i har startat.
-Vill du fortfarande gå med i rummet?</translation>
+        <translation type="obsolete">Rensa</translation>
     </message>
     <message numerus="yes">
         <source>%1 players online</source>
@@ -1146,6 +1376,26 @@ Vill du fortfarande gå med i rummet?</translation>
             <numerusform>%1 spelare inne</numerusform>
             <numerusform></numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Search for a room:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Join room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open server administration page</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1157,10 +1407,6 @@ Vill du fortfarande gå med i rummet?</translation>
     <message>
         <source>Delete</source>
         <translation>Ta bort</translation>
-    </message>
-    <message>
-        <source>Enable random mines</source>
-        <translation type="obsolete">Aktivera slumpade minor</translation>
     </message>
     <message>
         <source>Gain 80% of the damage you do back in health</source>
@@ -1193,10 +1439,6 @@ Vill du fortfarande gå med i rummet?</translation>
     <message>
         <source>Land can not be destroyed!</source>
         <translation>Land kan inte förstöras!</translation>
-    </message>
-    <message>
-        <source>Add an indestructable border around the terrain</source>
-        <translation type="obsolete">Lägger till en oförstörbar kant runt terrängen</translation>
     </message>
     <message>
         <source>Lower gravity</source>
@@ -1278,6 +1520,22 @@ Vill du fortfarande gå med i rummet?</translation>
         <source>Add an indestructible border along the bottom</source>
         <translation>Lägg till en oförstörbar barriär längs botten</translation>
     </message>
+    <message>
+        <source>None (Default)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wrap (World wraps)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bounce (Edges reflect)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sea (Edges connect to sea)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PageSelectWeapon</name>
@@ -1301,35 +1559,27 @@ Vill du fortfarande gå med i rummet?</translation>
 <context>
     <name>PageSinglePlayer</name>
     <message>
-        <source>Simple Game (a quick game against the computer, settings are chosen for you)</source>
-        <translation>Enkelt spel (en snabbomgång mot datorn, inställningar väljs åt dig)</translation>
-    </message>
-    <message>
-        <source>Multiplayer (play a hotseat game against your friends, or AI teams)</source>
-        <translation>Flera spelare (spela en hotseat-omgång mot dina vänner eller AI-lag)</translation>
-    </message>
-    <message>
-        <source>Training Mode (Practice your skills in a range of training missions). IN DEVELOPMENT</source>
-        <translation type="obsolete">Träningsläge (öva dina färdigheter i en rad träningsuppdrag). UNDER UTVECKLING</translation>
-    </message>
-    <message>
-        <source>Demos (Watch recorded demos)</source>
-        <translation>Demos (se inspelade demos)</translation>
-    </message>
-    <message>
-        <source>Load (Load a previously saved game)</source>
-        <translation>Ladda (ladda ett tidigare sparat spel)</translation>
-    </message>
-    <message>
-        <source>Campaign Mode (...). IN DEVELOPMENT</source>
-        <translation type="obsolete">Kampanjläge (...). UNDER UTVECKLING</translation>
-    </message>
-    <message>
-        <source>Campaign Mode (...)</source>
+        <source>Play a quick game against the computer with random settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Training Mode (Practice your skills in a range of training missions)</source>
+        <source>Play a hotseat game against your friends, or AI teams</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Campaign Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Practice your skills in a range of training missions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Watch recorded demos</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Load a previously saved game</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1343,16 +1593,58 @@ Vill du fortfarande gå med i rummet?</translation>
         <source>Select a mission!</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Pick the mission or training to play</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start fighting</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PageVideos</name>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished">Namn</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 bytes</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>(in progress...)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>encoding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>uploading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Date: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QAction</name>
     <message>
         <source>Kick</source>
         <translation>Släng ut</translation>
-    </message>
-    <message>
-        <source>Start</source>
-        <translation>Starta</translation>
     </message>
     <message>
         <source>Restrict Joins</source>
@@ -1392,7 +1684,19 @@ Vill du fortfarande gå med i rummet?</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation>Uppdatera</translation>
+        <translation type="obsolete">Uppdatera</translation>
+    </message>
+    <message>
+        <source>Restrict Unregistered Players Join</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show games in lobby</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show games in-progress</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1400,10 +1704,6 @@ Vill du fortfarande gå med i rummet?</translation>
     <message>
         <source>Fullscreen</source>
         <translation>Helskärm</translation>
-    </message>
-    <message>
-        <source>Enable sound</source>
-        <translation>Aktivera ljud</translation>
     </message>
     <message>
         <source>Show FPS</source>
@@ -1414,14 +1714,6 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Visa alternativ skada</translation>
     </message>
     <message>
-        <source>Enable music</source>
-        <translation>Aktivera musik</translation>
-    </message>
-    <message>
-        <source>Frontend fullscreen</source>
-        <translation>Spelmenyn i helskärm</translation>
-    </message>
-    <message>
         <source>Append date and time to record file name</source>
         <translation>Bifoga datum och tid till namnet på inspelningsfiler</translation>
     </message>
@@ -1430,32 +1722,92 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Leta efter uppdatering vid programstart</translation>
     </message>
     <message>
-        <source>Reduced quality</source>
-        <translation type="obsolete">Minskad kvalité</translation>
-    </message>
-    <message>
         <source>Show ammo menu tooltips</source>
         <translation>Visa hjälp i ammunitionsmenyn</translation>
     </message>
     <message>
-        <source>Enable frontend sounds</source>
-        <translation>Aktivera ljud i spelmenyn</translation>
+        <source>Save password</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Enable frontend music</source>
-        <translation>Aktivera musik i spelmenyn</translation>
+        <source>Save account name and password</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Frontend effects</source>
-        <translation>Effekter i spelmenyn</translation>
+        <source>Video is private</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Record audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use game resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Visual effects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sound</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In-game sound effects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Music</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In-game music</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Frontend sound effects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Frontend music</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Team</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable team tags by default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable hedgehog tags by default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable health tags by default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Translucent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable translucent tags by default</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>QComboBox</name>
-    <message>
-        <source>generated map...</source>
-        <translation>genererad karta...</translation>
-    </message>
     <message>
         <source>Human</source>
         <translation>Människa</translation>
@@ -1469,68 +1821,20 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>(Systemstandard)</translation>
     </message>
     <message>
-        <source>generated maze...</source>
-        <translation>genererad labyrint...</translation>
-    </message>
-    <message>
-        <source>Mission</source>
-        <translation>Uppdrag</translation>
-    </message>
-    <message>
         <source>Community</source>
         <translation>Gemenskap</translation>
     </message>
     <message>
         <source>Any</source>
-        <translation>Vilken som</translation>
+        <translation type="obsolete">Vilken som</translation>
     </message>
     <message>
         <source>In lobby</source>
-        <translation>I lobby</translation>
+        <translation type="obsolete">I lobby</translation>
     </message>
     <message>
         <source>In progress</source>
-        <translation>Pågår</translation>
-    </message>
-    <message>
-        <source>Default</source>
-        <translation type="obsolete">Standard</translation>
-    </message>
-    <message>
-        <source>Pro mode</source>
-        <translation type="obsolete">Pro-läge</translation>
-    </message>
-    <message>
-        <source>Shoppa</source>
-        <translation type="obsolete">Shoppa</translation>
-    </message>
-    <message>
-        <source>Basketball</source>
-        <translation type="obsolete">Basket</translation>
-    </message>
-    <message>
-        <source>Minefield</source>
-        <translation type="obsolete">Minfält</translation>
-    </message>
-    <message>
-        <source>Barrel mayhem</source>
-        <translation type="obsolete">Tunnförödelse</translation>
-    </message>
-    <message>
-        <source>Tunnel hogs</source>
-        <translation type="obsolete">Tunnelkottar</translation>
-    </message>
-    <message>
-        <source>Crazy</source>
-        <translation type="obsolete">Galet</translation>
-    </message>
-    <message>
-        <source>Normal</source>
-        <translation type="obsolete">Vanligt</translation>
-    </message>
-    <message>
-        <source>hand drawn map...</source>
-        <translation>handritad karta...</translation>
+        <translation type="obsolete">Pågår</translation>
     </message>
     <message>
         <source>Disabled</source>
@@ -1569,10 +1873,6 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Uppe och nere</translation>
     </message>
     <message>
-        <source>Wiggle</source>
-        <translation>Vicka</translation>
-    </message>
-    <message>
         <source>Red/Cyan grayscale</source>
         <translation>Röd/Cyan gråskala</translation>
     </message>
@@ -1604,24 +1904,8 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Lagmedlemmar</translation>
     </message>
     <message>
-        <source>Key binds</source>
-        <translation>Tangentbindningar</translation>
-    </message>
-    <message>
         <source>Fort</source>
         <translation>Fort</translation>
-    </message>
-    <message>
-        <source>Teams</source>
-        <translation>Lag</translation>
-    </message>
-    <message>
-        <source>Audio/Graphic options</source>
-        <translation>Ljud/grafikinställningar</translation>
-    </message>
-    <message>
-        <source>Weapons</source>
-        <translation type="obsolete">Vapen</translation>
     </message>
     <message>
         <source>Net game</source>
@@ -1644,36 +1928,16 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Laginställningar</translation>
     </message>
     <message>
-        <source>Misc</source>
-        <translation>Diverse</translation>
+        <source>Videos</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Schemes and Weapons</source>
-        <translation>Scheman och vapen</translation>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>QLabel</name>
-    <message>
-        <source>This program is distributed under the GNU General Public License</source>
-        <translation type="obsolete">Detta program distribueras under GNU General Public License</translation>
-    </message>
-    <message>
-        <source>Developers:</source>
-        <translation>Utvecklare:</translation>
-    </message>
-    <message>
-        <source>Art:</source>
-        <translation>Grafik:</translation>
-    </message>
-    <message>
-        <source>Translations:</source>
-        <translation>Översättningar:</translation>
-    </message>
-    <message>
-        <source>Special thanks:</source>
-        <translation>Särskilt tack till:</translation>
-    </message>
     <message>
         <source>Weapons</source>
         <translation>Vapen</translation>
@@ -1695,10 +1959,6 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>FPS-begränsning</translation>
     </message>
     <message>
-        <source>Net nick</source>
-        <translation>Internetnamn</translation>
-    </message>
-    <message>
         <source>Server name:</source>
         <translation>Servernamn:</translation>
     </message>
@@ -1708,11 +1968,7 @@ Vill du fortfarande gå med i rummet?</translation>
     </message>
     <message>
         <source>Version</source>
-        <translation>Version</translation>
-    </message>
-    <message>
-        <source>Sounds:</source>
-        <translation>Ljud:</translation>
+        <translation type="obsolete">Version</translation>
     </message>
     <message>
         <source>Initial sound volume</source>
@@ -1751,10 +2007,6 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Lådor</translation>
     </message>
     <message>
-        <source>Game scheme</source>
-        <translation>Spelschema</translation>
-    </message>
-    <message>
         <source>% Dud Mines</source>
         <translation>% falska minor</translation>
     </message>
@@ -1783,26 +2035,12 @@ Vill du fortfarande gå med i rummet?</translation>
         <translation>Språk</translation>
     </message>
     <message>
-        <source>Restart game to apply</source>
-        <translation>Starta om spelet för att verkställa</translation>
-    </message>
-    <message>
-        <source>This SVN build is &apos;work in progress&apos; and may not be compatible with other versions of the game.
-Some features might be broken or incomplete. Use at your own risk!</source>
-        <translation type="obsolete">Detta SVN-bygge är &apos;under utveckling&apos; och kanske inte är kompatibel med andra versioner av spelet.
-Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</translation>
-    </message>
-    <message>
         <source>Explosives</source>
         <translation>Bombtunnor</translation>
     </message>
     <message>
         <source>Tip: </source>
-        <translation>Tips:</translation>
-    </message>
-    <message>
-        <source>This development build is &apos;work in progress&apos; and may not be compatible with other versions of the game. Some features might be broken or incomplete. Use at your own risk!</source>
-        <translation>Denna utvecklingsversion är inte färdig och kanske inte är kompatibel med andra versioner av spelet. Några delar kan vara trasiga eller ofullständiga. Använd på egen risk!</translation>
+        <translation type="obsolete">Tips:</translation>
     </message>
     <message>
         <source>Quality</source>
@@ -1829,16 +2067,8 @@ Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</
         <translation>% replängd</translation>
     </message>
     <message>
-        <source>Gameplay</source>
-        <translation type="obsolete">Speltyp</translation>
-    </message>
-    <message>
         <source>Stereo rendering</source>
         <translation>Stereorendering</translation>
-    </message>
-    <message>
-        <source>Game Options</source>
-        <translation type="obsolete">Spelinställningar</translation>
     </message>
     <message>
         <source>Style</source>
@@ -1849,15 +2079,125 @@ Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</
         <translation>Schema</translation>
     </message>
     <message>
-        <source>Password</source>
-        <translation>Lösenord</translation>
-    </message>
-    <message>
         <source>% Get Away Time</source>
         <translation>% flykttid</translation>
     </message>
     <message>
-        <source>This program is distributed under the GNU General Public License v2</source>
+        <source>There are videos that are currently being processed.
+Exiting now will abort them.
+Do you really want to quit?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please provide either the YouTube account name or the email address associated with the Google Account.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Account name (or email): </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Password: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video title: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video description: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tags (comma separated): </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nickname</source>
+        <translation type="unfinished">Smeknamn</translation>
+    </message>
+    <message>
+        <source>Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio codec</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video codec</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Framerate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bitrate (Kbps)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This development build is &apos;work in progress&apos; and may not be compatible with other versions of the game, while some features might be broken or incomplete!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fullscreen</source>
+        <translation type="unfinished">Helskärm</translation>
+    </message>
+    <message>
+        <source>Fullscreen Resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Windowed Resolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your Email</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Summary</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send system information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type the security code:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Revision</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This program is distributed under the %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This setting will be effective at next restart.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tip: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Displayed tags above hogs and translucent tags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>World Edge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Script parameter</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1871,6 +2211,10 @@ Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</
         <source>hedgehog %1</source>
         <translation>igelkott %1</translation>
     </message>
+    <message>
+        <source>anonymous</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QMainWindow</name>
@@ -1882,10 +2226,6 @@ Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</
 <context>
     <name>QMessageBox</name>
     <message>
-        <source>Network</source>
-        <translation>Nätverk</translation>
-    </message>
-    <message>
         <source>Connection to server is lost</source>
         <translation>Ansluting till servern bröts</translation>
     </message>
@@ -1894,87 +2234,223 @@ Det kan finnas trasiga eller ofullständiga funktioner. Använd på egen risk!</
         <translation>Fel</translation>
     </message>
     <message>
-        <source>Failed to open data directory:
-%1
-Please check your installation</source>
-        <translation>Kunde inte öppna datakatalog:
-%1
-Var god kontrollera din installation</translation>
-    </message>
-    <message>
-        <source>Weapons</source>
-        <translation>Vapen</translation>
-    </message>
-    <message>
-        <source>Can not edit default weapon set</source>
-        <translation type="obsolete">Kan inte redigera ursprungliga vapenscheman</translation>
-    </message>
-    <message>
-        <source>Can not delete default weapon set</source>
-        <translation type="obsolete">Kan inte ta bort ursprungliga vapenscheman</translation>
-    </message>
-    <message>
-        <source>Really delete this weapon set?</source>
-        <translation>Vill du verkligen ta bort detta vapenschema?</translation>
-    </message>
-    <message>
-        <source>Can not overwrite default weapon set &apos;%1&apos;!</source>
-        <translation>Kan inte skriva över standardvapenschema &apos;%1&apos;!</translation>
-    </message>
-    <message>
-        <source>All file associations have been set.</source>
-        <translation>Alla filassociationer har satts.</translation>
-    </message>
-    <message>
         <source>File association failed.</source>
         <translation>Filassociationer har misslyckats.</translation>
     </message>
     <message>
-        <source>Teams</source>
-        <translation>Lag</translation>
+        <source>Error while authenticating at google.com:
+</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Really delete this team?</source>
-        <translation>Vill du verkligen ta bort detta lag?</translation>
+        <source>Login or password is incorrect</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Schemes</source>
-        <translation>Scheman</translation>
+        <source>Error while sending metadata to youtube.com:
+</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Can not delete default scheme &apos;%1&apos;!</source>
-        <translation>Kan inte ta bort standardschema &apos;%1&apos;!</translation>
+        <source>Teams - Are you sure?</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Really delete this game scheme?</source>
-        <translation>Vill du verkligen ta bort detta spelschema?</translation>
+        <source>Do you really want to delete the team &apos;%1&apos;?</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Can not delete default weapon set &apos;%1&apos;!</source>
-        <translation>Kan inte ta bort standardvapenset &apos;%1&apos;!</translation>
+        <source>Cannot delete default scheme &apos;%1&apos;!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please select a record from the list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to start server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Success</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>All file associations have been set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot create directory %1</source>
+        <translation type="obsolete">Kan inte skapa katalog %1</translation>
+    </message>
+    <message>
+        <source>Unable to start the server: %1.</source>
+        <translation type="obsolete">Kunde inte starta servern: %1.</translation>
+    </message>
+    <message>
+        <source>Video upload - Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Netgame - Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please select a server from the list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please enter room name</source>
+        <translation type="unfinished">Skriv in rummets namn</translation>
+    </message>
+    <message>
+        <source>Record Play - Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please select record from the list</source>
+        <translation type="unfinished">Välj inspelning från listan</translation>
+    </message>
+    <message>
+        <source>Cannot rename to </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot delete file </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room Name - Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please select room from the list</source>
+        <translation type="unfinished">Välj ett rum från listan</translation>
+    </message>
+    <message>
+        <source>Room Name - Are you sure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The game you are trying to join has started.
+Do you still want to join the room?</source>
+        <translation type="unfinished">Spelet du försöker gå med i har startat.
+Vill du fortfarande gå med i rummet?</translation>
+    </message>
+    <message>
+        <source>Schemes - Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Schemes - Are you sure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you really want to delete the game scheme &apos;%1&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Videos - Are you sure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you really want to delete the video &apos;%1&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Do you really want to remove %1 file(s)?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Do you really want to cancel uploading %1?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File error</source>
+        <translation type="unfinished">Fel på fil</translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos; for writing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos; for reading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot use the ammo &apos;%1&apos;!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Weapons - Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot overwrite default weapon set &apos;%1&apos;!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot delete default weapon set &apos;%1&apos;!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Weapons - Are you sure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you really want to delete the weapon set &apos;%1&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Nick not registered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>System Information Preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to generate captcha</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to download captcha</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please fill out all fields. Email is optional.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgewars - Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not all players are ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Are you sure you want to start this game?
+Not all players are ready.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
-    </message>
-    <message>
-        <source>Cannot create directory %1</source>
-        <translation>Kan inte skapa katalog %1</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
-    <message>
-        <source>Nickname</source>
-        <translation>Smeknamn</translation>
-    </message>
-    <message>
-        <source>Please enter your nickname</source>
-        <translation>Var god ange ditt smeknamn</translation>
+        <source>No description available</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2032,59 +2508,165 @@ Var god kontrollera din installation</translation>
         <translation>Läs in</translation>
     </message>
     <message>
-        <source>Setup</source>
-        <translation>Inställningar</translation>
-    </message>
-    <message>
-        <source>Ready</source>
-        <translation>Redo</translation>
-    </message>
-    <message>
-        <source>Random Team</source>
-        <translation>Slumpat lag</translation>
-    </message>
-    <message>
         <source>Associate file extensions</source>
         <translation>Associera filextentioner</translation>
     </message>
     <message>
-        <source>Set</source>
-        <translation type="obsolete">Ange</translation>
+        <source>More info</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>more</source>
-        <translation>mer</translation>
+        <source>Set default options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open videos directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload to YouTube</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel uploading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore default coding parameters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open the video directory in your system</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play this video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete this video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload this video to your Youtube account</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set the default server port for Hedgewars</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Invite your friends to your server in just 1 click!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click to copy your unique server URL to your clipboard. Send this link to your friends and they will be able to join you.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start private server</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>QTableWidget</name>
+    <name>RoomNamePrompt</name>
+    <message>
+        <source>Enter a name for your room.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
+    </message>
+    <message>
+        <source>Create room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>set password</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RoomsListModel</name>
+    <message>
+        <source>In progress</source>
+        <translation type="unfinished">Pågår</translation>
+    </message>
     <message>
         <source>Room Name</source>
-        <translation>Rumnamn</translation>
+        <translation type="unfinished">Rumnamn</translation>
     </message>
     <message>
         <source>C</source>
-        <translation>A</translation>
+        <translation type="unfinished">A</translation>
     </message>
     <message>
         <source>T</source>
-        <translation>L</translation>
+        <translation type="unfinished">L</translation>
     </message>
     <message>
         <source>Owner</source>
-        <translation>Ägare</translation>
+        <translation type="unfinished">Ägare</translation>
     </message>
     <message>
         <source>Map</source>
-        <translation>Karta</translation>
+        <translation type="unfinished">Karta</translation>
     </message>
     <message>
         <source>Rules</source>
-        <translation>Regler</translation>
+        <translation type="unfinished">Regler</translation>
     </message>
     <message>
         <source>Weapons</source>
-        <translation>Vapen</translation>
+        <translation type="unfinished">Vapen</translation>
+    </message>
+    <message>
+        <source>Random Map</source>
+        <translation type="unfinished">Slumpad karta</translation>
+    </message>
+    <message>
+        <source>Random Maze</source>
+        <translation type="unfinished">Slumpad labyrint</translation>
+    </message>
+    <message>
+        <source>Hand-drawn</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Script</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random Perlin</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SeedPrompt</name>
+    <message>
+        <source>The map seed is the basis for all random values generated by the game.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
+    </message>
+    <message>
+        <source>Set seed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2111,129 +2693,54 @@ Var god kontrollera din installation</translation>
     </message>
     <message>
         <source>copy of</source>
-        <translation>kopia av</translation>
+        <translation type="obsolete">kopia av</translation>
+    </message>
+    <message>
+        <source>copy of %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>TCPBase</name>
     <message>
-        <source>Error</source>
-        <translation>Fel</translation>
+        <source>Unable to start server at %1.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Unable to start the server: %1.</source>
-        <translation>Kunde inte starta servern: %1.</translation>
+        <source>Unable to run engine at %1
+Error code: %2</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Unable to run engine: %1 (</source>
-        <translation>Kunde inte köra motorn: %1 (</translation>
+        <source>The game engine died unexpectedly!
+(exit code %1)
+
+We are very sorry for the inconvenience :(
+
+If this keeps happening, please click the &apos;%2&apos; button in the main menu!</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>ToggleButtonWidget</name>
+    <name>TeamSelWidget</name>
     <message>
-        <source>Vampirism</source>
-        <translation>Vampyrism</translation>
+        <source>At least two teams are required to play!</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ThemePrompt</name>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished">Avbryt</translation>
     </message>
     <message>
-        <source>Karma</source>
-        <translation>Karma</translation>
+        <source>Search for a theme:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Artillery</source>
-        <translation>Artilleri</translation>
-    </message>
-    <message>
-        <source>Fort Mode</source>
-        <translation>Fortläge</translation>
-    </message>
-    <message>
-        <source>Divide Teams</source>
-        <translation>Dela upp lag</translation>
-    </message>
-    <message>
-        <source>Solid Land</source>
-        <translation>Solitt land</translation>
-    </message>
-    <message>
-        <source>Add Border</source>
-        <translation>Lägg till kant</translation>
-    </message>
-    <message>
-        <source>Low Gravity</source>
-        <translation>Låg gravitation</translation>
-    </message>
-    <message>
-        <source>Laser Sight</source>
-        <translation>Lasersikte</translation>
-    </message>
-    <message>
-        <source>Invulnerable</source>
-        <translation>Osårbar</translation>
-    </message>
-    <message>
-        <source>Add Mines</source>
-        <translation type="obsolete">Lägg till minor</translation>
-    </message>
-    <message>
-        <source>Random Order</source>
-        <translation>Slumpad ordning</translation>
-    </message>
-    <message>
-        <source>King</source>
-        <translation>Kung</translation>
-    </message>
-    <message>
-        <source>Place Hedgehogs</source>
-        <translation>Placera igelkottar</translation>
-    </message>
-    <message>
-        <source>Clan Shares Ammo</source>
-        <translation>Klan delar ammunition</translation>
-    </message>
-    <message>
-        <source>Disable Girders</source>
-        <translation>Avaktivera balkar</translation>
-    </message>
-    <message>
-        <source>Disable Land Objects</source>
-        <translation>Avaktivera landföremål</translation>
-    </message>
-    <message>
-        <source>AI Survival Mode</source>
-        <translation>AI-överlevnad</translation>
-    </message>
-    <message>
-        <source>Reset Health</source>
-        <translation>Återställ hälsa</translation>
-    </message>
-    <message>
-        <source>Unlimited Attacks</source>
-        <translation>Obegränsade attacker</translation>
-    </message>
-    <message>
-        <source>Reset Weapons</source>
-        <translation>Återställ vapen</translation>
-    </message>
-    <message>
-        <source>Per Hedgehog Ammo</source>
-        <translation>Ammunition per igelkott</translation>
-    </message>
-    <message>
-        <source>Disable Wind</source>
-        <translation>Avaktivera vind</translation>
-    </message>
-    <message>
-        <source>More Wind</source>
-        <translation>Mer vind</translation>
-    </message>
-    <message>
-        <source>Tag Team</source>
-        <translation>Maraton</translation>
-    </message>
-    <message>
-        <source>Add Bottom Border</source>
-        <translation>Lägg till undre barriär</translation>
+        <source>Use selected theme</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2268,7 +2775,7 @@ Var god kontrollera din installation</translation>
     </message>
     <message>
         <source>find hedgehog</source>
-        <translation>hitta igelkott</translation>
+        <translation type="obsolete">hitta igelkott</translation>
     </message>
     <message>
         <source>ammo menu</source>
@@ -2351,11 +2858,6 @@ Var god kontrollera din installation</translation>
         <translation>ta bild</translation>
     </message>
     <message>
-        <source>hedgehogs
-info</source>
-        <translation>information om igelkottar</translation>
-    </message>
-    <message>
         <source>quit</source>
         <translation>avsluta</translation>
     </message>
@@ -2399,32 +2901,48 @@ info</source>
         <source>slot 10</source>
         <translation>fack 10</translation>
     </message>
+    <message>
+        <source>mute audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>record</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>hedgehog info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>autocam / find hedgehog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>speed up replay</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>binds (categories)</name>
     <message>
-        <source>Basic controls</source>
-        <translation>Allmäna kontroller</translation>
+        <source>Movement</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Weapon controls</source>
-        <translation>Vanenkontroller</translation>
+        <source>Weapons</source>
+        <translation type="unfinished">Vapen</translation>
     </message>
     <message>
-        <source>Camera and cursor controls</source>
-        <translation>Kamera och pilkontroller</translation>
+        <source>Camera</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Other</source>
-        <translation>Annat</translation>
+        <source>Miscellaneous</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>binds (descriptions)</name>
-    <message>
-        <source>Move your hogs and aim:</source>
-        <translation>Flytta dina igelkottar och sikta:</translation>
-    </message>
     <message>
         <source>Traverse gaps and obstacles by jumping:</source>
         <translation>Undvik hål och hinder genom att hoppa:</translation>
@@ -2451,7 +2969,7 @@ info</source>
     </message>
     <message>
         <source>Move the camera to the active hog:</source>
-        <translation>Flytta kameran till aktiv igelkotte:</translation>
+        <translation type="obsolete">Flytta kameran till aktiv igelkotte:</translation>
     </message>
     <message>
         <source>Move the cursor or camera without using the mouse:</source>
@@ -2484,6 +3002,22 @@ info</source>
     <message>
         <source>Toggle labels above hedgehogs:</source>
         <translation>Visa etiketter över igelkottar:</translation>
+    </message>
+    <message>
+        <source>Record video:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hedgehog movement</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle automatic camera / refocus on active hedgehog:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Demo replay:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2803,6 +3337,185 @@ info</source>
     <message>
         <source>DPad</source>
         <translation>Styrkors</translation>
+    </message>
+</context>
+<context>
+    <name>server</name>
+    <message>
+        <source>Restricted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not room master</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Corrupted hedgehogs info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>too many teams</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>too many hedgehogs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There&apos;s already a team with same name in the list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>round in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>restricted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>REMOVE_TEAM: no such team</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not team owner!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Less than two clans!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Illegal room name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room with such name already exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nickname already chosen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Illegal nickname</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Protocol already known</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bad number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nickname is already in use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No checker rights</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Authentication failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>60 seconds cooldown after kick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>kicked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ping timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>bye</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No such room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Room version incompatible to your hedgewars version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Joining restricted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Registered users only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You are banned in this room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty config entry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You already have voted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voting closed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New voting started</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voting expired</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>kick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pause</source>
+        <translation type="unfinished">pausa</translation>
+    </message>
+    <message>
+        <source>Reconnected too fast</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warning! Chat flood protection activated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Excess flood</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Game messages flood detected - 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Game messages flood detected - 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warning! Joins flood protection activated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There&apos;s no voting going on</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -49,7 +49,7 @@
 --script begins
 -----------------
 
-loadfile(GetDataPath() .. "Scripts/Locale.lua")()
+HedgewarsScriptLoad("/Scripts/Locale.lua")
 
 ---------------------------------------------------------------
 ----------lots of bad variables and things
@@ -369,7 +369,7 @@ function onGameStart()
 		--AddCaption(zz) -- number of times it took to work
 	end
 
-	ShowMission("CONTROL", 
+	ShowMission(loc("CONTROL"), 
 	"", 
 	loc("Control pillars to score points.") .. "|" .. 
 	loc("Goal") .. ": " .. pointLimit .. " " .. loc("points"), 0, 0)
@@ -400,7 +400,7 @@ function onNewTurn()
 			for i = 0, (numhhs-1) do
 				if hhs[i] ~= nil then				
 					if GetHogClan(hhs[i]) ~= winnerClan then
-						SetEffect(hhs[i], heResurrectable, false)
+						SetEffect(hhs[i], heResurrectable, 0)
 						SetHealth(hhs[i],0)
 					end
 				end			
@@ -418,7 +418,7 @@ function onNewTurn()
 				end
 			end
 			
-			ShowMission("CONTROL", 
+			ShowMission(loc("CONTROL"), 
 			loc("Team Scores") .. ":", 
 			totalComment, 0, 1600)
 	
@@ -501,7 +501,7 @@ function onGearAdd(gear)
 	if GetGearType(gear) == gtHedgehog then
 		hhs[numhhs] = gear
 		numhhs = numhhs + 1
-		SetEffect(gear, heResurrectable, true)
+		SetEffect(gear, heResurrectable, 1)
 	end
 
 end

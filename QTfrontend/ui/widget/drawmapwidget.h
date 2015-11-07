@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef DRAWMAPWIDGET_H
@@ -25,7 +25,6 @@
 #include <QGraphicsView>
 #include <QLabel>
 
-#include "qaspectratiolayout.h"
 #include "drawmapscene.h"
 
 
@@ -61,12 +60,13 @@ namespace Ui
                 QVBoxLayout * vbox = new QVBoxLayout(drawMapWidget);
                 vbox->setMargin(0);
                 lblPoints = new QLabel("0", drawMapWidget);
-                vbox->addWidget(lblPoints);
-                QAspectRatioLayout * arLayout = new QAspectRatioLayout();
-                arLayout->setMargin(0);
+                QLayout * arLayout = new QVBoxLayout();
+                arLayout->setAlignment(Qt::AlignCenter);
                 vbox->addLayout(arLayout);
 
                 graphicsView = new DrawMapView(drawMapWidget);
+                graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
                 arLayout->addWidget(graphicsView);
 
                 retranslateUi(drawMapWidget);
@@ -97,9 +97,11 @@ class DrawMapWidget : public QWidget
     public slots:
         void undo();
         void clear();
+        void optimize();
         void setErasing(bool erasing);
         void save(const QString & fileName);
         void load(const QString & fileName);
+        void setPathType(DrawMapScene::PathType pathType);
 
     protected:
         void changeEvent(QEvent *e);

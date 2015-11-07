@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -26,30 +26,65 @@ procedure DoGameTick(Lag: LongInt);
 ////////////////////
     implementation
 ////////////////////
-uses uInputHandler, uTeams, uIO, uAI, uGears, uSound, uMobile, uVisualGears, uTypes, uVariables{$IFDEF SDL13}, uTouch{$ENDIF};
+uses uInputHandler, uTeams, uIO, uAI, uGears, uSound, uLocale, uCaptions,
+     uTypes, uVariables, uCommands, uConsts, uVisualGearsList, uUtils
+     {$IFDEF USE_TOUCH_INTERFACE}, uTouch{$ENDIF};
 
 procedure DoGameTick(Lag: LongInt);
-var i: LongInt;
+var i,j : LongInt;
+    s: ansistring;
 begin
 if isPaused then
     exit;
+
 if (not CurrentTeam^.ExtDriven) then
     begin
     NetGetNextCmd; // its for the case of receiving "/say" message
     isInLag:= false;
-    SendKeepAliveMessage(Lag)
+    FlushMessages(Lag)
     end;
-if Lag > 100 then
-    Lag:= 100
-else if (GameType = gmtSave) or (fastUntilLag and (GameType = gmtNet)) then
-    Lag:= 2500;
 
-if (GameType = gmtDemo) then 
-    if isSpeed then
-        Lag:= Lag * 10
-    else
-        if cOnlyStats then
-            Lag:= High(LongInt);
+if GameType <> gmtRecord then
+    begin
+    if Lag > 100 then
+        Lag:= 100
+    else if (GameType = gmtSave) or (fastUntilLag and (GameType = gmtNet)) then
+        Lag:= 2500;
+
+    if (GameType = gmtDemo) then
+        if isSpeed then
+            begin
+            i:= RealTicks-SpeedStart;
+            if i < 2000 then Lag:= Lag*5
+            else if i < 4000 then Lag:= Lag*10
+            else if i < 6000 then Lag:= Lag*20
+            else if i < 8000 then Lag:= Lag*40
+            else Lag:= Lag*80;
+            end
+        else if cOnlyStats then
+            Lag:= High(LongInt)
+    end;
+
+if cTestLua then
+    Lag:= High(LongInt);
+
+inc(SoundTimerTicks, Lag);
+if SoundTimerTicks >= 50 then
+    begin
+    SoundTimerTicks:= 0;
+    if cVolumeDelta <> 0 then
+        begin
+        j:= Volume;
+        i:= ChangeVolume(cVolumeDelta);
+        if isAudioMuted and (j<>i) then
+            AddCaption(trmsg[sidMute], cWhiteColor, capgrpVolume)
+        else if not isAudioMuted then
+            begin
+            s:= ansistring(inttostr(i));
+            AddCaption(FormatA(trmsg[sidVolume], s), cWhiteColor, capgrpVolume)
+            end
+        end;
+    end;
 PlayNextVoice;
 i:= 1;
 while (GameState <> gsExit) and (i <= Lag) do
@@ -59,7 +94,7 @@ while (GameState <> gsExit) and (i <= Lag) do
         if CurrentHedgehog^.BotLevel <> 0 then
             ProcessBot;
         ProcessGears;
-        {$IFDEF SDL13}ProcessTouch;{$ENDIF}
+        {$IFDEF USE_TOUCH_INTERFACE}ProcessTouch;{$ENDIF}
         end
     else
         begin
@@ -67,25 +102,31 @@ while (GameState <> gsExit) and (i <= Lag) do
         if isInLag then
             case GameType of
                 gmtNet: begin
-                        // just update the health bars
+                        // update health bars and the wind indicator
                         AddVisualGear(0, 0, vgtTeamHealthSorter);
+                        AddVisualGear(0, 0, vgtSmoothWindBar);
                         break;
                         end;
-                gmtDemo: begin
+                gmtDemo, gmtRecord: begin
+                        AddFileLog('End of input, halting now');
                         GameState:= gsExit;
                         exit
                         end;
                 gmtSave: begin
                         RestoreTeamsFromSave;
                         SetBinds(CurrentTeam^.Binds);
-                        //CurrentHedgehog^.Gear^.Message:= 0; <- produces bugs with further save restoring and demos
+                        StopMessages(gmLeft or gmRight or gmUp or gmDown);
                         ResetSound;   // restore previous sound state
                         PlayMusic;
                         GameType:= gmtLocal;
                         AddVisualGear(0, 0, vgtTeamHealthSorter);
                         AddVisualGear(0, 0, vgtSmoothWindBar);
                         {$IFDEF IPHONEOS}InitIPC;{$ENDIF}
-                        uMobile.SaveLoadingEnded();
+                        {$IFNDEF PAS2C}
+                        with mobileRecord do
+                            if SaveLoadingEnded <> nil then
+                                SaveLoadingEnded();
+                        {$ENDIF}
                         end;
                 end
         else ProcessGears

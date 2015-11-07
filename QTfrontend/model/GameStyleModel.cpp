@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -23,13 +23,14 @@
 
 #include <QTextStream>
 
+#include "physfs.h"
 #include "GameStyleModel.h"
+#include "hwconsts.h"
 
 
 void GameStyleModel::loadGameStyles()
 {
     beginResetModel();
-
 
     // empty list, so that we can (re)fill it
     QStandardItemModel::clear();
@@ -55,8 +56,7 @@ void GameStyleModel::loadGameStyles()
     {
         script = script.remove(".lua", Qt::CaseInsensitive);
 
-        QFile scriptCfgFile(DataManager::instance().findFileForRead(
-                            QString("Scripts/Multiplayer/%2.cfg").arg(script)));
+        QFile scriptCfgFile(QString("physfs://Scripts/Multiplayer/%2.cfg").arg(script));
 
         QString name = script;
         name = name.replace("_", " ");
@@ -78,11 +78,16 @@ void GameStyleModel::loadGameStyles()
                 weapons.replace("_", " ");
         }
 
-        QStandardItem * item = new QStandardItem(name);
+        // detect if script is dlc
+        QString scriptPath = PHYSFS_getRealDir(QString("Scripts/Multiplayer/%1.lua").arg(script).toLocal8Bit().data());
+        bool isDLC = !scriptPath.startsWith(datadir->absolutePath());
+
+        QStandardItem * item = new QStandardItem((isDLC ? "*" : "") + name);
 
         item->setData(script, ScriptRole);
         item->setData(scheme, SchemeRole);
         item->setData(weapons, WeaponsRole);
+        item->setData(isDLC, IsDlcRole);
 
         items.append(item);
     }

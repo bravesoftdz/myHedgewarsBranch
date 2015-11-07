@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
@@ -25,6 +25,8 @@
 #include <QStringList>
 #include <QStandardItemModel>
 #include <QFileInfo>
+#include <QSettings>
+#include <QColor>
 
 #include "hwconsts.h"
 #include "HWApplication.h"
@@ -39,17 +41,13 @@
 
 DataManager::DataManager()
 {
-    m_userData = new QDir(cfgdir->absolutePath());
-    if (!m_userData->cd("Data"))
-        m_userData = NULL;
-
-    m_defaultData = new QDir(datadir->absolutePath());
-
     m_hatModel = NULL;
-    m_mapModel = NULL;
+    m_staticMapModel = NULL;
+    m_missionMapModel = NULL;
     m_themeModel = NULL;
     m_colorsModel = NULL;
     m_bindsModel = NULL;
+    m_gameStyleModel = NULL;
 }
 
 
@@ -66,20 +64,8 @@ QStringList DataManager::entryList(
     const QStringList & nameFilters
 ) const
 {
-    QStringList result;
-
-    if (m_userData != NULL)
-    {
-        QDir tmpDir(*m_userData);
-        if (tmpDir.cd(subDirectory))
-            result.append(tmpDir.entryList(nameFilters, filters));
-    }
-
-    QDir tmpDir(*m_defaultData);
-    if (tmpDir.cd(subDirectory))
-        result.append(tmpDir.entryList(nameFilters, filters));
-
-    result.removeDuplicates();
+    QDir tmpDir(QString("physfs://%1").arg(subDirectory));
+    QStringList result = tmpDir.entryList(nameFilters, filters);
 
     // sort case-insensitive
     QMap<QString, QString> sortedFileNames;
@@ -90,40 +76,6 @@ QStringList DataManager::entryList(
     result = sortedFileNames.values();
 
     return result;
-}
-
-
-QString DataManager::findFileForRead(
-    const QString & relativeDataFilePath) const
-{
-    QString path;
-
-    if (m_userData != NULL)
-        path = m_userData->absolutePath()+"/"+relativeDataFilePath;
-
-    if ((!path.isEmpty()) && (!QFile::exists(path)))
-        path = m_defaultData->absolutePath()+"/"+relativeDataFilePath;
-
-    return path;
-}
-
-
-QString DataManager::findFileForWrite(
-    const QString & relativeDataFilePath) const
-{
-    if (m_userData != NULL)
-    {
-        QString path = m_userData->absolutePath()+"/"+relativeDataFilePath;
-
-        // create folders if needed
-        QDir tmp;
-        tmp.mkpath(QFileInfo(path).absolutePath());
-
-        return path;
-    }
-
-
-    return "";
 }
 
 GameStyleModel * DataManager::gameStyleModel()
@@ -144,20 +96,26 @@ HatModel * DataManager::hatModel()
     return m_hatModel;
 }
 
-MapModel * DataManager::mapModel()
+MapModel * DataManager::staticMapModel()
 {
-    if (m_mapModel == NULL) {
-        m_mapModel = new MapModel();
-        m_mapModel->loadMaps();
+    if (m_staticMapModel == NULL) {
+        m_staticMapModel = new MapModel(MapModel::StaticMap, this);
     }
-    return m_mapModel;
+    return m_staticMapModel;
+}
+
+MapModel * DataManager::missionMapModel()
+{
+    if (m_missionMapModel == NULL) {
+        m_missionMapModel = new MapModel(MapModel::MissionMap, this);
+    }
+    return m_missionMapModel;
 }
 
 ThemeModel * DataManager::themeModel()
 {
     if (m_themeModel == NULL) {
         m_themeModel = new ThemeModel();
-        m_themeModel->loadThemes();
     }
     return m_themeModel;
 }
@@ -187,6 +145,11 @@ QStandardItemModel * DataManager::bindsModel()
     {
         m_bindsModel = new QStandardItemModel();
 
+        QStandardItem * firstItem = new QStandardItem();
+        firstItem->setData(tr("Use Default"), Qt::DisplayRole);
+        firstItem->setData("default", Qt::UserRole + 1);
+        m_bindsModel->appendRow(firstItem);
+
         for(int j = 0; sdlkeys[j][1][0] != '\0'; j++)
         {
             QStandardItem * item = new QStandardItem();
@@ -199,11 +162,70 @@ QStandardItemModel * DataManager::bindsModel()
     return m_bindsModel;
 }
 
+QString DataManager::settingsFileName()
+{
+    if(m_settingsFileName.isEmpty())
+    {
+        QFile settingsFile("physfs://settings.ini");
+
+        if(!settingsFile.exists())
+        {
+            QFile oldSettingsFile("physfs://hedgewars.ini");
+
+            settingsFile.open(QFile::WriteOnly);
+            settingsFile.close();
+
+            if(oldSettingsFile.exists())
+            {
+                QSettings sOld(oldSettingsFile.fileName(), QSettings::IniFormat);
+                QSettings sNew(settingsFile.fileName(), QSettings::IniFormat);
+                sNew.setIniCodec("UTF-8");
+
+                foreach(const QString & key, sOld.allKeys())
+                {
+                    if(key.startsWith("colors/color"))
+                        sNew.setValue(key, sOld.value(key).value<QColor>().name());
+                    else
+                        sNew.setValue(key, sOld.value(key));
+                }
+            }
+        }
+
+        m_settingsFileName = settingsFile.fileName();
+    }
+
+    return m_settingsFileName;
+}
+
+QString DataManager::safeFileName(QString fileName)
+{
+    fileName.replace('\\', '_');
+    fileName.replace('/', '_');
+    fileName.replace(':', '_');
+
+    return fileName;
+}
+
 void DataManager::reload()
 {
-    m_gameStyleModel->loadGameStyles();
-    m_hatModel->loadHats();
-    m_mapModel->loadMaps();
-    m_themeModel->loadThemes();
-    emit updated();
+    // removed for now (also code was a bit unclean, could lead to segfault if
+    // reload() is called before all members are initialized - because currently
+    // they are initialized in the getter methods rather than the constructor)
+}
+
+void DataManager::resetColors()
+{
+    for(int i = colorsModel()->rowCount() - 1; i >= 0; --i)
+    {
+        m_colorsModel->item(i)->setData(QColor(colors[i]));
+    }
+}
+
+bool DataManager::ensureFileExists(const QString &fileName)
+{
+    QFile tmpfile(fileName);
+    if (!tmpfile.exists())
+        return tmpfile.open(QFile::WriteOnly);
+    else
+        return true;
 }

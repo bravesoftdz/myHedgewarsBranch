@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef STATSPAGE_H
@@ -44,18 +44,24 @@ class PageGameStats : public AbstractPage
         PageGameStats(QWidget* parent = 0);
 
         QPushButton *btnSave;
+        QPushButton *btnRestart;
+        QLabel *mainNote;
         QLabel *labelGameStats;
         QLabel *labelGameWin;
         QLabel *labelGameRank;
+        QLabel *labelGraphTitle;
+        QString kindOfPoints;
         FitGraphicsView * graphic;
 
     public slots:
         void GameStats(char type, const QString & info);
         void clear();
         void renderStats();
+        void restartBtnVisible(bool visible);
 
     signals:
         void saveDemoRequested();
+        void restartGameRequested();
 
     private:
         void AddStatText(const QString & msg);
@@ -63,6 +69,7 @@ class PageGameStats : public AbstractPage
         QMap<quint32, QVector<quint32> > healthPoints;
         unsigned int playerPosition;
         quint32 lastColor;
+        bool defaultGraphTitle;
 
     protected:
         QLayout * bodyLayoutDefinition();

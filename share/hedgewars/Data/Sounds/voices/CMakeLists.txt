@@ -1,16 +1,17 @@
 foreach(dir
     British
-	Classic
-	Default
-	Mobster
-	Pirate
-	Robot
-	Russian
-	Singer
-	Surfer
-	Default_uk
-	Default_es
-	HillBilly
-	)
-	add_subdirectory(${dir})
+    Classic
+    Default
+    Default_es
+    Default_ru
+    Default_uk
+    HillBilly
+    Mobster
+    Pirate
+    Robot
+    Russian
+    Singer
+    Surfer
+    )
+    add_subdirectory(${dir})
 endforeach(dir)

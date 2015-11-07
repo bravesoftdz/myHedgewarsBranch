@@ -13,12 +13,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
  */
 
 
 #import "SingleWeaponViewController.h"
 
+@interface SingleWeaponViewController ()
+@property (nonatomic, retain) NSString *trPath;
+@property (nonatomic, retain) NSString *trFileName;
+@end
 
 @implementation SingleWeaponViewController
 @synthesize weaponName, description, ammoStoreImage;
@@ -31,38 +35,39 @@
 #pragma mark View lifecycle
 -(void) viewDidLoad {
     [super viewDidLoad];
-    
-    NSString *trFilePath = [NSString stringWithFormat:@"%@/%@.txt",LOCALE_DIRECTORY(),[[NSLocale preferredLanguages] objectAtIndex:0]];
+
+    self.trPath = [NSString stringWithFormat:@"%@", LOCALE_DIRECTORY()];
+    self.trFileName = [NSString stringWithFormat:@"%@.txt", [HWUtils languageID]];
     // fill the data structure that we are going to read
-    LoadLocaleWrapper([trFilePath UTF8String]);
-    
+    LoadLocaleWrapper([self.trPath UTF8String], [self.trFileName UTF8String]);
+
     quantity = (char *)malloc(sizeof(char)*(HW_getNumberOfWeapons()+1));
     probability = (char *)malloc(sizeof(char)*(HW_getNumberOfWeapons()+1));
     delay = (char *)malloc(sizeof(char)*(HW_getNumberOfWeapons()+1));
     crateness = (char *)malloc(sizeof(char)*(HW_getNumberOfWeapons()+1));
-    
+
     NSString *str = [NSString stringWithFormat:@"%@/AmmoMenu/Ammos.png",GRAPHICS_DIRECTORY()];
     UIImage *img = [[UIImage alloc] initWithContentsOfFile:str];
     self.ammoStoreImage = img;
     [img release];
-    
+
     self.title = NSLocalizedString(@"Edit weapons preferences",@"");
 }
 
 -(void) viewWillAppear:(BOOL) animated {
     [super viewWillAppear:animated];
-    
+
     NSString *ammoFile = [[NSString alloc] initWithFormat:@"%@/%@.plist",WEAPONS_DIRECTORY(),self.weaponName];
     NSDictionary *weapon = [[NSDictionary alloc] initWithContentsOfFile:ammoFile];
     [ammoFile release];
-    
+
     self.description = [weapon objectForKey:@"description"];
     const char *tmp1 = [[weapon objectForKey:@"ammostore_initialqt"] UTF8String];
     const char *tmp2 = [[weapon objectForKey:@"ammostore_probability"] UTF8String];
     const char *tmp3 = [[weapon objectForKey:@"ammostore_delay"] UTF8String];
     const char *tmp4 = [[weapon objectForKey:@"ammostore_crate"] UTF8String];
     [weapon release];
-    
+
     // if the new weaponset is diffrent from the older we need to update it replacing
     // the missing ammos with 0 quantity
     int oldlen = strlen(tmp1);
@@ -78,7 +83,7 @@
         delay[i] = '0';
         crateness[i] = '0';
     }
-    
+
     [self.tableView reloadData];
 }
 
@@ -92,20 +97,20 @@
     probability[HW_getNumberOfWeapons()] = '\0';
     delay[HW_getNumberOfWeapons()] = '\0';
     crateness[HW_getNumberOfWeapons()] = '\0';
-    
+
     NSString *quantityStr = [NSString stringWithUTF8String:quantity];
     NSString *probabilityStr = [NSString stringWithUTF8String:probability];
     NSString *delayStr = [NSString stringWithUTF8String:delay];
     NSString *cratenessStr = [NSString stringWithUTF8String:crateness];
-    
+
     NSDictionary *weapon = [[NSDictionary alloc] initWithObjectsAndKeys:
                             quantityStr,@"ammostore_initialqt",
                             probabilityStr,@"ammostore_probability",
                             delayStr,@"ammostore_delay",
-                            cratenessStr,@"ammostore_crate", 
+                            cratenessStr,@"ammostore_crate",
                             self.description,@"description",
                             nil];
-    
+
     NSString *ammoFile = [[NSString alloc] initWithFormat:@"%@/%@.plist",WEAPONS_DIRECTORY(),self.weaponName];
     [weapon writeToFile:ammoFile atomically:YES];
     [ammoFile release];
@@ -131,7 +136,7 @@
     static NSString *CellIdentifier1 = @"Cell1";
     NSInteger row = [indexPath row];
     UITableViewCell *cell = nil;
-    
+
     if (0 == [indexPath section]) {
         EditableCellView *editableCell = (EditableCellView *)[aTableView dequeueReusableCellWithIdentifier:CellIdentifier0];
         if (editableCell == nil) {
@@ -143,7 +148,7 @@
         editableCell.selectionStyle = UITableViewCellSelectionStyleNone;
         editableCell.imageView.image = nil;
         editableCell.detailTextLabel.text = nil;
-        
+
         if (row == 0) {
             editableCell.textField.text = self.weaponName;
             editableCell.textField.font = [UIFont boldSystemFontOfSize:[UIFont labelFontSize]];
@@ -261,6 +266,9 @@
 
 
 -(void) dealloc {
+    releaseAndNil(_trPath);
+    releaseAndNil(_trFileName);
+    
     releaseAndNil(weaponName);
     releaseAndNil(description);
     releaseAndNil(ammoStoreImage);

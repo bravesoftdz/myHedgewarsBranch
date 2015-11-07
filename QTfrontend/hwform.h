@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef HWFORM_H
@@ -34,6 +34,7 @@
 #include "ui_hwform.h"
 #include "SDLInteraction.h"
 #include "bgwidget.h"
+#include "campaign.h"
 
 #ifdef __APPLE__
 #include "InstallController.h"
@@ -61,12 +62,14 @@ class HWForm : public QMainWindow
         HWForm(QWidget *parent = 0, QString styleSheet = "");
         Ui_HWForm ui;
         static GameUIConfig * config;
-        static QSettings * gameSettings; // Same file GameUIConfig points to but without the baggage.  Needs sync() calls if you want to get GameUIConfig changes though
         void updateXfire();
-        void PlayDemoQuick(const QString & demofilename);
         void exit();
         void setButtonDescription(QString desc);
         void backDescription();
+        void GoToVideos();
+
+        void NetConnectQuick(const QString & host, quint16 port);
+        void PlayDemoQuick(const QString & demofilename);
 
     private slots:
         void GoToSaves();
@@ -105,31 +108,31 @@ class HWForm : public QMainWindow
         void NetWarning(const QString & wrnmsg);
         void NetGameEnter();
         void NetPassword(const QString & nick);
+        void NetNickRegistered(const QString & nick);
+        void NetNickNotRegistered(const QString & nick);
         void NetNickTaken(const QString & nick);
         void NetAuthFailed();
+        void askRoomPassword();
+        bool RetryDialog(const QString & title, const QString & label);
         void NetTeamAccepted(const QString& team);
         void AddNetTeam(const HWTeam& team);
         void RemoveNetTeam(const HWTeam& team);
         void StartMPGame();
         void GameStateChanged(GameState gameState);
         void ForcedDisconnect(const QString & reason);
-        void ShowErrorMessage(const QString &);
-        void GetRecord(bool isDemo, const QByteArray & record);
+        void ShowFatalErrorMessage(const QString &);
+        void GetRecord(RecordType type, const QByteArray & record);
         void CreateNetGame();
         void UpdateWeapons();
         void onFrontendFullscreen(bool value);
         void onFrontendEffects(bool value);
         void Music(bool checked);
         void UpdateCampaignPage(int index);
-        //Starts the transmission process for the feedback
-        void SendFeedback();
-        //Make a xml representation of the issue to be created
-        bool CreateIssueXml();
-        //Called the first time when receiving authorization token from google,
-        //second time when receiving the response after posting the issue
-        void finishedSlot(QNetworkReply* reply);
-        //Filter the auth token from the reply from google
-        bool getAuthToken(QString str);
+        void UpdateCampaignPageProgress(int index);
+        void UpdateCampaignPageMission(int index);
+        void InitCampaignPage();
+        void showFeedbackDialog();
+        void showFeedbackDialogNetChecked();
 
         void NetGameChangeStatus(bool isMaster);
         void NetGameMaster();
@@ -140,14 +143,22 @@ class HWForm : public QMainWindow
         void selectFirstNetScheme();
 
         void saveDemoWithCustomName();
+        void openRegistrationPage();
+
+        void startGame();
+        void restartGame();
+
+        void FromNetProxySlot(const QByteArray &);
 
     private:
         void _NetConnect(const QString & hostName, quint16 port, QString nick);
-        void UpdateTeamsLists(const QStringList* editable_teams=0);
+        int  AskForNickAndPwd(void);
+        void UpdateTeamsLists();
         void CreateGame(GameCFGWidget * gamecfg, TeamSelWidget* pTeamSelWidget, QString ammo);
         void closeEvent(QCloseEvent *event);
         void CustomizePalettes();
         void resizeEvent(QResizeEvent * event);
+        QString stringifyPageId(quint32 id);
         //void keyReleaseEvent(QKeyEvent *event);
 
         enum PageIDs
@@ -170,12 +181,11 @@ class HWForm : public QMainWindow
             ID_PAGE_CONNECTING     ,
             ID_PAGE_SCHEME         ,
             ID_PAGE_ADMIN          ,
-            ID_PAGE_NETTYPE        ,
             ID_PAGE_CAMPAIGN       ,
             ID_PAGE_DRAWMAP        ,
             ID_PAGE_DATADOWNLOAD   ,
-            ID_PAGE_FEEDBACK	   ,
-	    MAX_PAGE
+            ID_PAGE_VIDEOS         ,
+            MAX_PAGE
         };
         QPointer<HWGame> game;
         QPointer<HWNetServer> pnetserver;
@@ -185,13 +195,13 @@ class HWForm : public QMainWindow
         HWNamegen * namegen;
         AmmoSchemeModel * ammoSchemeModel;
         QStack<int> PagesStack;
+        QString previousCampaignName;
+        QString previousTeamName;
+        QList<MissionInfo> campaignMissionInfo;
         QTime eggTimer;
         BGWidget * wBackground;
         QSignalMapper * pageSwitchMapper;
         QByteArray m_lastDemo;
-        QNetworkAccessManager * nam;
-        QString issueXml;
-        QString authToken;
 
         QPropertyAnimation *animationNewSlide;
         QPropertyAnimation *animationOldSlide;

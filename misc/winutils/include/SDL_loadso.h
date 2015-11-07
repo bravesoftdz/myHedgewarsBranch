@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2009 Sam Lantinga
+    Copyright (C) 1997-2012 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
  */
 
 /** @file SDL_loadso.h
- *  Some things to keep in mind:                                        
+ *  Some things to keep in mind:
  *  - These functions only work on C function names.  Other languages may
  *    have name mangling and intrinsic language support that varies from
  *    compiler to compiler.

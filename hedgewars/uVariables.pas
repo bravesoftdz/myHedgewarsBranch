@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -21,64 +21,89 @@
 unit uVariables;
 interface
 
-uses SDLh, uTypes, uFloat, GLunit, uConsts, Math, uMobile, uMatrix;
+uses SDLh, uTypes, uFloat, GLunit, uConsts, Math, uUtils{$IFDEF GL2}, uMatrix{$ENDIF};
 
 var
 /////// init flags ///////
-    cMinScreenWidth    : LongInt     = 640;
-    cMinScreenHeight   : LongInt     = 480;
-    cScreenWidth       : LongInt     = 1024;
-    cScreenHeight      : LongInt     = 768;
-    cOrigScreenWidth   : LongInt     = 1024;
-    cOrigScreenHeight  : LongInt     = 768;
-    cNewScreenWidth    : LongInt     = 1024;
-    cNewScreenHeight   : LongInt     = 768;
-    cScreenResizeDelay : LongWord    = 0;
-    cBits           : LongInt     = 32;
-    ipcPort         : Word        = 0;
-    cFullScreen     : boolean     = false;
-    cLocaleFName    : shortstring = 'en.txt';
-    cLocale         : shortstring = 'en';
-    cTimerInterval  : LongInt     = 8;
-    PathPrefix      : shortstring = './';
-    UserPathPrefix  : shortstring = './';
-    cShowFPS        : boolean     = false;
-    cFlattenFlakes  : boolean     = false;
-    cFlattenClouds  : boolean     = false;
-    cAltDamage      : boolean     = true;
-    cReducedQuality : LongWord    = rqNone;
-    UserNick        : shortstring = '';
-    recordFileName  : shortstring = '';
-    cReadyDelay     : Longword    = 5000;
-    cStereoMode     : TStereoMode = smNone;
-    cOnlyStats      : boolean = False;
-//////////////////////////
-    cMapName        : shortstring = '';
+    cMinScreenWidth    : LongInt;
+    cMinScreenHeight   : LongInt;
+    cFullscreenWidth   : LongInt;
+    cFullscreenHeight  : LongInt;
+    cWindowedWidth     : LongInt;
+    cWindowedHeight    : LongInt;
+    cScreenWidth       : LongInt;
+    cScreenHeight      : LongInt;
+    cNewScreenWidth    : LongInt;
+    cNewScreenHeight   : LongInt;
+    cScreenResizeDelay : LongWord;
+    ipcPort            : Word;
+    AprilOne           : boolean;
+    cFullScreen        : boolean;
+    cLocaleFName       : shortstring;
+    cLocale            : shortstring;
+    cTimerInterval     : LongInt;
+    PathPrefix         : ansistring;
+    UserPathPrefix     : ansistring;
+    cShowFPS           : boolean;
+    cFlattenFlakes     : boolean;
+    cFlattenClouds     : boolean;
+    cIce               : boolean;
+    cSnow              : boolean;
 
+    cAltDamage         : boolean;
+    cReducedQuality    : LongWord;
+    UserNick           : shortstring;
+    recordFileName     : shortstring;
+    cReadyDelay        : Longword;
+    cStereoMode        : TStereoMode;
+    cOnlyStats         : boolean;
+{$IFDEF USE_VIDEO_RECORDING}
+    RecPrefix          : shortstring;
+    cAVFormat          : shortstring;
+    cVideoCodec        : shortstring;
+    cVideoFramerateNum : LongInt;
+    cVideoFramerateDen : LongInt;
+    cVideoQuality      : LongInt;
+    cAudioCodec        : shortstring;
+{$ENDIF}
+//////////////////////////
+    cMapName        : shortstring;
     isCursorVisible : boolean;
     isInLag         : boolean;
     isPaused        : boolean;
     isInMultiShoot  : boolean;
     isSpeed         : boolean;
+    isAFK           : boolean;
+    SpeedStart      : LongWord;
 
     fastUntilLag    : boolean;
+    fastScrolling   : boolean;
     autoCameraOn    : boolean;
 
+    CheckSum        : LongWord;
+    CampaignVariable: shortstring;
     GameTicks       : LongWord;
     GameState       : TGameState;
     GameType        : TGameType;
     InputMask       : LongWord;
     GameFlags       : Longword;
+    WorldEdge       : TWorldEdge;
+    LeftImpactTimer : LongWord;
+    RightImpactTimer: LongWord;
     TurnTimeLeft    : Longword;
+    TurnClockActive : boolean;
     TagTurnTimeLeft : Longword;
     ReadyTimeLeft   : Longword;
     cSuddenDTurns   : LongInt;
     cDamagePercent  : LongInt;
     cMineDudPercent : LongWord;
     cTemplateFilter : LongInt;
-    cMapGen         : LongInt;
+    cFeatureSize    : LongInt;
+    cMapGen         : TMapGen;
     cRopePercent    : LongWord;
     cGetAwayTime    : LongWord;
+
+    cAdvancedMapGenMode: boolean;
 
     cHedgehogTurnTime: Longword;
     cMinesTime       : LongInt;
@@ -96,23 +121,31 @@ var
     zoom             : GLfloat;
     ZoomValue        : GLfloat;
 
-    cWaterLine       : Word;
+    cWaterLine       : LongInt;
     cGearScrEdgesDist: LongInt;
+    isAudioMuted     : boolean;
 
     // originally typed consts
-    ExplosionBorderColor: LongWord;
+    ExplosionBorderColorR,
+    ExplosionBorderColorG,
+    ExplosionBorderColorB,
+    ExplosionBorderColorNoA,
+    ExplosionBorderColor:  LongWord;
+    IceColor            : LongWord;
+    IceEdgeColor        : LongWord;
     WaterOpacity: byte;
     SDWaterOpacity: byte;
     GrayScale: Boolean;
 
-    // originally from uConsts
-    Pathz: array[TPathType] of shortstring;
-    UserPathz: array[TPathType] of shortstring;
     CountTexz: array[0..Pred(AMMO_INFINITE)] of PTexture;
-    LAND_WIDTH       : Word;
-    LAND_HEIGHT      : Word;
+    LAND_WIDTH       : LongInt;
+    LAND_HEIGHT      : LongInt;
     LAND_WIDTH_MASK  : LongWord;
     LAND_HEIGHT_MASK : LongWord;
+
+    ChefHatTexture : PTexture;
+    CrosshairTexture : PTexture;
+    GenericHealthTexture : PTexture;
 
     cLeftScreenBorder     : LongInt;
     cRightScreenBorder    : LongInt;
@@ -120,9 +153,11 @@ var
 
     cCaseFactor     : Longword;
     cLandMines      : Longword;
+    cAirMines       : Longword;
     cExplosives     : Longword;
 
     cScriptName     : shortstring;
+    cScriptParam    : shortstring;
     cSeed           : shortstring;
     cVolumeDelta    : LongInt;
     cHasFocus       : boolean;
@@ -135,40 +170,51 @@ var
     CrosshairY      : LongInt;
     CursorMovementX : LongInt;
     CursorMovementY : LongInt;
+    cWaveHeight     : LongInt;
     cDrownSpeed     : hwFloat;
     cDrownSpeedf    : real;
     cMaxWindSpeed   : hwFloat;
     cWindSpeed      : hwFloat;
     cWindSpeedf     : real;
+    cElastic        : hwFloat;
     cGravity        : hwFloat;
     cGravityf       : real;
+    cBuildMaxDist   : LongInt;
     cDamageModifier : hwFloat;
     cLaserSighting  : boolean;
     cVampiric       : boolean;
     cArtillery      : boolean;
     WeaponTooltipTex: PTexture;
-    AmmoMenuTex     : PTexture;
     AmmoMenuInvalidated: boolean;
-    AmmoRect		: TSDL_Rect;
+    AmmoRect        : TSDL_Rect;
     HHTexture       : PTexture;
+    cMaxZoomLevel   : real;
+    cMinZoomLevel   : real;
+    cZoomDelta      : real;
+    cMinMaxZoomLevelDelta : real;
 
 
     flagMakeCapture : boolean;
+    flagDumpLand    : boolean;
 
     InitStepsFlags  : Longword;
     RealTicks       : Longword;
     AttackBar       : LongInt;
 
-    WaterColorArray : array[0..3] of HwColor4f;
-    SDWaterColorArray : array[0..3] of HwColor4f;
+    WaterColorArray : array[0..7] of HwColor4f;
+    SDWaterColorArray : array[0..7] of HwColor4f;
     SDTint          : LongInt;
 
-    CursorPoint     : TPoint;
-    TargetPoint     : TPoint;
+    TargetCursorPoint     : TPoint;
+    CursorPoint           : TPoint;
+    TargetPoint           : TPoint;
 
     ScreenFade      : TScreenFade;
     ScreenFadeValue : LongInt;
     ScreenFadeSpeed : LongInt;
+
+    UIDisplay       : TUIDisplay;
+    LocalMessage    : LongWord;
 
     Theme           : shortstring;
     disableLandBack : boolean;
@@ -176,20 +222,29 @@ var
     WorldDx: LongInt;
     WorldDy: LongInt;
 
+    SpeechHogNumber: LongInt;
+
+    // for tracking the limits of the visible grid based on cScaleFactor
+    ViewLeftX, ViewRightX, ViewBottomY, ViewTopY, ViewWidth, ViewHeight: LongInt;
+
+    // for debugging the view limits visually
+    cViewLimitsDebug: boolean;
+
+    dirtyLandTexCount: LongInt;
+
     hiTicks: Word;
 
     LuaGoals        : shortstring;
 
-    VoiceList : array[0..7] of TVoice =  (
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil),
-                    ( snd: sndNone; voicepack: nil));
-    LastVoice : TVoice = ( snd: sndNone; voicepack: nil );
+    LuaTemplateNumber : LongWord;
+
+    LastVoice : TVoice;
+
+    mobileRecord: TMobileRecord;
+
+    MaxTextureSize: LongInt;
+
+    ChatPasteBuffer: shortstring;
 
 /////////////////////////////////////
 //Buttons
@@ -204,33 +259,40 @@ var
 
 var
     // these consts are here because they would cause circular dependencies in uConsts/uTypes
-    cPathz: array[TPathType] of shortstring = (
+    cPathz: array[TPathType] of shortstring;
+
+const
+    cPathzInit: array[TPathType] of shortstring = (
         '',                              // ptNone
-        '',                              // ptData
-        'Graphics',                      // ptGraphics
-        'Themes',                        // ptThemes
-        'Themes/avematan',               // ptCurrTheme
-        'Teams',                         // ptTeams
-        'Maps',                          // ptMaps
+        '//',                            // ptData
+        '/Graphics',                     // ptGraphics
+        '/Themes',                       // ptThemes
+        '/Themes/Bamboo',                // ptCurrTheme
+        '/Teams',                        // ptTeams
+        '/Maps',                         // ptMaps
         '',                              // ptMapCurrent
-        'Demos',                         // ptDemos
-        'Sounds',                        // ptSounds
-        'Graphics/Graves',               // ptGraves
-        'Fonts',                         // ptFonts
-        'Forts',                         // ptForts
-        'Locale',                        // ptLocale
-        'Graphics/AmmoMenu',             // ptAmmoMenu
-        'Graphics/Hedgehog',             // ptHedgehog
-        'Sounds/voices',                 // ptVoices
-        'Graphics/Hats',                 // ptHats
-        'Graphics/Flags',                // ptFlags
-        'Missions/Maps',                 // ptMissionMaps
-        'Graphics/SuddenDeath',          // ptSuddenDeath
-        'Graphics/Buttons',              // ptButton
-        'Shaders'                        // ptShaders
+        '/Demos',                        // ptDemos
+        '/Sounds',                       // ptSounds
+        '/Graphics/Graves',              // ptGraves
+        '/Fonts',                        // ptFonts
+        '/Forts',                        // ptForts
+        '/Locale',                       // ptLocale
+        '/Graphics/AmmoMenu',            // ptAmmoMenu
+        '/Graphics/Hedgehog',            // ptHedgehog
+        '/Sounds/voices',                // ptVoices
+        '/Graphics/Hats',                // ptHats
+        '/Graphics/Flags',               // ptFlags
+        '/Missions/Maps',                // ptMissionMaps
+        '/Graphics/SuddenDeath',         // ptSuddenDeath
+        '/Graphics/Buttons',             // ptButton
+        '/Shaders'                       // ptShaders
     );
 
-    Fontz: array[THWFont] of THHFont = (
+var
+    Fontz: array[THWFont] of THHFont;
+
+const
+    FontzInit: array[THWFont] of THHFont = (
             (Handle: nil;
             Height: 12;
             style: TTF_STYLE_NORMAL;
@@ -260,390 +322,411 @@ var
             );
 
 var
-    SpritesData: array[TSprite] of record
-            FileName: string[15];
-            Path, AltPath: TPathType;
-            Texture: PTexture;
-            Surface: PSDL_Surface;
-            Width, Height, imageWidth, imageHeight: LongInt;
-            scale: Integer;
-            saveSurf : boolean;
-            priority: GLfloat;
-            getDimensions, getImageDimensions: boolean;
-            end = (
+    SpritesData: array[TSprite] of TSpriteData;
+
+const
+    SpritesDataInit: array[TSprite] of TSpriteData = (
             (FileName:  'BlueWater'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: true; getImageDimensions: true),// sprWater
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: true; getImageDimensions: true),// sprWater
             (FileName:     'Clouds'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width: 256; Height:128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprCloud
+            Width: 256; Height:128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprCloud
             (FileName:       'Bomb'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBomb
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBomb
             (FileName:  'BigDigits'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBigDigit
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBigDigit
             (FileName:      'Frame'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   4; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprFrame
+            Width:   4; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprFrame
             (FileName:        'Lag'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  65; Height: 65; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprLag
+            Width:  65; Height: 65; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprLag
             (FileName:      'Arrow'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCursor
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCursor
             (FileName:'BazookaShell'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBazookaShell
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBazookaShell
             (FileName:    'Targetp'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTargetP
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTargetP
             (FileName:        'Bee'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBee
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBee
             (FileName: 'SmokeTrace'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmokeTrace
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmokeTrace
             (FileName:   'RopeHook'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprRopeHook
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprRopeHook
             (FileName:     'Expl50'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosion50
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosion50
             (FileName:    'MineOff'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineOff
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineOff
             (FileName:     'MineOn'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineOn
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineOn
             (FileName:     'MineDead'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineDead
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMineDead
             (FileName:       'Case'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprCase
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprCase
             (FileName:   'FirstAid'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprFAid
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprFAid
             (FileName:   'dynamite'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDynamite
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDynamite
             (FileName:      'Power'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprPower
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprPower
             (FileName:     'ClBomb'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprClusterBomb
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprClusterBomb
             (FileName: 'ClParticle'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprClusterParticle
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprClusterParticle
             (FileName:      'Flame'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFlame
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFlame
             (FileName:   'horizont'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizont
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizont
             (FileName:  'horizontL'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizont
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizontL
             (FileName:  'horizontR'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizont
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprHorizontR
             (FileName:        'Sky'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSky
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSky
             (FileName:       'SkyL'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSky
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSkyL
             (FileName:       'SkyR'; Path: ptCurrTheme;AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSky
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: true; getImageDimensions: true),// sprSkyR
             (FileName:   'Slot'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMSlot
+            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMSlot
             (FileName:      'Ammos'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMAmmos
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMAmmos
             (FileName:   'Ammos_bw'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprAMAmmosBW
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprAMAmmosBW
             (FileName:   'SlotKeys'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMSlotKeys
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMSlotKeys
             (FileName:  'Corners'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  2; Height: 2; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMCorners
+            Width:  2; Height: 2; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAMCorners
             (FileName:     'Finger'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprFinger
+            Width:  32; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprFinger
             (FileName:    'AirBomb'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAirBomb
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAirBomb
             (FileName:   'Airplane'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 256; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAirplane
+            Width: 256; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAirplane
             (FileName: 'amAirplane'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmAirplane
+            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmAirplane
             (FileName:   'amGirder'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width: 160; Height:160; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf:  true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmGirder
+            Width: 160; Height:160; imageWidth: 0; imageHeight: 0; saveSurf:  true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmGirder
             (FileName:     'hhMask'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf:  true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHHTelepMask
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf:  true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHHTelepMask
             (FileName:     'Switch'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSwitch
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSwitch
             (FileName:  'Parachute'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprParachute
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprParachute
             (FileName:     'Target'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTarget
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTarget
             (FileName:   'RopeNode'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   6; Height:  6; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprRopeNode
+            Width:   6; Height:  6; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprRopeNode
             (FileName:   'thinking'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprQuestion
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprQuestion
             (FileName:   'PowerBar'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 256; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPowerBar
+            Width: 256; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPowerBar
             (FileName:    'WindBar'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 151; Height: 17; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindBar
+            Width: 151; Height: 17; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindBar
             (FileName:      'WindL'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  80; Height: 13; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindL
+            Width:  80; Height: 13; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindL
             (FileName:      'WindR'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  80; Height: 13; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindR
+            Width:  80; Height: 13; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWindR
 {$IFDEF USE_TOUCH_INTERFACE}
             (FileName: 'firebutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprFireButton
-            (FileName: 'arrowUp'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowUp
-            (FileName: 'arrowDown'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowDown
-            (FileName: 'arrowLeft'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowLeft
-            (FileName: 'arrowRight'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowRight
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprFireButton
+            (FileName: 'arrowup'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowUp
+            (FileName: 'arrowdown'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowDown
+            (FileName: 'arrowleft'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowLeft
+            (FileName: 'arrowright'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowRight
             (FileName: 'forwardjump'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprAMWidget
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprAMWidget
             (FileName: 'backjump'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprJumpWidget
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprJumpWidget
             (FileName: 'pause'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 120; Height: 100; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprPauseButton
-            (FileName: 'pause'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;//TODO correct image
-            Width: 120; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTimerButton
-            (FileName: 'forwardjump'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;//TODO correct image
-            Width: 120; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTargetButton
+            Width: 120; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprPauseButton
+            (FileName: 'timerbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTimerButton
+            (FileName: 'targetbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTargetButton
+            (FileName: 'switchbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprSwitchButton
 {$ENDIF}
             (FileName:      'Flake'; Path:ptCurrTheme; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFlake
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFlake
             (FileName:     'amRope'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandRope
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandRope
             (FileName:  'amBazooka'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBazooka
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBazooka
             (FileName:  'amShotgun'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandShotgun
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandShotgun
             (FileName:   'amDEagle'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDEagle
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDEagle
             (FileName:'amAirAttack'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandAirAttack
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandAirAttack
             (FileName: 'amBaseball'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBaseball
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBaseball
             (FileName:     'Hammer'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPHammer
+            Width:  32; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPHammer
             (FileName: 'amBTorch_i'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBlowTorch
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBlowTorch
             (FileName: 'amBTorch_w'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBlowTorch
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBlowTorch
             (FileName:   'Teleport'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTeleport
+            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTeleport
             (FileName:    'HHDeath'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprHHDeath
+            Width:  32; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprHHDeath
             (FileName:'amShotgun_w'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprShotgun
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprShotgun
             (FileName: 'amDEagle_w'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDEagle
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDEagle
             (FileName:       'Idle'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprHHIdle
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprHHIdle
             (FileName:     'Mortar'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMortar
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMortar
             (FileName:  'TurnsLeft'; Path: ptAmmoMenu; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTurnsLeft
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTurnsLeft
             (FileName: 'amKamikaze'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprKamikaze
+            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprKamikaze
             (FileName:     'amWhip'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWhip
+            Width: 128; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWhip
             (FileName:     'Kowtow'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprKowtow
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprKowtow
             (FileName:        'Sad'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSad
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSad
             (FileName:       'Wave'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprWave
+            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprWave
             (FileName:     'Hurrah'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprHurrah
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprHurrah
             (FileName:'ILoveLemonade';Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprLemonade
+            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprLemonade
             (FileName:      'Shrug'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 32;  Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShrug
+            Width: 32;  Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShrug
             (FileName:     'Juggle'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 32;  Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprJuggle
+            Width: 32;  Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprJuggle
             (FileName:   'ExplPart'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplPart
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplPart
             (FileName:  'ExplPart2'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplPart2
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplPart2
             (FileName:  'Cake_walk'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCakeWalk
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCakeWalk
             (FileName:  'Cake_down'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCakeDown
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCakeDown
             (FileName: 'Watermelon'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWatermelon
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprWatermelon
             (FileName:  'EvilTrace'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprEvilTrace
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprEvilTrace
             (FileName:'HellishBomb'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHellishBomb
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHellishBomb
             (FileName:  'Seduction'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSeduction
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSeduction
             (FileName:    'HHDress'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprDress
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprDress
             (FileName:   'Censored'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprCensored
+            Width:  64; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprCensored
             (FileName:      'Drill'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDrill
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprDrill
             (FileName:    'amDrill'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDrill
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDrill
             (FileName:  'amBallgun'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBallgun
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBallgun
             (FileName:      'Balls'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 20; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprBalls
+            Width:  32; Height: 20; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprBalls
             (FileName:    'RCPlane'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPlane
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPlane
             (FileName:  'amRCPlane'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandPlane
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandPlane
             (FileName:    'Utility'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprUtility
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprUtility
             (FileName:'Invulnerable';Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprInvulnerable
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprInvulnerable
             (FileName:   'Vampiric'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprVampiric
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprVampiric
             (FileName:   'amGirder'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 512; Height:512; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprGirder
+            Width: 512; Height:512; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprGirder
             (FileName:'SpeechCorner';Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  12; Height: 9; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf:  true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechCorner
+            Width:  12; Height: 9; imageWidth: 0; imageHeight: 0; saveSurf:  true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechCorner
             (FileName: 'SpeechEdge'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  25; Height: 9; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf:  true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechEdge
+            Width:  25; Height: 9; imageWidth: 0; imageHeight: 0; saveSurf:  true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechEdge
             (FileName: 'SpeechTail'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  25; Height: 26; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechTail
+            Width:  25; Height: 26; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprSpeechTail
             (FileName:'ThoughtCorner';Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  49; Height: 37; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtCorner
+            Width:  49; Height: 37; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtCorner
             (FileName:'ThoughtEdge'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  23; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtEdge
+            Width:  23; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtEdge
             (FileName:'ThoughtTail'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  45; Height: 65; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtTail
+            Width:  45; Height: 65; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprThoughtTail
             (FileName:'ShoutCorner'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  34; Height: 23; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutCorner
+            Width:  34; Height: 23; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutCorner
             (FileName:  'ShoutEdge'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  30; Height: 20; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutEdge
+            Width:  30; Height: 20; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutEdge
             (FileName:  'ShoutTail'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  30; Height: 37; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutTail
+            Width:  30; Height: 37; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLowest; getDimensions: false; getImageDimensions: true),// sprShoutTail
             (FileName:'amSniperRifle';Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSniperRifle
+            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSniperRifle
             (FileName:    'Bubbles'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprBubbles
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprBubbles
             (FileName:  'amJetpack'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprJetpack
+            Width: 64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprJetpack
             (FileName:  'Health'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprHealth
+            Width: 16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprHealth
             (FileName:  'amMolotov'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),//sprHandMolotov
+            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),//sprHandMolotov
             (FileName:  'Molotov'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMolotov
+            Width: 32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprMolotov
             (FileName: 'Smoke'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmoke
+            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmoke
             (FileName: 'SmokeWhite'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmokeWhite
+            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSmokeWhite
             (FileName: 'Shells'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  8; Height: 8; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: true),// sprShell
+            Width:  8; Height: 8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: true),// sprShell
             (FileName: 'Dust'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprDust
+            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprDust
             (FileName: 'SnowDust'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSnowDust
+            Width:  22; Height: 22; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSnowDust
             (FileName: 'Explosives'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosives
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosives
             (FileName: 'ExplosivesRoll'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosivesRoll
+            Width:  48; Height: 48; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprExplosivesRoll
             (FileName: 'amTeleport'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmTeleport
+            Width:  64; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprAmTeleport
             (FileName: 'Splash'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:  80; Height: 50; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSplash
+            Width:  80; Height: 50; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSplash
             (FileName: 'Droplet'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprDroplet
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprDroplet
             (FileName: 'Birdy'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  75; Height: 75; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBirdy
+            Width:  75; Height: 75; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBirdy
             (FileName:  'amCake'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCake
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCake
             (FileName:  'amConstruction'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandConstruction
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandConstruction
             (FileName:  'amGrenade'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandGrenade
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandGrenade
             (FileName:  'amMelon'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMelon
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMelon
             (FileName:  'amMortar'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMortar
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMortar
             (FileName:  'amSkip'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSkip
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSkip
             (FileName:  'amCluster'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCluster
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCluster
             (FileName:  'amDynamite'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDynamite
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandDynamite
             (FileName:  'amHellish'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandHellish
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandHellish
             (FileName:  'amMine'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMine
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandMine
             (FileName:  'amSeduction'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSeduction
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSeduction
             (FileName:  'amVamp'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandVamp
+            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandVamp
             (FileName:  'BigExplosion'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  385; Height: 385; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBigExplosion
+            Width:  385; Height: 385; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprBigExplosion
             (FileName:  'SmokeRing'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  200; Height: 200; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSmokeRing
+            Width:  200; Height: 200; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSmokeRing
             (FileName:  'BeeTrace'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprBeeTrace
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprBeeTrace
             (FileName:  'Egg'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprEgg
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprEgg
             (FileName:  'TargetBee'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTargetBee
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprTargetBee
             (FileName:  'amBee'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBee
+            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandBee
             (FileName:  'Feather'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  15; Height: 25; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFeather
+            Width:  15; Height: 25; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFeather
             (FileName:  'Piano'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPiano
+            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPiano
             (FileName:  'amSineGun'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  128; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSineGun
+            Width:  128; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSineGun
             (FileName:  'amPortalGun'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPortalGun
+            Width: 128; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPortalGun
             (FileName:  'Portal'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPortal
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprPortal
             (FileName:  'cheese'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCheese
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprCheese
             (FileName:  'amCheese'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCheese
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandCheese
             (FileName:  'amFlamethrower'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandFlamethrower
+            Width:  128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandFlamethrower
             (FileName:  'Chunk'; Path: ptCurrTheme; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprChunk
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprChunk
             (FileName:  'Note'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprNote
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprNote
             (FileName:   'SMineOff'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSMineOff
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSMineOff
             (FileName:    'SMineOn'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSMineOn
+            Width:   8; Height:  8; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSMineOn
             (FileName:   'amSMine'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSMine
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSMine
             (FileName:  'amHammer'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 128; Height: 64; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true), // sprHammer
+            Width: 128; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true), // sprHammer
             (FileName: 'amResurrector'; Path: ptHedgehog; AltPath: ptNone;
                 Texture: nil; Surface: nil; Width: 32; Height: 32;
-                imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority:
+                imageWidth: 0; imageHeight: 0; saveSurf: false; priority:
                 tpMedium; getDimensions: false; getImageDimensions: true),
             //sprHandResurrector
             (FileName: 'Cross'; Path: ptGraphics; AltPath: ptNone;
                 Texture: nil; Surface: nil; Width: 108; Height: 138;
-                imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority:
+                imageWidth: 0; imageHeight: 0; saveSurf: false; priority:
                 tpMedium; getDimensions: false; getImageDimensions: true),
             //sprCross
             (FileName:  'AirDrill'; Path: ptGraphics; AltPath: ptNone;
                 Texture: nil; Surface: nil; Width:  16; Height: 16;
-                imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority:
+                imageWidth: 0; imageHeight: 0; saveSurf: false; priority:
                 tpMedium; getDimensions: false; getImageDimensions: true),
             // sprAirDrill
             (FileName:  'NapalmBomb'; Path: ptGraphics; AltPath: ptNone;
                 Texture: nil; Surface: nil; Width:  16; Height: 16;
-                imageWidth: 0; imageHeight: 0; scale: 4; saveSurf: false; priority:
+                imageWidth: 0; imageHeight: 0; saveSurf: false; priority:
                 tpMedium; getDimensions: false; getImageDimensions: true),
             // sprNapalmBomb
             (FileName:  'BulletHit'; Path: ptGraphics; AltPath: ptNone;
                 Texture: nil; Surface: nil; Width:  32; Height: 32;
-                imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority:
+                imageWidth: 0; imageHeight: 0; saveSurf: false; priority:
                 tpMedium; getDimensions: false; getImageDimensions: true),
             // sprNapalmBomb
             (FileName:  'Snowball'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSnowball
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSnowball
             (FileName:  'amSnowball'; Path: ptCurrTheme; AltPath: ptHedgehog; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSnowball
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprHandSnowball
             (FileName:  'Snow'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
-            Width:  4; Height: 4; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSnow
+            Width:  4; Height: 4; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSnow
             (FileName:    'SDFlake'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
-            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; scale: 2; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSDFlake
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSDFlake
             (FileName:    'SDWater'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
-            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: true; getImageDimensions: true),// sprSDWater
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: true; getImageDimensions: true),// sprSDWater
             (FileName:   'SDClouds'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
-            Width: 256; Height:128; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprSDCloud
+            Width: 256; Height:128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true),// sprSDCloud
             (FileName:   'SDSplash'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
-            Width:  80; Height: 50; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSDSplash
+            Width:  80; Height: 50; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSDSplash
             (FileName:  'SDDroplet'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
-            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSDDroplet
-            (FileName:  'TARDIS'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 79; imageWidth: 0; imageHeight: 0; scale: 1; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprTardis
+            Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSDDroplet
+            (FileName:  'Timebox'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  50; Height: 81; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprTardis
             (FileName:  'slider'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width: 3; Height: 17; imageWidth: 3; imageHeight: 17; scale: 1; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false) // sprSlider
+            Width: 3; Height: 17; imageWidth: 3; imageHeight: 17; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprSlider
+            (FileName:  'botlevels'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 22; Height: 15; imageWidth: 22; imageHeight: 15; saveSurf: true; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprBotlevels
+            (FileName:  'amCleaver'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  64; Height: 64; imageWidth: 64; imageHeight: 64; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: false),// sprHandKnife
+            (FileName:  'cleaver'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 64; Height: 64; imageWidth: 64; imageHeight: 128; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprKnife
+            (FileName:  'star'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 12; Height: 12; imageWidth: 12; imageHeight: 12; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprStar
+            (FileName:  'icetexture'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 128; imageHeight: 128; saveSurf: true; priority: tpLow; getDimensions: false; getImageDimensions: true), // sprIceTexture
+            (FileName:  'amIceGun'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 32; Height: 32; imageWidth: 32; imageHeight: 32; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprIceGun
+            (FileName:  'amFrozenHog'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 64; Height: 64; imageWidth: 64; imageHeight: 64; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprFrozenHog
+            (FileName:   'amRubber'; Path: ptCurrTheme; AltPath: ptGraphics; Texture: nil; Surface: nil;
+            Width: 160; Height:160; imageWidth: 0; imageHeight: 0; saveSurf:  true; priority: tpMedium; getDimensions: false; getImageDimensions: true), // sprAmRubber
+            (FileName:  'boing'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 101; Height: 97; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprBoing
+            (FileName:       'custom1'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLow; getDimensions: true; getImageDimensions: true), // sprCustom1
+            (FileName:       'custom2'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
+            Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLow; getDimensions: true; getImageDimensions: true), // sprCustom2
+            (FileName:      'AirMine'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true), // sprAirMine
+            (FileName:  'amAirMine'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true) // sprHandAirMine
             );
 
 const
@@ -664,127 +747,8 @@ const
             (Sprite:   sprJuggle; FramesCount: 49; Interval:  38; cmd: '/juggle'; Voice: sndNone; VoiceDelay: 0)
             );
 
-    Soundz: array[TSound] of record
-            FileName: string[31];
-            Path    : TPathType;
-            end = (
-            (FileName:                         ''; Path: ptNone  ),// sndNone
-            (FileName:        'grenadeimpact.ogg'; Path: ptSounds),// sndGrenadeImpact
-            (FileName:            'explosion.ogg'; Path: ptSounds),// sndExplosion
-            (FileName:         'throwpowerup.ogg'; Path: ptSounds),// sndThrowPowerUp
-            (FileName:         'throwrelease.ogg'; Path: ptSounds),// sndThrowRelease
-            (FileName:               'splash.ogg'; Path: ptSounds),// sndSplash
-            (FileName:        'shotgunreload.ogg'; Path: ptSounds),// sndShotgunReload
-            (FileName:          'shotgunfire.ogg'; Path: ptSounds),// sndShotgunFire
-            (FileName:          'graveimpact.ogg'; Path: ptSounds),// sndGraveImpact
-            (FileName:           'mineimpact.ogg'; Path: ptSounds),// sndMineImpact
-            (FileName:             'minetick.ogg'; Path: ptSounds),// sndMineTicks
-            (FileName:             'Droplet1.ogg'; Path: ptSounds),// sndMudballImpact
-            (FileName:           'pickhammer.ogg'; Path: ptSounds),// sndPickhammer
-            (FileName:                  'gun.ogg'; Path: ptSounds),// sndGun
-            (FileName:                  'bee.ogg'; Path: ptSounds),// sndBee
-            (FileName:                'Jump1.ogg'; Path: ptVoices),// sndJump1
-            (FileName:                'Jump2.ogg'; Path: ptVoices),// sndJump2
-            (FileName:                'Jump3.ogg'; Path: ptVoices),// sndJump3
-            (FileName:               'Yessir.ogg'; Path: ptVoices),// sndYesSir
-            (FileName:                'Laugh.ogg'; Path: ptVoices),// sndLaugh
-            (FileName:            'Illgetyou.ogg'; Path: ptVoices),// sndIllGetYou
-            (FileName:             'Incoming.ogg'; Path: ptVoices),// sndIncoming
-            (FileName:               'Missed.ogg'; Path: ptVoices),// sndMissed
-            (FileName:               'Stupid.ogg'; Path: ptVoices),// sndStupid
-            (FileName:           'Firstblood.ogg'; Path: ptVoices),// sndFirstBlood
-            (FileName:               'Boring.ogg'; Path: ptVoices),// sndBoring
-            (FileName:               'Byebye.ogg'; Path: ptVoices),// sndByeBye
-            (FileName:             'Sameteam.ogg'; Path: ptVoices),// sndSameTeam
-            (FileName:               'Nutter.ogg'; Path: ptVoices),// sndNutter
-            (FileName:       'Reinforcements.ogg'; Path: ptVoices),// sndReinforce
-            (FileName:              'Traitor.ogg'; Path: ptVoices),// sndTraitor
-            (FileName:      'Youllregretthat.ogg'; Path: ptVoices),// sndRegret
-            (FileName:            'Enemydown.ogg'; Path: ptVoices),// sndEnemyDown
-            (FileName:               'Coward.ogg'; Path: ptVoices),// sndCoward
-            (FileName:                'Hurry.ogg'; Path: ptVoices),// sndHurry
-            (FileName:              'Watchit.ogg'; Path: ptVoices),// sndWatchIt
-            (FileName:             'Kamikaze.ogg'; Path: ptVoices),// sndKamikaze
-            (FileName:                'cake2.ogg'; Path: ptSounds),// sndCake
-            (FileName:                  'Ow1.ogg'; Path: ptVoices),// sndOw1
-            (FileName:                  'Ow2.ogg'; Path: ptVoices),// sndOw2
-            (FileName:                  'Ow3.ogg'; Path: ptVoices),// sndOw3
-            (FileName:                  'Ow4.ogg'; Path: ptVoices),// sndOw4
-            (FileName:           'Firepunch1.ogg'; Path: ptVoices),// sndFirepunch1
-            (FileName:           'Firepunch2.ogg'; Path: ptVoices),// sndFirepunch2
-            (FileName:           'Firepunch3.ogg'; Path: ptVoices),// sndFirepunch3
-            (FileName:           'Firepunch4.ogg'; Path: ptVoices),// sndFirepunch4
-            (FileName:           'Firepunch5.ogg'; Path: ptVoices),// sndFirepunch5
-            (FileName:           'Firepunch6.ogg'; Path: ptVoices),// sndFirepunch6
-            (FileName:                'Melon.ogg'; Path: ptVoices),// sndMelon
-            (FileName:              'Hellish.ogg'; Path: ptSounds),// sndHellish
-            (FileName:               'Yoohoo.ogg'; Path: ptSounds),// sndYoohoo
-            (FileName:              'rcplane.ogg'; Path: ptSounds),// sndRCPlane
-            (FileName:            'whipcrack.ogg'; Path: ptSounds),// sndWhipCrack
-            (FileName:'ride_of_the_valkyries.ogg'; Path: ptSounds),// sndRideOfTheValkyries
-            (FileName:               'denied.ogg'; Path: ptSounds),// sndDenied
-            (FileName:               'placed.ogg'; Path: ptSounds),// sndPlaced
-            (FileName:          'baseballbat.ogg'; Path: ptSounds),// sndBaseballBat
-            (FileName:                'steam.ogg'; Path: ptSounds),// sndVaporize
-            (FileName:                 'warp.ogg'; Path: ptSounds),// sndWarp
-            (FileName:          'suddendeath.ogg'; Path: ptSounds),// sndSuddenDeath
-            (FileName:               'mortar.ogg'; Path: ptSounds),// sndMortar
-            (FileName:         'shutterclick.ogg'; Path: ptSounds),// sndShutter
-            (FileName:              'homerun.ogg'; Path: ptSounds),// sndHomerun
-            (FileName:              'molotov.ogg'; Path: ptSounds),// sndMolotov
-            (FileName:            'Takecover.ogg'; Path: ptVoices),// sndCover
-            (FileName:                'Uh-oh.ogg'; Path: ptVoices),// sndUhOh
-            (FileName:                 'Oops.ogg'; Path: ptVoices),// sndOops
-            (FileName:                 'Nooo.ogg'; Path: ptVoices),// sndNooo
-            (FileName:                'Hello.ogg'; Path: ptVoices),// sndHello
-            (FileName:             'ropeshot.ogg'; Path: ptSounds),// sndRopeShot
-            (FileName:           'ropeattach.ogg'; Path: ptSounds),// sndRopeAttach
-            (FileName:          'roperelease.ogg'; Path: ptSounds),// sndRopeRelease
-            (FileName:            'switchhog.ogg'; Path: ptSounds),// sndSwitchHog
-            (FileName:              'Victory.ogg'; Path: ptVoices),// sndVictory
-            (FileName:             'Flawless.ogg'; Path: ptVoices),// sndFlawless
-            (FileName:         'sniperreload.ogg'; Path: ptSounds),// sndSniperReload
-            (FileName:                'steps.ogg'; Path: ptSounds),// sndSteps
-            (FileName:           'lowgravity.ogg'; Path: ptSounds),// sndLowGravity
-            (FileName:           'hell_growl.ogg'; Path: ptSounds),// sndHellishImpact1
-            (FileName:            'hell_ooff.ogg'; Path: ptSounds),// sndHellishImpact2
-            (FileName:              'hell_ow.ogg'; Path: ptSounds),// sndHellishImpact3
-            (FileName:             'hell_ugh.ogg'; Path: ptSounds),// sndHellishImpact4
-            (FileName:          'melonimpact.ogg'; Path: ptSounds),// sndMelonImpact
-            (FileName:             'Droplet1.ogg'; Path: ptSounds),// sndDroplet1
-            (FileName:             'Droplet2.ogg'; Path: ptSounds),// sndDroplet2
-            (FileName:             'Droplet3.ogg'; Path: ptSounds),// sndDroplet3
-            (FileName:                  'egg.ogg'; Path: ptSounds),// sndEggBreak
-            (FileName:             'drillgun.ogg'; Path: ptSounds),// sndDrillRocket
-            (FileName:          'PoisonCough.ogg'; Path: ptVoices),// sndPoisonCough
-            (FileName:           'PoisonMoan.ogg'; Path: ptVoices),// sndPoisonMoan
-            (FileName:             'BirdyLay.ogg'; Path: ptSounds),// sndBirdyLay
-            (FileName:              'Whistle.ogg'; Path: ptSounds),// sndWhistle
-            (FileName:             'beewater.ogg'; Path: ptSounds),// sndBeeWater
-            (FileName:                   '1C.ogg'; Path: ptSounds),// sndPiano0
-            (FileName:                   '2D.ogg'; Path: ptSounds),// sndPiano1
-            (FileName:                   '3E.ogg'; Path: ptSounds),// sndPiano2
-            (FileName:                   '4F.ogg'; Path: ptSounds),// sndPiano3
-            (FileName:                   '5G.ogg'; Path: ptSounds),// sndPiano4
-            (FileName:                   '6A.ogg'; Path: ptSounds),// sndPiano5
-            (FileName:                   '7B.ogg'; Path: ptSounds),// sndPiano6
-            (FileName:                   '8C.ogg'; Path: ptSounds),// sndPiano7
-            (FileName:                   '9D.ogg'; Path: ptSounds),// sndPiano8
-            (FileName:                 'skip.ogg'; Path: ptSounds),// sndSkip
-            (FileName:              'sinegun.ogg'; Path: ptSounds),// sndSineGun
-            (FileName:                'Ooff1.ogg'; Path: ptVoices),// sndOoff1
-            (FileName:                'Ooff2.ogg'; Path: ptVoices),// sndOoff2
-            (FileName:                'Ooff3.ogg'; Path: ptVoices),// sndOoff3
-            (FileName:               'hammer.ogg'; Path: ptSounds),// sndWhack
-            (FileName:           'Comeonthen.ogg'; Path: ptVoices),// sndComeonthen
-            (FileName:            'parachute.ogg'; Path: ptSounds),// sndParachute
-            (FileName:                 'bump.ogg'; Path: ptSounds),// sndBump
-            (FileName:            'hogchant3.ogg'; Path: ptSounds),// sndResurrector
-            (FileName:                'plane.ogg'; Path: ptSounds),// sndPlane
-            (FileName:               'TARDIS.ogg'; Path: ptSounds) // sndTardis
-            );
-var
-    Ammoz: array [TAmmoType] of record
+type
+    TAmmozRec = record
             NameId: TAmmoStrId;
             NameTex: PTexture;
             Probability, NumberInCase: Longword;
@@ -793,11 +757,17 @@ var
             TimeAfterTurn: Longword;
             minAngle, maxAngle: Longword;
             isDamaging: boolean;
-            SkipTurns: Longword;
+            SkipTurns: LongWord;
             PosCount: Longword;
             PosSprite: TSprite;
             ejectX, ejectY: Longint;
-            end = (
+            end;
+
+var
+    Ammoz: array [TAmmoType] of TAmmozRec;
+
+const
+    AmmozInit: array [TAmmoType] of TAmmozRec = (
             (NameId: sidNothing;
             NameTex: nil;
             Probability: 0;
@@ -826,9 +796,9 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Timerable or 
-                          ammoprop_Power or 
-                          ammoprop_AltUse or 
+            Ammo: (Propz: ammoprop_Timerable or
+                          ammoprop_Power or
+                          ammoprop_AltUse or
                           ammoprop_SetBounce or
                           ammoprop_NeedUpDown;
                 Count: AMMO_INFINITE;
@@ -854,9 +824,9 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 3;
-            Ammo: (Propz: ammoprop_Timerable or 
-                          ammoprop_Power or 
-                          ammoprop_AltUse or 
+            Ammo: (Propz: ammoprop_Timerable or
+                          ammoprop_Power or
+                          ammoprop_AltUse or
                           ammoprop_SetBounce or
                           ammoprop_NeedUpDown;
                 Count: 5;
@@ -882,7 +852,7 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Power or
                           ammoprop_AltUse or
                           ammoprop_NeedUpDown;
                 Count: AMMO_INFINITE;
@@ -908,8 +878,8 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
-                          ammoprop_NeedTarget or 
+            Ammo: (Propz: ammoprop_Power or
+                          ammoprop_NeedTarget or
                           ammoprop_DontHold or
                           ammoprop_NeedUpDown;
                 Count: 2;
@@ -936,7 +906,8 @@ var
             Probability: 0;
             NumberInCase: 1;
             Ammo: (Propz: ammoprop_ForwMsgs or
-                          ammoprop_NeedUpDown;
+                          ammoprop_NeedUpDown or
+                          ammoprop_DoesntStopTimerInMultiShoot;
                 Count: AMMO_INFINITE;
                 NumPerTurn: 1;
                 Timer: 0;
@@ -960,9 +931,9 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
-                          ammoprop_AttackInMove or 
-                          ammoprop_NoCrosshair or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
+                          ammoprop_AttackInMove or
+                          ammoprop_NoCrosshair or
                           ammoprop_DontHold;
                 Count: 2;
                 NumPerTurn: 0;
@@ -987,7 +958,8 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_NoCrosshair or 
+            Ammo: (Propz: ammoprop_NoCrosshair or
+                          ammoprop_AttackInMove or
                           ammoprop_DontHold;
                 Count: AMMO_INFINITE;
                 NumPerTurn: 0;
@@ -1017,7 +989,8 @@ var
                           ammoprop_AttackInMove or
                           ammoprop_Utility or
                           ammoprop_AltAttack or
-                          ammoprop_NeedUpDown;
+                          ammoprop_NeedUpDown or
+                          ammoprop_DoesntStopTimerWhileAttacking;
                     Count: 5;
                     NumPerTurn: 0;
                     Timer: 0;
@@ -1041,10 +1014,10 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_NoCrosshair or 
-                          ammoprop_AttackInMove or 
-                          ammoprop_DontHold or 
-                          ammoprop_AltUse or 
+            Ammo: (Propz: ammoprop_NoCrosshair or
+                          ammoprop_AttackInMove or
+                          ammoprop_DontHold or
+                          ammoprop_AltUse or
                           ammoprop_SetBounce;
                 Count: 2;
                 NumPerTurn: 0;
@@ -1069,7 +1042,7 @@ var
             NameTex: nil;
             Probability: 20;
             NumberInCase: 2;
-            Ammo: (Propz: ammoprop_NeedUpDown;
+            Ammo: (Propz: ammoprop_NeedUpDown or ammoprop_DoesntStopTimerInMultiShoot;
                 Count: 3;
                 NumPerTurn: 3;
                 Timer: 0;
@@ -1093,9 +1066,9 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_NoCrosshair or 
-                          ammoprop_AttackInMove or 
-                          ammoprop_DontHold or 
+            Ammo: (Propz: ammoprop_NoCrosshair or
+                          ammoprop_AttackInMove or
+                          ammoprop_DontHold or
                           ammoprop_AltUse;
                 Count: 1;
                 NumPerTurn: 0;
@@ -1120,8 +1093,8 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_NoCrosshair or 
-                          ammoprop_ForwMsgs or 
+            Ammo: (Propz: ammoprop_NoCrosshair or
+                          ammoprop_ForwMsgs or
                           ammoprop_AttackInMove;
                 Count: AMMO_INFINITE;
                 NumPerTurn: 0;
@@ -1293,8 +1266,8 @@ var
                 Bounciness: 1000);
             Slot: 6;
             TimeAfterTurn: 3000;
-            minAngle: 768;
-            maxAngle: 1280;
+            minAngle: 804;
+            maxAngle: 1327;
             isDamaging: false;
             SkipTurns: 0;
             PosCount: 1;
@@ -1392,7 +1365,7 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 4;
-            Ammo: (Propz: 0;
+            Ammo: (Propz: ammoprop_NeedUpDown;
                 Count: 4;
                 NumPerTurn: 0;
                 Timer: 0;
@@ -1416,8 +1389,8 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
-                          ammoprop_DontHold or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
+                          ammoprop_DontHold or
                           ammoprop_NeedUpDown or
                           ammoprop_AttackInMove;
                 Count: 1;
@@ -1443,9 +1416,10 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
-                          ammoprop_NoCrosshair or 
-                          ammoprop_DontHold;
+            Ammo: (Propz: ammoprop_ForwMsgs or
+                          ammoprop_NoCrosshair or
+                          ammoprop_DontHold or
+                          ammoprop_Track;
                 Count: 1;
                 NumPerTurn: 0;
                 Timer: 0;
@@ -1469,7 +1443,7 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
                           ammoprop_DontHold or
                           ammoprop_NoCrosshair;
                 Count: 1;
@@ -1495,8 +1469,8 @@ var
             NameTex: nil;
             Probability: 400;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Timerable or 
-                          ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Timerable or
+                          ammoprop_Power or
                           ammoprop_NeedUpDown or
                           ammoprop_AltUse;
                 Count: 0;
@@ -1522,7 +1496,7 @@ var
             NameTex: nil;
             Probability: 400;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Power or
                           ammoprop_NeedUpDown or
                           ammoprop_AltUse;
                 Count: 0;
@@ -1576,7 +1550,7 @@ var
             NameTex: nil;
             Probability: 300;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Power or
                           ammoprop_NeedUpDown or
                           ammoprop_AltUse;
                 Count: AMMO_INFINITE;
@@ -1602,7 +1576,7 @@ var
             NameTex: nil;
             Probability: 400;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
                           ammoprop_NeedUpDown or
                           ammoprop_DontHold;
                 Count: AMMO_INFINITE;
@@ -1830,9 +1804,10 @@ var
             NameTex: nil;
             Probability: 20;
             NumberInCase: 2;
-            Ammo: (Propz: ammoprop_NeedUpDown or 
+            Ammo: (Propz: ammoprop_NeedUpDown or
                     ammoprop_OscAim or
-                    ammoprop_NoMoveAfter;
+                    ammoprop_NoMoveAfter or
+                    ammoprop_DoesntStopTimerInMultiShoot;
                 Count: 2;
                 NumPerTurn: 1;
                 Timer: 0;
@@ -1859,7 +1834,6 @@ var
             Ammo: (Propz: ammoprop_NoRoundEnd or
                           ammoprop_ForwMsgs or
                           ammoprop_AttackInMove or
-                          ammoprop_NoCrosshair or
                           ammoprop_DontHold or
                           ammoprop_Utility or
                           ammoprop_NeedUpDown or
@@ -1887,7 +1861,7 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Power or
                           ammoprop_NeedUpDown or
                           ammoprop_AltUse;
                 Count: AMMO_INFINITE;
@@ -1952,7 +1926,7 @@ var
                 AmmoType: amPortalGun;
                 AttackVoice: sndNone;
                 Bounciness: 1000);
-            Slot: 6;
+            Slot: 7;
             TimeAfterTurn: 0;
             minAngle: 0;
             maxAngle: 0;
@@ -1996,9 +1970,9 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Timerable or 
-                          ammoprop_Power or 
-                          ammoprop_AltUse or 
+            Ammo: (Propz: ammoprop_Timerable or
+                          ammoprop_Power or
+                          ammoprop_AltUse or
                           ammoprop_NeedUpDown or
                           ammoprop_SetBounce;
                 Count: AMMO_INFINITE;
@@ -2049,7 +2023,7 @@ var
             NameTex: nil;
             Probability: 20;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
                           ammoprop_NeedUpDown or
                           ammoprop_DontHold;
                 Count: 1;
@@ -2076,7 +2050,8 @@ var
             Probability: 100;
             NumberInCase: 1;
             Ammo: (Propz: ammoprop_Power or
-                          ammoprop_NeedUpDown; //FIXME: enable multishoot at altuse, until then removed ammoprop_AltUse
+                          ammoprop_AltUse or
+                          ammoprop_NeedUpDown;
                 Count: 1;
                 NumPerTurn: 1;
                 Timer: 0;
@@ -2179,8 +2154,9 @@ var
             NameTex: nil;
             Probability: 0;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_Power or 
+            Ammo: (Propz: ammoprop_Power or
                           ammoprop_AltUse or
+                          ammoprop_NeedUpDown or
                           ammoprop_NoRoundEnd;
                 Count: 2;
                 NumPerTurn: 0;
@@ -2193,11 +2169,11 @@ var
             TimeAfterTurn: 3000;
             minAngle: 0;
             maxAngle: 0;
-            isDamaging: true;
+            isDamaging: false;
             SkipTurns: 0;
             PosCount: 1;
             PosSprite: sprWater;
-            ejectX: 0; 
+            ejectX: 0;
             ejectY: 0),
 
 // Tardis
@@ -2216,7 +2192,7 @@ var
                 AmmoType: amTardis;
                 AttackVoice: sndNone;
                 Bounciness: 1000);
-            Slot: 7;
+            Slot: 8;
             TimeAfterTurn: 0;
             minAngle: 0;
             maxAngle: 0;
@@ -2227,7 +2203,8 @@ var
             ejectX: 0;
             ejectY: 0),
 
-// Structure      
+// Structure
+{
             (NameId: sidStructure;
             NameTex: nil;
             Probability: 0;
@@ -2253,13 +2230,15 @@ var
             PosSprite: sprWater;
             ejectX: 0;
             ejectY: 0),
-            
+}
+
 // Land Gun
             (NameId: sidLandGun;
             NameTex: nil;
             Probability: 20;
             NumberInCase: 1;
             Ammo: (Propz: ammoprop_NoRoundEnd or
+                          ammoprop_NeedUpDown or
                           ammoprop_Utility;
                 Count: 1;
                 NumPerTurn: 0;
@@ -2268,7 +2247,7 @@ var
                 AmmoType: amLandGun;
                 AttackVoice: sndNone;
                 Bounciness: 1000);
-            Slot: 2;
+            Slot: 6;
             TimeAfterTurn: 0;
             minAngle: 0;
             maxAngle: 0;
@@ -2283,7 +2262,7 @@ var
             NameTex: nil;
             Probability: 20;
             NumberInCase: 1;
-            Ammo: (Propz: ammoprop_ForwMsgs or 
+            Ammo: (Propz: ammoprop_ForwMsgs or
                           ammoprop_NeedUpDown or
                           ammoprop_DontHold;
                 Count: 1;
@@ -2293,84 +2272,94 @@ var
                 AmmoType: amIceGun;
                 AttackVoice: sndNone;
                 Bounciness: 1000);
-            Slot: 6;
+            Slot: 2;
             TimeAfterTurn: 0;
+            minAngle: 0;
+            maxAngle: 0;
+            isDamaging: false;
+            SkipTurns: 0;
+            PosCount: 1;
+            PosSprite: sprWater;
+            ejectX: 0; //20;
+            ejectY: -3),
+// Knife
+            (NameId: sidKnife;
+            NameTex: nil;
+            Probability: 100;
+            NumberInCase: 1;
+            Ammo: (Propz: ammoprop_Power or
+                          ammoprop_AltUse or
+                          ammoprop_NeedUpDown;
+                Count: 1;
+                NumPerTurn: 1;
+                Timer: 0;
+                Pos: 0;
+                AmmoType: amKnife;
+                AttackVoice: sndNone;
+                Bounciness: 1000);
+            Slot: 6;
+            TimeAfterTurn: 3000;
             minAngle: 0;
             maxAngle: 0;
             isDamaging: true;
             SkipTurns: 0;
             PosCount: 1;
             PosSprite: sprWater;
-            ejectX: 0; //20;
-            ejectY: -3)
+            ejectX: 0;
+            ejectY: 0),
+// Rubber
+            (NameId: sidRubber;
+            NameTex: nil;
+            Probability: 150;
+            NumberInCase: 1;
+            Ammo: (Propz: ammoprop_NoRoundEnd or
+                          ammoprop_NoCrosshair or
+                          ammoprop_NeedTarget or
+                          ammoprop_Utility or
+                          ammoprop_AttackingPut;
+                    Count: 1;
+                    NumPerTurn: 0;
+                    Timer: 0;
+                    Pos: 0;
+                    AmmoType: amRubber;
+                    AttackVoice: sndNone;
+                Bounciness: 1000);
+            Slot: 6;
+            TimeAfterTurn: 3000;
+            minAngle: 0;
+            maxAngle: 0;
+            isDamaging: false;
+            SkipTurns: 0;
+            PosCount: 4;
+            PosSprite: sprAmRubber;
+            ejectX: 0;
+            ejectY: 0),
+// Air Mine
+            (NameId: sidAirMine;
+            NameTex: nil;
+            Probability: 100;
+            NumberInCase: 1;
+            Ammo: (Propz: ammoprop_Power or
+                          ammoprop_AltUse or
+                          ammoprop_NeedUpDown;
+                Count: 2;
+                NumPerTurn: 0;
+                Timer: 0;
+                Pos: 0;
+                AmmoType: amAirMine;
+                AttackVoice: sndLaugh;
+                Bounciness: 1000);
+            Slot: 5;
+            TimeAfterTurn: 5000;
+            minAngle: 0;
+            maxAngle: 0;
+            isDamaging: true;
+            SkipTurns: 0;
+            PosCount: 1;
+            PosSprite: sprWater;
+            ejectX: 0;
+            ejectY: 0)
         );
-
-const
-    GearKindAmmoTypeMap : array [TGearType] of TAmmoType = (    
-(*          gtFlame *)   amNothing
-(*       gtHedgehog *) , amNothing
-(*           gtMine *) , amNothing
-(*           gtCase *) , amNothing
-(*     gtExplosives *) , amNothing
-(*        gtGrenade *) , amGrenade
-(*          gtShell *) , amBazooka
-(*          gtGrave *) , amNothing
-(*            gtBee *) , amBee
-(*    gtShotgunShot *) , amShotgun
-(*     gtPickHammer *) , amPickHammer
-(*           gtRope *) , amRope
-(*     gtDEagleShot *) , amDEagle
-(*       gtDynamite *) , amDynamite
-(*    gtClusterBomb *) , amClusterBomb
-(*        gtCluster *) , amClusterBomb
-(*         gtShover *) , amBaseballBat  // Shover is only used for baseball bat right now
-(*      gtFirePunch *) , amFirePunch
-(*    gtATStartGame *) , amNothing
-(*   gtATFinishGame *) , amNothing
-(*      gtParachute *) , amParachute
-(*      gtAirAttack *) , amAirAttack
-(*        gtAirBomb *) , amAirAttack
-(*      gtBlowTorch *) , amBlowTorch
-(*         gtGirder *) , amGirder
-(*       gtTeleport *) , amTeleport
-(*       gtSwitcher *) , amSwitch
-(*         gtTarget *) , amNothing
-(*         gtMortar *) , amMortar
-(*           gtWhip *) , amWhip
-(*       gtKamikaze *) , amKamikaze
-(*           gtCake *) , amCake
-(*      gtSeduction *) , amSeduction
-(*     gtWatermelon *) , amWatermelon
-(*     gtMelonPiece *) , amWatermelon
-(*    gtHellishBomb *) , amHellishBomb
-(*        gtWaterUp *) , amNothing
-(*          gtDrill *) , amDrill
-(*        gtBallGun *) , amBallgun
-(*           gtBall *) , amBallgun
-(*        gtRCPlane *) , amRCPlane
-(*gtSniperRifleShot *) , amSniperRifle
-(*        gtJetpack *) , amJetpack
-(*        gtMolotov *) , amMolotov
-(*          gtBirdy *) , amBirdy
-(*            gtEgg *) , amBirdy
-(*         gtPortal *) , amPortalGun
-(*          gtPiano *) , amPiano
-(*        gtGasBomb *) , amGasBomb
-(*    gtSineGunShot *) , amSineGun
-(*   gtFlamethrower *) , amFlamethrower
-(*          gtSMine *) , amSMine
-(*    gtPoisonCloud *) , amNothing
-(*         gtHammer *) , amHammer
-(*      gtHammerHit *) , amHammer
-(*    gtResurrector *) , amResurrector
-(*    gtPoisonCloud *) , amNothing
-(*       gtSnowball *) , amSnowball
-(*          gtFlake *) , amNothing
-(*      gtStructure *) , amStructure  // TODO - This will undoubtedly change once there is more than one structure
-(*        gtLandGun *) , amLandGun
-(*         gtTardis *) , amTardis
-(*         gtIceGun *) , amIceGun
-    );
 
 var
     Land: TCollisionArray;
@@ -2405,7 +2394,6 @@ var
     LocalTeam: LongInt;  // last non-bot, non-extdriven clan first team
     LocalAmmo: LongInt;  // last non-bot, non-extdriven clan's first team's ammo index, updated to next upcoming hog for per-hog-ammo
     CurMinAngle, CurMaxAngle: Longword;
-    NextClan: boolean;
 
     FollowGear: PGear;
     WindBarWidth: LongInt;
@@ -2416,25 +2404,19 @@ var
     WaterColor, DeepWaterColor: TSDL_Color;
     SkyColor, RQSkyColor, SDSkyColor: TSDL_Color;
     SkyOffset: LongInt;
-    HorizontOffset: LongInt;
 {$IFDEF COUNTTICKS}
     cntTicks: LongWord;
 {$ENDIF}
-    cOffsetY: LongInt;
-    AFRToggle: Boolean;
-    bAFRRight: Boolean;
 
 
     PauseTexture,
+    AFKTexture,
     SyncTexture,
     ConfirmTexture: PTexture;
     cScaleFactor: GLfloat;
     cStereoDepth: GLfloat;
     SupportNPOTT: Boolean;
     Step: LongInt;
-    squaresize : LongInt;
-    numsquares : LongInt;
-    ProgrTex: PTexture;
     MissionIcons: PSDL_Surface;
     ropeIconTex: PTexture;
 
@@ -2442,27 +2424,15 @@ var
     framel, framer, depthl, depthr: GLuint;
     texl, texr: GLuint;
 
-    VisualGearLayers: array[0..6] of PVisualGear;
+    // video recorder framebuffer and texture
+    defaultFrame, depthv: GLuint;
+    texv: GLuint;
+
     lastVisualGearByUID: PVisualGear;
     vobFrameTicks, vobFramesCount, vobCount: Longword;
     vobVelocity, vobFallSpeed: LongInt;
     vobSDFrameTicks, vobSDFramesCount, vobSDCount: Longword;
     vobSDVelocity, vobSDFallSpeed: LongInt;
-
-    hideAmmoMenu: boolean;
-    wheelUp: boolean;
-    wheelDown: boolean;
-
-    ControllerNumControllers: Integer;
-    ControllerEnabled: Integer;
-    ControllerNumAxes: array[0..5] of Integer;
-    //ControllerNumBalls: array[0..5] of Integer;
-    ControllerNumHats: array[0..5] of Integer;
-    ControllerNumButtons: array[0..5] of Integer;
-    ControllerAxes: array[0..5] of array[0..19] of Integer;
-    //ControllerBalls: array[0..5] of array[0..19] of array[0..1] of Integer;
-    ControllerHats: array[0..5] of array[0..19] of Byte;
-    ControllerButtons: array[0..5] of array[0..19] of Byte;
 
     DefaultBinds : TBinds;
 
@@ -2470,25 +2440,104 @@ var
 
     mModelview: TMatrix4x4f;
     mProjection: TMatrix4x4f;
+    vBuffer: GLuint; // vertex buffer
+    tBuffer: GLuint; // texture coords buffer
+    cBuffer: GLuint; // color buffer
+
+    uCurrentMVPLocation: GLint;
+
+    uMainMVPLocation: GLint;
+    uMainTintLocation: GLint;
+
+    uWaterMVPLocation: GLint;
+
+    aVertex: GLint;
+    aTexCoord: GLint;
+    aColor: GLint;
 
 var trammo:  array[TAmmoStrId] of ansistring;   // name of the weapon
     trammoc: array[TAmmoStrId] of ansistring;   // caption of the weapon
     trammod: array[TAmmoStrId] of ansistring;   // description of the weapon
     trmsg:   array[TMsgStrId]  of ansistring;   // message of the event
     trgoal:  array[TGoalStrId] of ansistring;   // message of the goal
+    cTestLua : Boolean;
 
+procedure preInitModule;
 procedure initModule;
 procedure freeModule;
 
 implementation
 
+procedure preInitModule;
+begin
+    // initialisation flags - they are going to be overwritten by program args
+
+    cFullscreenWidth  := 0;
+    cFullscreenHeight := 0;
+    cWindowedWidth    := 1024;
+    cWindowedHeight   := 768;
+    cScreenWidth      := cWindowedWidth;
+    cScreenHeight     := cWindowedHeight;
+
+    cShowFPS        := false;
+    cAltDamage      := true;
+    cTimerInterval  := 8;
+    cReducedQuality := rqNone;
+    cLocaleFName    := 'en.txt';
+    cFullScreen     := false;
+
+    UserPathPrefix  := '';
+    ipcPort         := 0;
+    recordFileName  := '';
+    UserNick        := '';
+    cStereoMode     := smNone;
+    GrayScale       := false;
+    PathPrefix      := './';
+    GameType        := gmtLocal;
+    cOnlyStats      := False;
+    cScriptName     := '';
+    cScriptParam    := '';
+    cTestLua        := False;
+
+{$IFDEF USE_VIDEO_RECORDING}
+    RecPrefix          := '';
+    cAVFormat          := '';
+    cVideoCodec        := '';
+    cVideoFramerateNum := 0;
+    cVideoFramerateDen := 0;
+    cVideoQuality      := 0;
+    cAudioCodec        := '';
+{$ENDIF}
+
+    cTagsMask:= htTeamName or htName or htHealth;
+end;
 
 procedure initModule;
+var s: shortstring;
+    i: integer;
 begin
-    lastVisualGearByUID:= nil;
-    lastGearByUID:= nil;
-    
-    Pathz:= cPathz;
+    // init LastVoice
+    LastVoice.snd:= sndNone;
+    LastVoice.voicepack:= nil;
+
+    // init arrays
+    Move(cPathzInit, cPathz, sizeof(cPathz));
+    Move(FontzInit, Fontz, sizeof(Fontz));
+    Move(SpritesDataInit, SpritesData, sizeof(SpritesData));
+    Move(AmmozInit, Ammoz, sizeof(Ammoz));
+
+
+    cLocale:= cLocaleFName;
+    SplitByChar(cLocale, s, '.');
+
+    cFlattenFlakes      := false;
+    cFlattenClouds      := false;
+    cIce                := false;
+    cSnow               := false;
+    lastVisualGearByUID := nil;
+    lastGearByUID       := nil;
+    cReadyDelay         := 5000;
+
         {*  REFERENCE
       4096 -> $FFFFF000
       2048 -> $FFFFF800
@@ -2509,39 +2558,78 @@ begin
         LAND_HEIGHT_MASK:= $FFFFF800
         end;
 
-    SDWaterColorArray[0].r := 182;
-    SDWaterColorArray[0].g := 144;
-    SDWaterColorArray[0].b := 201;
+    // default sudden death water
+
+    // deep water
+    SDWaterColorArray[0].r := 150;
+    SDWaterColorArray[0].g := 112;
+    SDWaterColorArray[0].b := 169;
     SDWaterColorArray[0].a := 255;
-    SDWaterColorArray[2].r := 150;
-    SDWaterColorArray[2].g := 112;
-    SDWaterColorArray[2].b := 169;
-    SDWaterColorArray[2].a := 255;
-    SDWaterColorArray[1]:= SDWaterColorArray[0];
-    SDWaterColorArray[3]:= SDWaterColorArray[2];
+    SDWaterColorArray[2]:= SDWaterColorArray[0];
+    SDWaterColorArray[4]:= SDWaterColorArray[0];
+    SDWaterColorArray[6]:= SDWaterColorArray[0];
+    // water surface
+    SDWaterColorArray[1].r := 182;
+    SDWaterColorArray[1].g := 144;
+    SDWaterColorArray[1].b := 201;
+    SDWaterColorArray[1].a := 255;
+    SDWaterColorArray[3]:= SDWaterColorArray[1];
+    SDWaterColorArray[5]:= SDWaterColorArray[1];
+    SDWaterColorArray[7]:= SDWaterColorArray[1];
+
+    SDWaterOpacity:= $80;
 
     SDTint:= $80;
+    ExplosionBorderColorR:= 80;
+    ExplosionBorderColorG:= 80;
+    ExplosionBorderColorB:= 80;
+    ExplosionBorderColor:= $FF808080;
+    ExplosionBorderColorNoA:= ExplosionBorderColor and (not AMask);
+    IceColor:= ($44 shl RShift) or ($97 shl GShift) or ($A9 shl BShift) or ($A0 shl AShift);
+    IceEdgeColor:= ($8A shl RShift) or ($AF shl GShift) or ($B2 shl BShift) or ($FF shl AShift);
 
-    cDrownSpeed.QWordValue  := 257698038;       // 0.06
+    WaterOpacity:= $80;
+
+    cWaveHeight             := 32;
+    cDrownSpeed.QWordValue  := 257698038;   // 0.06
     cDrownSpeedf            := 0.06;
     cMaxWindSpeed.QWordValue:= 1073742;     // 0.00025
-    cWindSpeed.QWordValue   := 0;      // 0.0
+    cWindSpeed.QWordValue   := 0;           // 0.0
     cWindSpeedf             := 0.0;
+    cElastic                := _0_9;
     cGravity                := cMaxWindSpeed * 2;
     cGravityf               := 0.00025 * 2;
+    cBuildMaxDist           := cDefaultBuildMaxDist;
     cDamageModifier         := _1;
     TargetPoint             := cTargetPointRef;
+
+{$IFDEF MOBILE}
+    cMaxZoomLevel:= 0.5;
+    cMinZoomLevel:= 3.5;
+    cZoomDelta:= 0.20;
+{$ELSE}
+    cMaxZoomLevel:= 1.0;
+    cMinZoomLevel:= 3.0;
+    cZoomDelta:= 0.25;
+{$ENDIF}
+
+    cMinMaxZoomLevelDelta:= cMaxZoomLevel - cMinZoomLevel;
 
     // int, longint longword and byte
     CursorMovementX     := 0;
     CursorMovementY     := 0;
     GameTicks           := 0;
+    CheckSum            := 0;
     cWaterLine          := LAND_HEIGHT;
     cGearScrEdgesDist   := 240;
 
     InputMask           := $FFFFFFFF;
     GameFlags           := 0;
+    WorldEdge           := weNone;
+    LeftImpactTimer     := 0;
+    RightImpactTimer    := 0;
     TurnTimeLeft        := 0;
+    TurnClockActive     := true;
     TagTurnTimeLeft     := 0;
     cSuddenDTurns       := 15;
     cDamagePercent      := 100;
@@ -2549,7 +2637,8 @@ begin
     cGetAwayTime        := 100;
     cMineDudPercent     := 0;
     cTemplateFilter     := 0;
-    cMapGen             := 0;   // MAPGEN_REGULAR
+    cFeatureSize        := 50;
+    cMapGen             := mgRandom;
     cHedgehogTurnTime   := 45000;
     cMinesTime          := 3000;
     cMaxAIThinkTime     := 9000;
@@ -2559,17 +2648,17 @@ begin
     cHealthCaseAmount   := 25;
     cWaterRise          := 47;
     cHealthDecrease     := 5;
+    cAdvancedMapGenMode := false;
 
-    cTagsMask       := 0;
     InitStepsFlags  := 0;
     RealTicks       := 0;
     AttackBar       := 0; // 0 - none, 1 - just bar at the right-down corner, 2 - from weapon
     cCaseFactor     := 5;  {0..9}
     cLandMines      := 4;
+    cAirMines       := 0;
     cExplosives     := 2;
 
     GameState       := Low(TGameState);
-    GameType        := gmtLocal;
     zoom            := cDefaultZoomLevel;
     ZoomValue       := cDefaultZoomLevel;
     WeaponTooltipTex:= nil;
@@ -2577,6 +2666,7 @@ begin
     cVampiric       := false;
     cArtillery      := false;
     flagMakeCapture := false;
+    flagDumpLand    := false;
     bBetweenTurns   := false;
     bWaterRising    := false;
     isCursorVisible := false;
@@ -2584,17 +2674,18 @@ begin
     isPaused        := false;
     isInMultiShoot  := false;
     isSpeed         := false;
+    isAFK           := false;
+    SpeedStart      := 0;
     fastUntilLag    := false;
+    fastScrolling   := false;
     autoCameraOn    := true;
-    cScriptName     := '';
     cSeed           := '';
     cVolumeDelta    := 0;
     cHasFocus       := true;
     cInactDelay     := 100;
     ReadyTimeLeft   := 0;
-    
-    disableLandBack := false;
 
+    disableLandBack := false;
     ScreenFade      := sfNone;
 
     // those values still are not perfect
@@ -2602,51 +2693,94 @@ begin
     cRightScreenBorder:= round(cMinZoomLevel * cScreenWidth + LAND_WIDTH);
     cScreenSpace:= cRightScreenBorder - cLeftScreenBorder;
 
-    vobFrameTicks:= 99999;
+    dirtyLandTexCount:= 0;
+
+    vobFrameTicks:= 0;
     vobFramesCount:= 4;
     vobCount:= 0;
     vobVelocity:= 10;
     vobFallSpeed:= 100;
 
-    vobSDFrameTicks:= 99999;
+    vobSDFrameTicks:= 0;
     vobSDFramesCount:= 4;
     vobSDCount:= 30 * cScreenSpace div LAND_WIDTH;
     vobSDVelocity:= 15;
     vobSDFallSpeed:= 250;
 
-    ExplosionBorderColor:= $FF808080;
-    WaterOpacity:= $80;
-    SDWaterOpacity:= $80;
+{$IFDEF MOBILE}
+    cMinScreenWidth  := min(cScreenWidth, 480);
+    cMinScreenHeight := min(cScreenHeight, 320);
+{$ELSE}
+    cMinScreenWidth  := min(cScreenWidth, 640);
+    cMinScreenHeight := min(cScreenHeight, 480);
+{$ENDIF}
+
+    cNewScreenWidth    := cScreenWidth;
+    cNewScreenHeight   := cScreenHeight;
+    cScreenResizeDelay := 0;
+
+    // make sure fullscreen resolution is always initialised somehow
+    if cFullscreenWidth = 0 then
+        cFullscreenWidth:= min(cWindowedWidth, 640);
+    if cFullscreenHeight = 0 then
+        cFullscreenHeight:= min(cWindowedHeight, 480);
+
+    SpeechHogNumber:= -1;
 
     LuaGoals:= '';
+    cMapName:= '';
 
-    MatrixLoadIdentity(mModelview);
-    MatrixLoadIdentity(mProjection);
+    LuaTemplateNumber:= 0;
+
+    UIDisplay:= uiAll;
+    LocalMessage:= 0;
+
+    cStereoDepth:= 0;
+    cViewLimitsDebug:= false;
+    AprilOne := false;
+
+    ChatPasteBuffer:= '';
+
+    // initialize pointers to nil
+    // (don't rely on implicit init of fpc, because that one only happens ONCE when used as lib)
+    CurAmmoGear:= nil;
+    lastGearByUID:= nil;
+    GearsList:= nil;
+    CurrentTeam:= nil;
+    PreviousTeam:= nil;
+    CurrentHedgehog:= nil;
+    FollowGear:= nil;
+    lastVisualGearByUID:= nil;
+
+    ChefHatTexture:= nil;
+    CrosshairTexture:= nil;
+    GenericHealthTexture:= nil;
+    WeaponTooltipTex:= nil;
+    HHTexture:= nil;
+    LandBackSurface:= nil;
+    ConfirmTexture:= nil;
+    MissionIcons:= nil;
+    ropeIconTex:= nil;
+
+    for i:= Low(ClansArray) to High(ClansArray) do
+        begin
+        ClansArray[i]:= nil;
+        end;
+
+    for i:= Low(TeamsArray) to High(TeamsArray) do
+        begin
+        TeamsArray[i]:= nil;
+        end;
+
+    for i:= Low(CountTexz) to High(CountTexz) do
+        begin
+        CountTexz[i]:= nil;
+        end;
+
 end;
 
 procedure freeModule;
 begin
-    // re-init flags so they will always contain safe values
-    cScreenWidth    := 1024;
-    cScreenHeight   := 768;
-    cBits           := 32;
-    ipcPort         := 0;
-    cFullScreen     := false;
-    cLocaleFName    := 'en.txt';
-    cTimerInterval  := 8;
-    PathPrefix      := './';
-    UserPathPrefix  := './';
-    cShowFPS        := false;
-    cFlattenFlakes  := false;
-    cFlattenClouds  := false;
-    cAltDamage      := true;
-    cReducedQuality := rqNone;
-    UserNick        := '';
-    recordFileName  := '';
-    cScriptName     := '';
-    cReadyDelay     := 5000;
-    cStereoMode     := smNone;
-    GrayScale       := false;
 end;
 
 end.

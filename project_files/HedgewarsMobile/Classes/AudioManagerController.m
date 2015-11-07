@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA.
  */
 
 
@@ -79,7 +79,7 @@ static AudioManagerController *mainInstance;
         self.backgroundMusic.delegate = nil;
         self.backgroundMusic.numberOfLoops = -1;
     }
-    
+
     self.backgroundMusic.volume = DEFAULT_VOLUME;
     [self.backgroundMusic play];
 }
@@ -98,7 +98,7 @@ static AudioManagerController *mainInstance;
 
     if (self.audioFaderQueue == nil)
         self.audioFaderQueue = [[NSOperationQueue alloc] init];
-    
+
     MXAudioPlayerFadeOperation *fadeOut = [[MXAudioPlayerFadeOperation alloc] initFadeWithAudioPlayer:self.backgroundMusic
                                                                                              toVolume:0.0
                                                                                          overDuration:FADEOUT_DURATION];
@@ -144,30 +144,30 @@ static AudioManagerController *mainInstance;
 -(void) playClickSound {
     if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"sound"] boolValue] == NO)
         return;
-    
+
     if (self.clickSound == -1)
         self.clickSound = [self loadSound:@"clickSound"];
-    
+
     AudioServicesPlaySystemSound(self.clickSound);
 }
 
 -(void) playBackSound {
     if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"sound"] boolValue] == NO)
         return;
-    
+
     if (self.backSound == -1)
         self.backSound = [self loadSound:@"backSound"];
-    
+
     AudioServicesPlaySystemSound(self.backSound);
 }
 
 -(void) playSelectSound {
     if ([[[NSUserDefaults standardUserDefaults] objectForKey:@"sound"] boolValue] == NO)
         return;
-    
+
     if (self.selSound == -1)
         self.selSound = [self loadSound:@"selSound"];
-    
+
     AudioServicesPlaySystemSound(self.selSound);
 }
 

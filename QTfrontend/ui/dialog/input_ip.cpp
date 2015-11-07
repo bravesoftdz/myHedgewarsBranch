@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QLineEdit>
@@ -23,6 +23,7 @@
 #include <QLabel>
 
 #include "input_ip.h"
+#include "hwconsts.h"
 
 HWHostPortDialog::HWHostPortDialog(QWidget* parent) : QDialog(parent)
 {
@@ -60,9 +61,11 @@ HWHostPortDialog::HWHostPortDialog(QWidget* parent) : QDialog(parent)
     connect(pbOK, SIGNAL(clicked()), this, SLOT(accept()));
     connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
     connect(pbDefault, SIGNAL(clicked()), this, SLOT(setDefaultPort()));
+
+    this->setWindowModality(Qt::WindowModal);
 }
 
 void HWHostPortDialog::setDefaultPort()
 {
-    sbPort->setValue(46631);
+    sbPort->setValue(NETGAME_DEFAULT_PORT);
 }

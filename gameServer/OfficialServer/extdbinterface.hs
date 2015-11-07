@@ -1,3 +1,21 @@
+{-
+ * Hedgewars, a free turn based strategy game
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ \-}
+
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 
 module Main where
@@ -7,17 +25,43 @@ import Control.Monad
 import Control.Exception
 import System.IO
 import Data.Maybe
-import Database.HDBC
-import Database.HDBC.MySQL
+import Database.MySQL.Simple
+import Database.MySQL.Simple.QueryResults
+import Database.MySQL.Simple.Result
+import Data.List (lookup, elem)
+import qualified Data.ByteString.Char8 as B
+import Data.Word
+import Data.Int
 --------------------------
 import CoreTypes
+import Utils
 
 
 dbQueryAccount =
-    "SELECT users.pass, users_roles.rid FROM users LEFT JOIN users_roles ON users.uid = users_roles.uid WHERE users.name = ?"
+    "SELECT CASE WHEN users.status = 1 THEN users.pass ELSE '' END, \
+    \ (SELECT COUNT(users_roles.rid) FROM users_roles WHERE users.uid = users_roles.uid AND users_roles.rid = 3), \
+    \ (SELECT COUNT(users_roles.rid) FROM users_roles WHERE users.uid = users_roles.uid AND users_roles.rid = 13) \
+    \ FROM users WHERE users.name = ?"
 
 dbQueryStats =
     "INSERT INTO gameserver_stats (players, rooms, last_update) VALUES (?, ?, UNIX_TIMESTAMP())"
+
+dbQueryAchievement =
+    "INSERT INTO achievements (time, typeid, userid, value, filename, location, protocol) \
+    \ VALUES (?, (SELECT id FROM achievement_types WHERE name = ?), (SELECT uid FROM users WHERE name = ?), \
+    \ ?, ?, ?, ?)"
+
+dbQueryGamesHistory =
+    "INSERT INTO rating_games (script, protocol, filename, time) \
+    \ VALUES (?, ?, ?, ?)"
+
+dbQueryGameId = "SELECT LAST_INSERT_ID()"
+
+dbQueryGamesHistoryPlaces = "INSERT INTO rating_players (userid, gameid, place) \
+    \ VALUES ((SELECT uid FROM users WHERE name = ?), ?, ?)"
+
+dbQueryReplayFilename = "SELECT filename FROM achievements WHERE id = ?"
+
 
 dbInteractionLoop dbConn = forever $ do
     q <- liftM read getLine
@@ -25,33 +69,84 @@ dbInteractionLoop dbConn = forever $ do
 
     case q of
         CheckAccount clId clUid clNick _ -> do
-                statement <- prepare dbConn dbQueryAccount
-                execute statement [SqlByteString clNick]
-                passAndRole <- fetchRow statement
-                finish statement
-                let response = 
-                        if isJust passAndRole then
-                        (
-                            clId,
-                            clUid,
-                            HasAccount
-                                (fromSql . head . fromJust $ passAndRole)
-                                (fromSql (last . fromJust $ passAndRole) == Just (3 :: Int))
-                        )
-                        else
-                        (clId, clUid, Guest)
+                results <- query dbConn dbQueryAccount $ Only clNick
+                let response = case results of
+                        [(pass, adm, contr)] ->
+                            (
+                                clId,
+                                clUid,
+                                HasAccount
+                                    (pass)
+                                    (adm == Just (1 :: Int))
+                                    (contr == Just (1 :: Int))
+                            )
+                        _ ->
+                            (clId, clUid, Guest)
                 print response
                 hFlush stdout
 
-        SendStats clients rooms ->
-                run dbConn dbQueryStats [SqlInt32 $ fromIntegral clients, SqlInt32 $ fromIntegral rooms] >> return ()
+        GetReplayName clId clUid fileId -> do
+                results <- query dbConn dbQueryReplayFilename $ Only fileId
+                let fn = if null results then "" else fromOnly $ head results
+                print (clId, clUid, ReplayName fn)
+                hFlush stdout
 
+        SendStats clients rooms ->
+                void $ execute dbConn dbQueryStats (clients, rooms)
+        StoreAchievements p fileName teams script info ->
+            sequence_ $ parseStats dbConn p fileName teams script info
+
+
+--readTime = read . B.unpack . B.take 19 . B.drop 8
+readTime = B.take 19 . B.drop 8
+
+parseStats :: 
+    Connection
+    -> Word16 
+    -> B.ByteString 
+    -> [(B.ByteString, B.ByteString)] 
+    -> B.ByteString
+    -> [B.ByteString]
+    -> [IO Int64]
+parseStats dbConn p fileName teams script = ps
+    where
+    time = readTime fileName
+    ps :: [B.ByteString] -> [IO Int64]
+    ps [] = []
+    ps ("DRAW" : bs) = execute dbConn dbQueryGamesHistory (script, (fromIntegral p) :: Int, fileName, time)
+        : places (map drawParams teams)
+        : ps bs
+    ps ("WINNERS" : n : bs) = let winNum = readInt_ n in execute dbConn dbQueryGamesHistory (script, (fromIntegral p) :: Int, fileName, time)
+        : places (map (placeParams (take winNum bs)) teams)
+        : ps (drop winNum bs)
+    ps ("ACHIEVEMENT" : typ : teamname : location : value : bs) = execute dbConn dbQueryAchievement
+        ( time
+        , typ
+        , fromMaybe "" (lookup teamname teams)
+        , (readInt_ value) :: Int
+        , fileName
+        , location
+        , (fromIntegral p) :: Int
+        ) : ps bs
+    ps (b:bs) = ps bs
+    drawParams t = (snd t, 0 :: Int)
+    placeParams winners t = (snd t, if (fst t) `elem` winners then 1 else 2 :: Int)
+    places :: [(B.ByteString, Int)] -> IO Int64
+    places params = do
+        res <- query_ dbConn dbQueryGameId
+        let gameId = case res of
+                [Only a] -> a
+                _ -> 0
+        mapM_ (execute dbConn dbQueryGamesHistoryPlaces . midInsert gameId) params
+        return 0
+    midInsert :: Int -> (a, b) -> (a, Int, b)
+    midInsert g (a, b) = (a, g, b)
 
 dbConnectionLoop mySQLConnectionInfo =
-    Control.Exception.handle (\(e :: IOException) -> hPutStrLn stderr $ show e) $ handleSqlError $
+    Control.Exception.handle (\(e :: SomeException) -> hPutStrLn stderr $ show e) $
         bracket
-            (connectMySQL mySQLConnectionInfo)
-            disconnect
+            (connect mySQLConnectionInfo)
+            close
             dbInteractionLoop
 
 
@@ -64,6 +159,11 @@ main = do
         dbLogin <- getLine
         dbPassword <- getLine
 
-        let mySQLConnectInfo = defaultMySQLConnectInfo {mysqlHost = dbHost, mysqlDatabase = dbName, mysqlUser = dbLogin, mysqlPassword = dbPassword}
+        let mySQLConnectInfo = defaultConnectInfo {
+            connectHost = dbHost
+            , connectDatabase = dbName
+            , connectUser = dbLogin
+            , connectPassword = dbPassword
+            }
 
         dbConnectionLoop mySQLConnectInfo

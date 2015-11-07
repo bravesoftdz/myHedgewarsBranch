@@ -1,17 +1,17 @@
 #include <QStandardItemModel>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QColor>
 
 #include "colorwidget.h"
 #include "hwconsts.h"
 
 ColorWidget::ColorWidget(QStandardItemModel *colorsModel, QWidget *parent) :
-    QWidget(parent)
+    QFrame(parent)
 {
     m_colorsModel = colorsModel;
 
     setColor(0);
-    setStyleSheet("");
     setAutoFillBackground(true);
 
     connect(m_colorsModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(dataChanged(QModelIndex,QModelIndex)));
@@ -30,9 +30,12 @@ void ColorWidget::setColor(int color)
 
     QStandardItem * item = m_colorsModel->item(m_color);
 
+    setStyleSheet(QString("border: 2px solid orange; border-radius: 8px; background: %1").arg(item->data().value<QColor>().name()));
+    /*
     QPalette p = palette();
     p.setColor(QPalette::Window, item->data().value<QColor>());
     setPalette(p);
+    */
 
     emit colorChanged(m_color);
 }
@@ -53,10 +56,10 @@ void ColorWidget::mousePressEvent(QMouseEvent * event)
     switch(event->button())
     {
         case Qt::LeftButton:
-            setColor((m_color + 1) % m_colorsModel->rowCount());
+            nextColor();
             break;
         case Qt::RightButton:
-            setColor((m_color + m_colorsModel->rowCount() - 1) % m_colorsModel->rowCount());
+            previousColor();
             break;
         default:;
     }
@@ -65,7 +68,17 @@ void ColorWidget::mousePressEvent(QMouseEvent * event)
 void ColorWidget::wheelEvent(QWheelEvent *event)
 {
     if(event->delta() > 0)
-        setColor((m_color + 1) % m_colorsModel->rowCount());
+        previousColor();
     else
-        setColor((m_color + m_colorsModel->rowCount() - 1) % m_colorsModel->rowCount());
+        nextColor();
+}
+
+void ColorWidget::nextColor()
+{
+    setColor((m_color + 1) % m_colorsModel->rowCount());
+}
+
+void ColorWidget::previousColor()
+{
+    setColor((m_color + m_colorsModel->rowCount() - 1) % m_colorsModel->rowCount());
 }

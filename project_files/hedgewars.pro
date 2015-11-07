@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = hedgewars
 DEPENDPATH += ../QTfrontend/
-INCLUDEPATH += ../QTfrontend/
+INCLUDEPATH += ../QTfrontend
 INCLUDEPATH += ../QTfrontend/model
 INCLUDEPATH += ../QTfrontend/ui
 INCLUDEPATH += ../QTfrontend/ui/widget
@@ -9,15 +9,12 @@ INCLUDEPATH += ../QTfrontend/ui/page
 INCLUDEPATH += ../QTfrontend/ui/dialog
 INCLUDEPATH += ../QTfrontend/net
 INCLUDEPATH += ../QTfrontend/util
-INCLUDEPATH += /usr/local/include/SDL
-INCLUDEPATH += /usr/include/SDL
-INCLUDEPATH += ../misc/quazip/
+INCLUDEPATH += ../QTfrontend/util/platform
+INCLUDEPATH += ../misc/libphysfs
+INCLUDEPATH += ../misc/libphyslayer
+INCLUDEPATH += /usr/local/include/lua52/
 
-DESTDIR = .
-
-win32 {
-    RC_FILE = ../QTfrontend/hedgewars.rc
-}
+DESTDIR = ../bin
 
 QT += network
 QT += webkit
@@ -31,7 +28,6 @@ HEADERS += ../QTfrontend/model/ThemeModel.h \
     ../QTfrontend/ui/page/pagetraining.h \
     ../QTfrontend/ui/page/pageselectweapon.h \
     ../QTfrontend/ui/page/pagesingleplayer.h \
-    ../QTfrontend/ui/page/pagenettype.h \
     ../QTfrontend/ui/page/pageingame.h \
     ../QTfrontend/ui/page/pageadmin.h \
     ../QTfrontend/ui/page/pagescheme.h \
@@ -49,7 +45,6 @@ HEADERS += ../QTfrontend/model/ThemeModel.h \
     ../QTfrontend/ui/page/pagenetserver.h \
     ../QTfrontend/ui/page/pagegamestats.h \
     ../QTfrontend/ui/dialog/input_ip.h \
-    ../QTfrontend/ui/qaspectratiolayout.h \
     ../QTfrontend/ui/widget/bgwidget.h \
     ../QTfrontend/ui/widget/fpsedit.h \
     ../QTfrontend/ui/widget/FreqSpinBox.h \
@@ -93,30 +88,47 @@ HEADERS += ../QTfrontend/model/ThemeModel.h \
     ../QTfrontend/achievements.h \
     ../QTfrontend/binds.h \
     ../QTfrontend/ui_hwform.h \
-    ../QTfrontend/KB.h \
     ../QTfrontend/hwconsts.h \
     ../QTfrontend/sdlkeys.h \
     ../QTfrontend/ui/mouseoverfilter.h \
-    ../QTfrontend/ui/qpushbuttonwithsound.h \
     ../QTfrontend/ui/widget/qpushbuttonwithsound.h \
-    ../QTfrontend/ui/page/pagefeedback.h \
     ../QTfrontend/model/roomslistmodel.h \
     ../QTfrontend/ui/dialog/input_password.h \
     ../QTfrontend/ui/widget/colorwidget.h \
     ../QTfrontend/model/HatModel.h \
-    ../QTfrontend/model/GameStyleModel.h
+    ../QTfrontend/model/GameStyleModel.h \
+    ../QTfrontend/ui/page/pagevideos.h \
+    ../QTfrontend/net/recorder.h \
+    ../QTfrontend/ui/dialog/ask_quit.h \
+    ../QTfrontend/ui/dialog/upload_video.h \
+    ../QTfrontend/campaign.h \
+    ../QTfrontend/model/playerslistmodel.h \
+    ../QTfrontend/util/LibavInteraction.h \
+    ../QTfrontend/util/FileEngine.h \
+    ../QTfrontend/ui/dialog/bandialog.h \
+    ../QTfrontend/ui/widget/keybinder.h \
+    ../QTfrontend/ui/widget/seedprompt.h \
+    ../QTfrontend/ui/widget/themeprompt.h \
+    ../QTfrontend/ui/widget/hatbutton.h \
+    ../QTfrontend/util/MessageDialog.h \
+    ../QTfrontend/ui/widget/hatprompt.h \
+    ../QTfrontend/ui/widget/feedbackdialog.h \
+    ../QTfrontend/ui/widget/lineeditcursor.h \
+    ../QTfrontend/servermessages.h \
+    ../QTfrontend/ui/widget/roomnameprompt.h \
+    ../QTfrontend/weapons.h \
+    ../QTfrontend/net/hwmapoptimizer.h
+
 
 SOURCES += ../QTfrontend/model/ammoSchemeModel.cpp \
     ../QTfrontend/model/MapModel.cpp \
     ../QTfrontend/model/ThemeModel.cpp \
     ../QTfrontend/model/netserverslist.cpp \
-    ../QTfrontend/ui/qaspectratiolayout.cpp \
     ../QTfrontend/ui/page/pagemain.cpp \
     ../QTfrontend/ui/page/pagetraining.cpp \
     ../QTfrontend/ui/page/pageroomslist.cpp \
     ../QTfrontend/ui/page/pagemultiplayer.cpp \
     ../QTfrontend/ui/page/pagegamestats.cpp \
-    ../QTfrontend/ui/page/pagenettype.cpp \
     ../QTfrontend/ui/page/pageeditteam.cpp \
     ../QTfrontend/ui/page/pagenetgame.cpp \
     ../QTfrontend/ui/page/pagedata.cpp \
@@ -181,59 +193,75 @@ SOURCES += ../QTfrontend/model/ammoSchemeModel.cpp \
     ../QTfrontend/hwconsts.cpp \
     ../QTfrontend/ui/mouseoverfilter.cpp \
     ../QTfrontend/ui/widget/qpushbuttonwithsound.cpp \
-    ../QTfrontend/ui/page/pagefeedback.cpp \
     ../QTfrontend/model/roomslistmodel.cpp \
     ../QTfrontend/ui/dialog/input_password.cpp \
     ../QTfrontend/ui/widget/colorwidget.cpp \
+    ../QTfrontend/ui/widget/hatbutton.cpp \
+    ../QTfrontend/ui/widget/hatprompt.cpp \
     ../QTfrontend/model/HatModel.cpp \
-    ../QTfrontend/model/GameStyleModel.cpp
+    ../QTfrontend/model/GameStyleModel.cpp \
+    ../QTfrontend/ui/page/pagevideos.cpp \
+    ../QTfrontend/net/recorder.cpp \
+    ../QTfrontend/ui/dialog/ask_quit.cpp \
+    ../QTfrontend/ui/dialog/upload_video.cpp \
+    ../QTfrontend/campaign.cpp \
+    ../QTfrontend/model/playerslistmodel.cpp \
+    ../QTfrontend/util/LibavInteraction.cpp \
+    ../QTfrontend/util/FileEngine.cpp \
+    ../QTfrontend/ui/dialog/bandialog.cpp \
+    ../QTfrontend/ui/widget/keybinder.cpp \
+    ../QTfrontend/ui/widget/seedprompt.cpp \
+    ../QTfrontend/ui/widget/themeprompt.cpp \
+    ../QTfrontend/util/MessageDialog.cpp \
+    ../QTfrontend/ui/widget/feedbackdialog.cpp \
+    ../QTfrontend/ui/widget/lineeditcursor.cpp \
+    ../QTfrontend/ui/widget/roomnameprompt.cpp \
+    ../QTfrontend/net/hwmapoptimizer.cpp
 
-win32 {
-    SOURCES += ../QTfrontend/xfire.cpp
-}
 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_ar.ts 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_bg.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_cs.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_de.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_en.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_es.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_fi.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_fr.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_hu.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_it.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_ja.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_ko.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_lt.ts
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_nl.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_pl.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_pt_BR.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_pt_PT.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_ru.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_sk.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_sv.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_tr_TR.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_uk.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_zh_CN.ts 	 
-TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_zh_TW.ts
+TRANSLATIONS += ../share/hedgewars/Data/Locale/hedgewars_ar.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_bg.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_cs.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_da.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_de.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_el.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_en.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_es.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_fi.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_fr.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_gl.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_hu.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_it.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_ja.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_ko.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_lt.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_ms.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_nl.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_pl.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_pt_BR.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_pt_PT.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_ro.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_ru.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_sk.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_sv.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_tr_TR.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_uk.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_zh_CN.ts \
+    ../share/hedgewars/Data/Locale/hedgewars_zh_TW.ts
 
 RESOURCES += ../QTfrontend/hedgewars.qrc
 
-LIBS += -L../misc/quazip -lquazip
+LIBS += -L../bin -lphysfs -lphyslayer
 
-!macx {
-    LIBS += -lSDL -lSDL_mixer
-} else {
+macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.6
-    QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.6.sdk
+    QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.6.sdk
 
-    OBJECTIVE_SOURCES += ../QTfrontend/*.m ../QTfrontend/*.mm
-    SOURCES += ../QTfrontend/AutoUpdater.cpp ../QTfrontend/InstallController.cpp \
+    OBJECTIVE_SOURCES += ../QTfrontend/util/platform/*.m ../QTfrontend/util/platform/*.mm
+    SOURCES += ../QTfrontend/util/platform/AutoUpdater.cpp \
+               ../QTfrontend/util/platform/InstallController.cpp \
                ../../build/QTfrontend/hwconsts.cpp
-    HEADERS += ../QTfrontend/M3InstallController.h ../QTfrontend/M3Panel.h \
-               ../QTfrontend/NSWorkspace_RBAdditions.h ../QTfrontend/AutoUpdater.h \
-               ../QTfrontend/CocoaInitializer.h ../QTfrontend/InstallController.h \
-               ../QTfrontend/SparkleAutoUpdater.h
+    HEADERS += ../QTfrontend/util/platform/*.h
 
     LIBS += -lobjc -framework AppKit -framework IOKit -framework Foundation -framework SDL -framework SDL_Mixer -framework Sparkle -DSPARKLE_ENABLED
     INCLUDEPATH += /Library/Frameworks/SDL.framework/Headers /Library/Frameworks/SDL_Mixer.framework/Headers
@@ -241,4 +269,16 @@ LIBS += -L../misc/quazip -lquazip
     #CONFIG += x86 ppc x86_64 ppc64
 }
 
-FORMS +=
+win32 {
+    RC_FILE = ../QTfrontend/hedgewars.rc
+    SOURCES += ../QTfrontend/util/platform/xfire.cpp ../QTfrontend/util/platform/xfiregameclient.cpp
+    LIBS += -L../misc/winutils/lib
+    INCLUDEPATH += ../misc/winutils/include
+}
+
+!macx {
+    LIBS += -lSDL -lSDL_mixer -lSDL_net
+    !win32 {
+        INCLUDEPATH += /usr/local/include/SDL /usr/include/SDL
+    }
+}

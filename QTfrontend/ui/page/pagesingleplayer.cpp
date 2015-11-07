@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QGridLayout>
@@ -36,22 +36,18 @@ QLayout * PageSinglePlayer::bodyLayoutDefinition()
 
     topLine->addStretch();
     BtnSimpleGamePage = addButton(":/res/SimpleGame.png", topLine, 0, true);
-    BtnSimpleGamePage->setToolTip(tr("Simple Game"));
     BtnSimpleGamePage->setWhatsThis(tr("Play a quick game against the computer with random settings"));
     topLine->addSpacing(60);
     BtnMultiplayer = addButton(":/res/Multiplayer.png", topLine, 1, true);
-    BtnMultiplayer->setToolTip(tr("Multiplayer"));
     BtnMultiplayer->setWhatsThis(tr("Play a hotseat game against your friends, or AI teams"));
     topLine->addStretch();
 
 
     BtnCampaignPage = addButton(":/res/Campaign.png", middleLine, 0, true);
-    BtnCampaignPage->setToolTip(tr("Campaign Mode"));
     BtnCampaignPage->setWhatsThis(tr("Campaign Mode"));
-    BtnCampaignPage->setVisible(false);
+    BtnCampaignPage->setVisible(true);
 
     BtnTrainPage = addButton(":/res/Trainings.png", middleLine, 1, true);
-    BtnTrainPage->setToolTip(tr("Training Mode"));
     BtnTrainPage->setWhatsThis(tr("Practice your skills in a range of training missions"));
 
     return vLayout;
@@ -63,11 +59,9 @@ QLayout * PageSinglePlayer::footerLayoutDefinition()
     bottomLine->addStretch();
 
     BtnDemos = addButton(":/res/Record.png", bottomLine, 1, true);
-    BtnDemos->setToolTip(tr("Demos"));
     BtnDemos->setWhatsThis(tr("Watch recorded demos"));
     BtnLoad = addButton(":/res/Load.png", bottomLine, 2, true);
     BtnLoad->setStyleSheet("QPushButton{margin: 24px 0 0 0;}");
-    BtnLoad->setToolTip(tr("Load"));
     BtnLoad->setWhatsThis(tr("Load a previously saved game"));
 
     bottomLine->setStretch(1,0);

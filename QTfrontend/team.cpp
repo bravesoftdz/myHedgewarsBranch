@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QFile>
@@ -23,10 +23,12 @@
 #include <QCryptographicHash>
 #include <QSettings>
 #include <QStandardItemModel>
+#include <QDebug>
 
 #include "team.h"
 #include "hwform.h"
 #include "DataManager.h"
+#include "gameuiconfig.h"
 
 HWTeam::HWTeam(const QString & teamname) :
     QObject(0)
@@ -50,7 +52,7 @@ HWTeam::HWTeam(const QString & teamname) :
     {
         m_binds.append(BindAction());
         m_binds[i].action = cbinds[i].action;
-        m_binds[i].strbind = cbinds[i].strbind;
+        m_binds[i].strbind = QString();
     }
     m_rounds = 0;
     m_wins = 0;
@@ -110,7 +112,7 @@ HWTeam::HWTeam() :
     {
         m_binds.append(BindAction());
         m_binds[i].action = cbinds[i].action;
-        m_binds[i].strbind = cbinds[i].strbind;
+        m_binds[i].strbind = QString();
     }
     m_rounds = 0;
     m_wins = 0;
@@ -169,7 +171,7 @@ HWTeam & HWTeam::operator = (const HWTeam & other)
 
 bool HWTeam::loadFromFile()
 {
-    QSettings teamfile(cfgdir->absolutePath() + "/Teams/" + m_name + ".hwt", QSettings::IniFormat, 0);
+    QSettings teamfile(QString("physfs://Teams/%1.hwt").arg(DataManager::safeFileName(m_name)), QSettings::IniFormat, 0);
     teamfile.setIniCodec("UTF-8");
     m_name = teamfile.value("Team/Name", m_name).toString();
     m_grave = teamfile.value("Team/Grave", "Statue").toString();
@@ -191,7 +193,7 @@ bool HWTeam::loadFromFile()
         m_hedgehogs[i].Suicides = teamfile.value(hh + "Suicides", 0).toInt();
     }
     for(int i = 0; i < BINDS_NUMBER; i++)
-        m_binds[i].strbind = teamfile.value(QString("Binds/%1").arg(m_binds[i].action), cbinds[i].strbind).toString();
+        m_binds[i].strbind = teamfile.value(QString("Binds/%1").arg(m_binds[i].action), QString()).toString();
     for(int i = 0; i < MAX_ACHIEVEMENTS; i++)
         if(achievements[i][0][0])
             AchievementProgress[i] = teamfile.value(QString("Achievements/%1").arg(achievements[i][0]), 0).toUInt();
@@ -202,7 +204,7 @@ bool HWTeam::loadFromFile()
 
 bool HWTeam::fileExists()
 {
-    QFile f(cfgdir->absolutePath() + "/Teams/" + m_name + ".hwt");
+    QFile f(QString("physfs://Teams/%1.hwt").arg(DataManager::safeFileName(m_name)));
     return f.exists();
 }
 
@@ -210,7 +212,7 @@ bool HWTeam::deleteFile()
 {
     if(m_isNetTeam)
         return false;
-    QFile cfgfile(cfgdir->absolutePath() + "/Teams/" + m_name + ".hwt");
+    QFile cfgfile(QString("physfs://Teams/%1.hwt").arg(DataManager::safeFileName(m_name)));
     cfgfile.remove();
     return true;
 }
@@ -219,11 +221,14 @@ bool HWTeam::saveToFile()
 {
     if (OldTeamName != m_name)
     {
-        QFile cfgfile(cfgdir->absolutePath() + "/Teams/" + OldTeamName + ".hwt");
+        QFile cfgfile(QString("physfs://Teams/%1.hwt").arg(DataManager::safeFileName(OldTeamName)));
         cfgfile.remove();
         OldTeamName = m_name;
     }
-    QSettings teamfile(cfgdir->absolutePath() + "/Teams/" + m_name + ".hwt", QSettings::IniFormat, 0);
+
+    QString fileName = QString("physfs://Teams/%1.hwt").arg(DataManager::safeFileName(m_name));
+    DataManager::ensureFileExists(fileName);
+    QSettings teamfile(fileName, QSettings::IniFormat, 0);
     teamfile.setIniCodec("UTF-8");
     teamfile.setValue("Team/Name", m_name);
     teamfile.setValue("Team/Grave", m_grave);
@@ -234,6 +239,7 @@ bool HWTeam::saveToFile()
     teamfile.setValue("Team/Rounds", m_rounds);
     teamfile.setValue("Team/Wins", m_wins);
     teamfile.setValue("Team/CampaignProgress", m_campaignProgress);
+
     for(int i = 0; i < HEDGEHOGS_PER_TEAM; i++)
     {
         QString hh = QString("Hedgehog%1/").arg(i);
@@ -251,6 +257,7 @@ bool HWTeam::saveToFile()
             teamfile.setValue(QString("Achievements/%1").arg(achievements[i][0]), AchievementProgress[i]);
         else
             break;
+
     return true;
 }
 
@@ -269,10 +276,8 @@ QStringList HWTeam::teamGameConfig(quint32 InitHealth) const
     sl.push_back(QString("evoicepack " + m_voicepack));
     sl.push_back(QString("eflag " + m_flag));
 
-    if (!m_isNetTeam)
-        for(int i = 0; i < BINDS_NUMBER; i++)
-            if(!m_binds[i].strbind.isEmpty())
-                sl.push_back(QString("ebind " + m_binds[i].strbind + " " + m_binds[i].action));
+    if(!m_owner.isEmpty())
+        sl.push_back(QString("eowner ") + m_owner);
 
     for (int t = 0; t < m_numHedgehogs; t++)
     {
@@ -284,6 +289,12 @@ QStringList HWTeam::teamGameConfig(quint32 InitHealth) const
                      .arg(m_hedgehogs[t].Hat));
     }
     return sl;
+}
+
+
+void HWTeam::setNetTeam(bool isNetTeam)
+{
+    m_isNetTeam = isNetTeam;
 }
 
 bool HWTeam::isNetTeam() const
@@ -439,3 +450,4 @@ void HWTeam::incWins()
 {
     m_wins++;
 }
+

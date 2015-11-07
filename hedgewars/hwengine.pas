@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,13 +13,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
 
 {$IFDEF WIN32}
-{$R hwengine.rc}
+{$R res/hwengine.rc}
 {$ENDIF}
 
 {$IFDEF HWLIBRARY}
@@ -29,26 +29,33 @@ interface
 program hwengine;
 {$ENDIF}
 
-uses SDLh, uMisc, uConsole, uGame, uConsts, uLand, uAmmos, uVisualGears, uGears, uStore, uWorld, uInputHandler, uSound,
-     uScript, uTeams, uStats, uIO, uLocale, uChat, uAI, uAIMisc, uRandom, uLandTexture, uCollisions,
-     SysUtils, uTypes, uVariables, uCommands, uUtils, uCaptions, uDebug, uCommandHandlers, uLandPainted, uTextures
-     {$IFDEF SDL13}, uTouch{$ENDIF}{$IFDEF ANDROID}, GLUnit{$ENDIF};
+uses {$IFDEF IPHONEOS}cmem, {$ENDIF} SDLh, uMisc, uConsole, uGame, uConsts, uLand, uAmmos, uVisualGears, uGears, uStore, uWorld, uInputHandler
+     , uSound, uScript, uTeams, uStats, uIO, uLocale, uChat, uAI, uAIMisc, uAILandMarks, uLandTexture, uCollisions
+     , SysUtils, uTypes, uVariables, uCommands, uUtils, uCaptions, uDebug, uCommandHandlers, uLandPainted
+     , uPhysFSLayer, uCursor, uRandom, ArgParsers, uVisualGearsHandlers, uTextures, uRender
+     {$IFDEF USE_VIDEO_RECORDING}, uVideoRec {$ENDIF}
+     {$IFDEF USE_TOUCH_INTERFACE}, uTouch {$ENDIF}
+     {$IFDEF ANDROID}, GLUnit{$ENDIF}
+     ;
 
 {$IFDEF HWLIBRARY}
+procedure RunEngine(argc: LongInt; argv: PPChar); cdecl; export;
+
+procedure preInitEverything();
 procedure initEverything(complete:boolean);
 procedure freeEverything(complete:boolean);
-procedure Game(gameArgs: PPChar); cdecl; export;
-procedure GenLandPreview(port: Longint); cdecl; export;
 
 implementation
 {$ELSE}
+procedure preInitEverything(); forward;
 procedure initEverything(complete:boolean); forward;
 procedure freeEverything(complete:boolean); forward;
 {$ENDIF}
 
-////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 function DoTimer(Lag: LongInt): boolean;
 var s: shortstring;
+    t: LongWord;
 begin
     DoTimer:= false;
     inc(RealTicks, Lag);
@@ -57,15 +64,22 @@ begin
         gsLandGen:
             begin
             GenMap;
+            SetLandTexture;
+            UpdateLandTexture(0, LAND_WIDTH, 0, LAND_HEIGHT, false);
+            setAILandMarks;
             ParseCommand('sendlanddigest', true);
             GameState:= gsStart;
             end;
         gsStart:
             begin
+            SetDefaultBinds;
             if HasBorder then
                 DisableSomeWeapons;
-            AddClouds;
+            // wave "clouds" on underwater theme look weird w/ weSea, esp the blended bottom portion
+            if (WorldEdge <> weSea) or (Theme <> 'Underwater') then
+                AddClouds;
             AddFlakes;
+            SetRandomSeed(cSeed, false);
             AssignHHCoords;
             AddMiscGears;
             StoreLoad(false);
@@ -75,21 +89,21 @@ begin
                 SetSound(false);
             FinishProgress;
             PlayMusic;
-            SetScale(zoom);
+            InitZoom(zoom);
             ScriptCall('onGameStart');
+            for t:= 0 to Pred(TeamsCount) do
+                with TeamsArray[t]^ do
+                    MaxTeamHealth:= TeamHealth;
+            RecountAllTeamsHealth;
             GameState:= gsGame;
             end;
-        gsConfirm, gsGame:
+        gsConfirm, gsGame, gsChat:
             begin
-            DrawWorld(Lag); // never place between ProcessKbd and DoGameTick - bugs due to /put cmd and isCursorVisible
+            if not cOnlyStats then
+                // never place between ProcessKbd and DoGameTick - bugs due to /put cmd and isCursorVisible
+                DrawWorld(Lag);
             DoGameTick(Lag);
-            ProcessVisualGears(Lag);
-            end;
-        gsChat:
-            begin
-            DrawWorld(Lag);
-            DoGameTick(Lag);
-            ProcessVisualGears(Lag);
+            if not cOnlyStats then ProcessVisualGears(Lag);
             end;
         gsExit:
             begin
@@ -99,20 +113,33 @@ begin
             exit(false);
             end;
 
-    SwapBuffers;
+    if not cOnlyStats then SwapBuffers;
+
+{$IFDEF USE_VIDEO_RECORDING}
+    if flagPrerecording then
+        SaveCameraPosition;
+{$ENDIF}
 
     if flagMakeCapture then
         begin
         flagMakeCapture:= false;
+        if flagDumpLand then
+             s:= '/Screenshots/mapdump_'
+        else s:= '/Screenshots/hw_';
         {$IFDEF PAS2C}
-        s:= 'hw';
+        s:= s + inttostr(GameTicks);
         {$ELSE}
-        s:= 'hw_' + FormatDateTime('YYYY-MM-DD_HH-mm-ss', Now()) + inttostr(GameTicks);
+        s:= s + FormatDateTime('YYYY-MM-DD_HH-mm-ss', Now()) + inttostr(GameTicks);
         {$ENDIF}
 
+        // flash
         playSound(sndShutter);
+        ScreenFade:= sfFromWhite;
+        ScreenFadeValue:= sfMax;
+        ScreenFadeSpeed:= 5;
         
-        if MakeScreenshot(s) then
+        if (not flagDumpLand and MakeScreenshot(s, 1, 0)) or
+           (flagDumpLand and MakeScreenshot(s, 1, 1) and ((cReducedQuality and rqBlurryLand <> 0) or MakeScreenshot(s, 1, 2))) then
             WriteLnToConsole('Screenshot saved: ' + s)
         else
             begin
@@ -122,12 +149,12 @@ begin
         end;
 end;
 
-///////////////////
+///////////////////////////////////////////////////////////////////////////////
 procedure MainLoop;
 var event: TSDL_Event;
-    PrevTime, CurrTime: Longword;
+    PrevTime, CurrTime: LongWord;
     isTerminated: boolean;
-{$IFDEF SDL13}
+{$IFDEF SDL2}
     previousGameState: TGameState;
 {$ELSE}
     prevFocusState: boolean;
@@ -138,21 +165,23 @@ begin
     while isTerminated = false do
     begin
         SDL_PumpEvents();
- 
-        while SDL_PeepEvents(@event, 1, SDL_GETEVENT, {$IFDEF SDL13}SDL_FIRSTEVENT, SDL_LASTEVENT{$ELSE}SDL_ALLEVENTS{$ENDIF}) > 0 do
+
+        while SDL_PeepEvents(@event, 1, SDL_GETEVENT, {$IFDEF SDL2}SDL_FIRSTEVENT, SDL_LASTEVENT{$ELSE}SDL_ALLEVENTS{$ENDIF}) > 0 do
         begin
             case event.type_ of
-{$IFDEF SDL13}
+{$IFDEF SDL2}
                 SDL_KEYDOWN:
                     if GameState = gsChat then
+                        begin
                     // sdl on iphone supports only ashii keyboards and the unicode field is deprecated in sdl 1.3
-                        KeyPressChat(SDL_GetKeyFromScancode(event.key.keysym.sym))//TODO correct for keymodifiers
+                        KeyPressChat(SDL_GetKeyFromScancode(event.key.keysym.sym), event.key.keysym.sym, event.key.keysym.modifier);
+                        end
                     else
-                        ProcessKey(event.key);
+                        if GameState >= gsGame then ProcessKey(event.key);
                 SDL_KEYUP:
-                    if GameState <> gsChat then
+                    if (GameState <> gsChat) and (GameState >= gsGame) then
                         ProcessKey(event.key);
-                    
+
                 SDL_WINDOWEVENT:
                     if event.window.event = SDL_WINDOWEVENT_SHOWN then
                     begin
@@ -178,31 +207,35 @@ begin
                         cNewScreenHeight:= max(2 * (event.window.data2 div 2), cMinScreenHeight);
                         cScreenResizeDelay:= RealTicks + 500{$IFDEF IPHONEOS}div 2{$ENDIF};
                     end;
-                        
+{$IFDEF USE_TOUCH_INTERFACE}
                 SDL_FINGERMOTION:
-                    onTouchMotion(event.tfinger.x, event.tfinger.y,event.tfinger.dx, event.tfinger.dy, event.tfinger.fingerId);
-                
+                    onTouchMotion(event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy, event.tfinger.fingerId);
+
                 SDL_FINGERDOWN:
                     onTouchDown(event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
-                
+
                 SDL_FINGERUP:
                     onTouchUp(event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
+{$ENDIF}
 {$ELSE}
                 SDL_KEYDOWN:
                     if GameState = gsChat then
-                        KeyPressChat(event.key.keysym.unicode)
+                        KeyPressChat(event.key.keysym.unicode, event.key.keysym.sym, event.key.keysym.modifier)
                     else
-                        ProcessKey(event.key);
+                        if GameState >= gsGame then ProcessKey(event.key);
                 SDL_KEYUP:
-                    if GameState <> gsChat then
+                    if (GameState <> gsChat) and (GameState >= gsGame) then
                         ProcessKey(event.key);
-                    
+
                 SDL_MOUSEBUTTONDOWN:
-                    ProcessMouse(event.button, true);
-                    
+                    if GameState = gsConfirm then
+                        ParseCommand('quit', true)
+                    else
+                        if (GameState >= gsGame) then ProcessMouse(event.button, true);
+
                 SDL_MOUSEBUTTONUP:
-                    ProcessMouse(event.button, false); 
-                    
+                    if (GameState >= gsGame) then ProcessMouse(event.button, false);
+
                 SDL_ACTIVEEVENT:
                     if (event.active.state and SDL_APPINPUTFOCUS) <> 0 then
                     begin
@@ -211,7 +244,7 @@ begin
                         if prevFocusState xor cHasFocus then
                             onFocusStateChanged()
                     end;
-                        
+
                 SDL_VIDEORESIZE:
                 begin
                     // using lower values than cMinScreenWidth or cMinScreenHeight causes widget overlap and off-screen widget parts
@@ -236,131 +269,150 @@ begin
             end; //end case event.type_ of
         end; //end while SDL_PollEvent(@event) <> 0 do
 
+        if (CursorMovementX <> 0) or (CursorMovementY <> 0) then
+            handlePositionUpdate(CursorMovementX * cameraKeyboardSpeed, CursorMovementY * cameraKeyboardSpeed);
+
         if (cScreenResizeDelay <> 0) and (cScreenResizeDelay < RealTicks) and
            ((cNewScreenWidth <> cScreenWidth) or (cNewScreenHeight <> cScreenHeight)) then
         begin
             cScreenResizeDelay:= 0;
-            cScreenWidth:= cNewScreenWidth;
-            cScreenHeight:= cNewScreenHeight;
+            cWindowedWidth:= cNewScreenWidth;
+            cWindowedHeight:= cNewScreenHeight;
+            cScreenWidth:= cWindowedWidth;
+            cScreenHeight:= cWindowedHeight;
 
             ParseCommand('fullscr '+intToStr(LongInt(cFullScreen)), true);
             WriteLnToConsole('window resize: ' + IntToStr(cScreenWidth) + ' x ' + IntToStr(cScreenHeight));
             ScriptOnScreenResize();
             InitCameraBorders();
             InitTouchInterface();
+            InitZoom(zoomValue);
+            SendIPC('W' + IntToStr(cScreenWidth) + 'x' + IntToStr(cScreenHeight));
         end;
 
         CurrTime:= SDL_GetTicks();
         if PrevTime + longword(cTimerInterval) <= CurrTime then
         begin
-            isTerminated:= DoTimer(CurrTime - PrevTime);
-            PrevTime:= CurrTime
+            isTerminated:= isTerminated or DoTimer(CurrTime - PrevTime);
+            PrevTime:= CurrTime;
         end
         else SDL_Delay(1);
         IPCCheckSock();
+
     end;
 end;
 
-///////////////
-procedure Game{$IFDEF HWLIBRARY}(gameArgs: PPChar); cdecl; export{$ENDIF};
-var p: TPathType;
-    s: shortstring;
+{$IFDEF USE_VIDEO_RECORDING}
+procedure RecorderMainLoop;
+var oldGameTicks, oldRealTicks, newGameTicks, newRealTicks: LongInt;
+begin
+    if not BeginVideoRecording() then
+        exit;
+    DoTimer(0); // gsLandGen -> gsStart
+    DoTimer(0); // gsStart -> gsGame
+
+    if not LoadNextCameraPosition(newRealTicks, newGameTicks) then
+        exit;
+    fastScrolling:= true;
+    DoGameTick(newGameTicks);
+    fastScrolling:= false;
+    oldRealTicks:= 0;
+    oldGameTicks:= newGameTicks;
+
+    while LoadNextCameraPosition(newRealTicks, newGameTicks) do
+    begin
+        IPCCheckSock();
+        DoGameTick(newGameTicks - oldGameTicks);
+        if GameState = gsExit then
+            break;
+        ProcessVisualGears(newRealTicks - oldRealTicks);
+        DrawWorld(newRealTicks - oldRealTicks);
+        EncodeFrame();
+        oldRealTicks:= newRealTicks;
+        oldGameTicks:= newGameTicks;
+    end;
+    StopVideoRecording();
+end;
+{$ENDIF}
+
+///////////////////////////////////////////////////////////////////////////////
+procedure Game;
+//var p: TPathType;
+var s: shortstring;
     i: LongInt;
 begin
-{$IFDEF HWLIBRARY}
-    cBits:= 32;
-    cTimerInterval:= 8;
-    cShowFPS:= {$IFDEF DEBUGFILE}true{$ELSE}false{$ENDIF};
-    ipcPort:= StrToInt(gameArgs[0]);
-    cScreenWidth:= StrToInt(gameArgs[1]);
-    cScreenHeight:= StrToInt(gameArgs[2]);
-    cReducedQuality:= StrToInt(gameArgs[3]);
-    cLocaleFName:= gameArgs[4];
-    // cFullScreen functionality is platform dependent, ifdef it if you need to modify it
-    cFullScreen:= false;
-    
-    if (Length(cLocaleFName) > 6) then
-        cLocale := Copy(cLocaleFName,1,5)
-    else
-        cLocale := Copy(cLocaleFName,1,2);
-        
-    UserNick:= gameArgs[5];
-    SetSound(gameArgs[6] = '1');
-    SetMusic(gameArgs[7] = '1');
-    cAltDamage:= gameArgs[8] = '1';
-    PathPrefix:= gameArgs[9];
-    UserPathPrefix:= '../Documents';
-    recordFileName:= gameArgs[10];
-    cStereoMode:= smNone;
-{$ENDIF}
-    cMinScreenWidth:= min(cScreenWidth, cMinScreenWidth);
-    cMinScreenHeight:= min(cScreenHeight, cMinScreenHeight);
-    cOrigScreenWidth:= cScreenWidth;
-    cOrigScreenHeight:= cScreenHeight;
-
     initEverything(true);
-    WriteLnToConsole('Hedgewars ' + cVersionString + ' engine (network protocol: ' + inttostr(cNetProtoVersion) + ')');
-    AddFileLog('Prefix: "' + PathPrefix +'"');
-    AddFileLog('UserPrefix: "' + UserPathPrefix +'"');
-    
+    WriteLnToConsole('Hedgewars engine ' + cVersionString + '-r' + cRevisionString +
+                     ' (' + cHashString + ') with protocol #' + inttostr(cNetProtoVersion));
+    AddFileLog('Prefix: "' + shortstring(PathPrefix) +'"');
+    AddFileLog('UserPrefix: "' + shortstring(UserPathPrefix) +'"');
+
     for i:= 0 to ParamCount do
         AddFileLog(inttostr(i) + ': ' + ParamStr(i));
 
-    for p:= Succ(Low(TPathType)) to High(TPathType) do
-        if (p <> ptMapCurrent) and (p <> ptData) then
-            UserPathz[p]:= UserPathPrefix + '/Data/' + Pathz[p];
-
-    UserPathz[ptData]:= UserPathPrefix + '/Data';
-
-    for p:= Succ(Low(TPathType)) to High(TPathType) do
-        if p <> ptMapCurrent then
-            Pathz[p]:= PathPrefix + '/' + Pathz[p];
-
     WriteToConsole('Init SDL... ');
-    SDLTry(SDL_Init(SDL_INIT_VIDEO or SDL_INIT_NOPARACHUTE) >= 0, true);
+    if not cOnlyStats then SDLTry(SDL_Init(SDL_INIT_VIDEO or SDL_INIT_NOPARACHUTE) >= 0, true);
     WriteLnToConsole(msgOK);
 
+{$IFDEF SDL2}
+    SDL_StartTextInput();
+{$ELSE}
     SDL_EnableUNICODE(1);
+{$ENDIF}
     SDL_ShowCursor(0);
 
-    WriteToConsole('Init SDL_ttf... ');
-    SDLTry(TTF_Init() <> -1, true);
-    WriteLnToConsole(msgOK);
+    if not cOnlyStats then
+        begin
+        WriteToConsole('Init SDL_ttf... ');
+        SDLTry(TTF_Init() <> -1, true);
+        WriteLnToConsole(msgOK);
+        end;
 
-    // show main window
-    if cFullScreen then
-        ParseCommand('fullscr 1', true)
+{$IFDEF USE_VIDEO_RECORDING}
+    if GameType = gmtRecord then
+        InitOffscreenOpenGL()
     else
-        ParseCommand('fullscr 0', true);
+{$ENDIF}
+        begin
+        // show main window
+        if cFullScreen then
+            ParseCommand('fullscr 1', true)
+        else
+            ParseCommand('fullscr 0', true);
+        end;
 
     ControllerInit(); // has to happen before InitKbdKeyTable to map keys
     InitKbdKeyTable();
     AddProgress();
 
-    LoadLocale(UserPathz[ptLocale] + '/en.txt');  // Do an initial load with english
-    LoadLocale(Pathz[ptLocale] + '/en.txt');  // Do an initial load with english
+    LoadLocale(cPathz[ptLocale] + '/en.txt');  // Do an initial load with english
     if cLocaleFName <> 'en.txt' then
         begin
         // Try two letter locale first before trying specific locale overrides
-        if (Length(cLocale) > 2) and (Copy(cLocale,1,2) <> 'en') then
+        if (Length(cLocale) > 3) and (Copy(cLocale, 1, 2) <> 'en') then
             begin
-            LoadLocale(UserPathz[ptLocale] + '/' + Copy(cLocale,1,2)+'.txt');
-            LoadLocale(Pathz[ptLocale] + '/' + Copy(cLocale,1,2)+'.txt')
+            LoadLocale(cPathz[ptLocale] + '/' + Copy(cLocale, 1, 2) + '.txt')
             end;
-        LoadLocale(UserPathz[ptLocale] + '/' + cLocaleFName);
-        LoadLocale(Pathz[ptLocale] + '/' + cLocaleFName)
+        LoadLocale(cPathz[ptLocale] + '/' + cLocaleFName)
         end
     else cLocale := 'en';
 
     WriteLnToConsole(msgGettingConfig);
 
-    if recordFileName = '' then
+    if cTestLua then
         begin
-        InitIPC;
-        SendIPCAndWaitReply(_S'C');        // ask for game config
+        ParseCommand('script ' + cScriptName, true);
         end
     else
-        LoadRecordFromFile(recordFileName);
+        begin
+        if recordFileName = '' then
+            begin
+            InitIPC;
+            SendIPCAndWaitReply(_S'C');        // ask for game config
+            end
+        else
+            LoadRecordFromFile(recordFileName);
+        end;
 
     ScriptOnGameInit;
     s:= 'eproto ' + inttostr(cNetProtoVersion);
@@ -368,72 +420,92 @@ begin
 
     InitTeams();
     AssignStores();
+
+    if GameType = gmtRecord then
+        SetSound(false);
+
     InitSound();
 
     isDeveloperMode:= false;
     TryDo(InitStepsFlags = cifAllInited, 'Some parameters not set (flags = ' + inttostr(InitStepsFlags) + ')', true);
-    ParseCommand('rotmask', true);
-    MainLoop();
+    //ParseCommand('rotmask', true);
 
+{$IFDEF USE_VIDEO_RECORDING}
+    if GameType = gmtRecord then
+    begin
+        RecorderMainLoop();
+        freeEverything(true);
+        exit;
+    end;
+{$ENDIF}
+
+    MainLoop;
     // clean up all the memory allocated
     freeEverything(true);
 end;
 
-procedure initEverything (complete:boolean);
+///////////////////////////////////////////////////////////////////////////////
+// preInitEverything - init variables that are going to be ovewritten by arguments
+// initEverything - init variables only. Should be coupled by below
+// freeEverything - free above. Pay attention to the init/free order!
+procedure preInitEverything;
 begin
     Randomize();
 
-    uUtils.initModule(complete);      // this opens the debug file, must be the first
-    uMisc.initModule;
-    uVariables.initModule;
-    uConsole.initModule;
-    uCommands.initModule;
-    uCommandHandlers.initModule;
+    uVariables.preInitModule;
+    uSound.preInitModule;
+end;
 
-    uLand.initModule;
-    uLandPainted.initModule;
-    uIO.initModule;
+procedure initEverything (complete:boolean);
+begin
+    uUtils.initModule(complete);    // opens the debug file, must be the first
+    uVariables.initModule;          // inits all global variables
+    uCommands.initModule;           // helps below
+    uCommandHandlers.initModule;    // registers all messages from frontend
+
+    uLand.initModule;               // computes land
+    uLandPainted.initModule;        // computes drawn land
+    uIO.initModule;                 // sets up sockets
+    uPhysFSLayer.initModule;
+    uScript.initModule;
 
     if complete then
     begin
-{$IFDEF ANDROID}GLUnit.init;{$ENDIF}
-{$IFDEF SDL13}uTouch.initModule;{$ENDIF}
+        uTextures.initModule;
+{$IFDEF ANDROID}GLUnit.initModule;{$ENDIF}
+{$IFDEF USE_TOUCH_INTERFACE}uTouch.initModule;{$ENDIF}
+{$IFDEF USE_VIDEO_RECORDING}uVideoRec.initModule;{$ENDIF}
         uAI.initModule;
-        //uAIActions does not need initialization
-        //uAIAmmoTests does not need initialization
         uAIMisc.initModule;
+        uAILandMarks.initModule;    //stub
         uAmmos.initModule;
+        uCaptions.initModule;
+
         uChat.initModule;
         uCollisions.initModule;
-        //uFloat does not need initialization
-        //uGame does not need initialization
         uGears.initModule;
         uInputHandler.initModule;
-        //uLandGraphics does not need initialization
-        //uLandObjects does not need initialization
-        //uLandTemplates does not need initialization
-        uTextures.initModule;
-        uLandTexture.initModule;
-        //uLocale does not need initialization
-        uRandom.initModule;
-        uScript.initModule;
+        uMisc.initModule;
+        uLandTexture.initModule;    //stub
         uSound.initModule;
         uStats.initModule;
         uStore.initModule;
+        uRender.initModule;
         uTeams.initModule;
         uVisualGears.initModule;
+        uVisualGearsHandlers.initModule;
         uWorld.initModule;
-        uCaptions.initModule;
     end;
 end;
 
 procedure freeEverything (complete:boolean);
 begin
     if complete then
-    begin
+        begin
         WriteLnToConsole('Freeing resources...');
-        uAI.freeModule;
+        uAI.freeModule;             // AI things need to be freed first
         uAIMisc.freeModule;         //stub
+        uAILandMarks.freeModule;
         uCaptions.freeModule;
         uWorld.freeModule;
         uVisualGears.freeModule;
@@ -441,52 +513,52 @@ begin
         uInputHandler.freeModule;
         uStats.freeModule;          //stub
         uSound.freeModule;
-        uScript.freeModule;
-        uRandom.freeModule;         //stub
-        //uLocale does not need to be freed
-        //uLandTemplates does not need to be freed
+        uMisc.freeModule;
         uLandTexture.freeModule;
-        //uLandObjects does not need to be freed
-        //uLandGraphics does not need to be freed
         uGears.freeModule;
-        //uGame does not need to be freed
-        //uFloat does not need to be freed
         uCollisions.freeModule;     //stub
         uChat.freeModule;
         uAmmos.freeModule;
-        //uAIAmmoTests does not need to be freed
-        //uAIActions does not need to be freed
-        uStore.freeModule;
-    end;
+        uRender.freeModule;
+        uStore.freeModule;          // closes SDL
+{$IFDEF USE_VIDEO_RECORDING}uVideoRec.freeModule;{$ENDIF}
+{$IFDEF USE_TOUCH_INTERFACE}uTouch.freeModule;{$ENDIF}  //stub
+{$IFDEF ANDROID}GLUnit.freeModule;{$ENDIF}
+        uTextures.freeModule;
+        end;
 
     uIO.freeModule;
     uLand.freeModule;
     uLandPainted.freeModule;
-    uTextures.freeModule;
 
     uCommandHandlers.freeModule;
     uCommands.freeModule;
-    uConsole.freeModule;
     uVariables.freeModule;
-    uUtils.freeModule;
-    uMisc.freeModule;           // uMisc closes the debug log.
+    uUtils.freeModule;              // closes debug file
+    uPhysFSLayer.freeModule;
+    uScript.freeModule;
 end;
 
-/////////////////////////
-procedure GenLandPreview{$IFDEF HWLIBRARY}(port: LongInt); cdecl; export{$ENDIF};
+///////////////////////////////////////////////////////////////////////////////
+procedure GenLandPreview;
+{$IFDEF MOBILE}
 var Preview: TPreview;
+{$ELSE}
+var Preview: TPreviewAlpha;
+{$ENDIF}
 begin
     initEverything(false);
-{$IFDEF HWLIBRARY}
-    WriteLnToConsole('Preview connecting on port ' + inttostr(port));
-    ipcPort:= port;
-    InitStepsFlags:= cifRandomize;
-{$ENDIF}
+
     InitIPC;
     IPCWaitPongEvent;
     TryDo(InitStepsFlags = cifRandomize, 'Some parameters not set (flags = ' + inttostr(InitStepsFlags) + ')', true);
 
+    ScriptOnPreviewInit;
+{$IFDEF MOBILE}
     GenPreview(Preview);
+{$ELSE}
+    GenPreviewAlpha(Preview);
+{$ENDIF}
     WriteLnToConsole('Sending preview...');
     SendIPCRaw(@Preview, sizeof(Preview));
     SendIPCRaw(@MaxHedgehogs, sizeof(byte));
@@ -494,67 +566,60 @@ begin
     freeEverything(false);
 end;
 
-{$IFNDEF HWLIBRARY}
-/////////////////////
-procedure DisplayUsage;
-var i: LongInt;
+{$IFDEF HWLIBRARY}
+procedure RunEngine(argc: LongInt; argv: PPChar); cdecl; export;
 begin
-    WriteLn(stdout, 'Wrong argument format: correct configurations is');
-    WriteLn(stdout, '');
-    WriteLn(stdout, '  hwengine <path to user hedgewars folder> <path to global data folder> <path to replay file> [options]');
-    WriteLn(stdout, '');
-    WriteLn(stdout, 'where [options] must be specified either as:');
-    WriteLn(stdout, ' --set-video [screen width] [screen height] [color dept]');
-    WriteLn(stdout, ' --set-audio [volume] [enable music] [enable sounds]');
-    WriteLn(stdout, ' --set-other [language file] [full screen] [show FPS]');
-    WriteLn(stdout, ' --set-multimedia [screen width] [screen height] [color dept] [volume] [enable music] [enable sounds] [language file] [full screen]');
-    WriteLn(stdout, ' --set-everything [screen width] [screen height] [color dept] [volume] [enable music] [enable sounds] [language file] [full screen] [show FPS] [alternate damage] [timer value] [reduced quality]');
-    WriteLn(stdout, ' --stats-only');
-    WriteLn(stdout, '');
-    WriteLn(stdout, 'Read documentation online at http://code.google.com/p/hedgewars/wiki/CommandLineOptions for more information');
-    WriteLn(stdout, '');
-    Write(stdout, 'PARSED COMMAND: ');
-    
-    for i:=0 to ParamCount do
-        Write(stdout, ParamStr(i) + ' ');
-        
-    WriteLn(stdout, '');
-end;
-
-////////////////////
-{$INCLUDE "ArgParsers.inc"}
-
-procedure GetParams;
+    operatingsystem_parameter_argc:= argc;
+    operatingsystem_parameter_argv:= argv;
+{$ELSE}
 begin
-    if (ParamCount < 3) then
-        GameType:= gmtSyntax
-    else
-        if (ParamCount = 3) and ((ParamStr(3) = '--stats-only') or (ParamStr(3) = 'landpreview')) then
-            internalSetGameTypeLandPreviewFromParameters()
-        else
-            if (ParamCount = cDefaultParamNum) then
-                internalStartGameWithParameters()
-            else
-                playReplayFileWithParameters();
-end;
+{$ENDIF}
 
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////// m a i n ////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-begin
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// m a i n ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+{$IFDEF PAS2C}
+    // workaround for pascal's ParamStr and ParamCount
+    init(argc, argv);
+{$ENDIF}
+    preInitEverything();
+
     GetParams();
-    if (Length(cLocaleFName) > 6) then
-        cLocale := Copy(cLocaleFName,1,5)
-    else
-        cLocale := Copy(cLocaleFName,1,2);
 
     if GameType = gmtLandPreview then
         GenLandPreview()
-    else if GameType = gmtSyntax then
-        DisplayUsage()
-    else Game();
+    else if GameType <> gmtSyntax then
+        Game();
 
     // return 1 when engine is not called correctly
-    halt(LongInt(GameType = gmtSyntax));
+    if GameType = gmtSyntax then
+        {$IFDEF PAS2C}
+        exit(HaltUsageError);
+        {$ELSE}
+        halt(HaltUsageError);
+        {$ENDIF}
+
+    if cTestLua then
+        begin
+        WriteLnToConsole(errmsgLuaTestTerm);
+        {$IFDEF PAS2C}
+        exit(HaltTestUnexpected);
+        {$ELSE}
+        halt(HaltTestUnexpected);
+        {$ENDIF}
+        end;
+
+    {$IFDEF PAS2C}
+        exit(HaltNoError);
+    {$ELSE}
+        {$IFDEF IPHONEOS}
+            exit;
+        {$ELSE}
+            halt(HaltNoError);
+        {$ENDIF}
+    {$ENDIF}
+{$IFDEF HWLIBRARY}
+end;
 {$ENDIF}
+
 end.

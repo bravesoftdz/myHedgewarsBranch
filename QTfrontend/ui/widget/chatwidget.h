@@ -1,7 +1,7 @@
 /*
  * Hedgewars, a free turn based strategy game
  * Copyright (c) 2007 Igor Ulyanov <iulyanov@gmail.com>
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,46 +14,32 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef _CHAT_WIDGET_INCLUDED
 #define _CHAT_WIDGET_INCLUDED
 
 #include <QWidget>
-#include <QListWidget>
 #include <QString>
 #include <QGridLayout>
 #include <QList>
 #include <QPair>
 #include <QRegExp>
+#include <QHash>
+#include <QListWidgetItem>
 
 #include "SDLInteraction.h"
 
 #include "SmartLineEdit.h"
+#include "playerslistmodel.h"
 
-class ListWidgetNickItem;
 class QTextBrowser;
 class QLineEdit;
-class QListWidget;
+class QListView;
 class QSettings;
-
-/// Class for custom nickname sorting
-class ListWidgetNickItem : public QListWidgetItem
-{
-    public:
-        ListWidgetNickItem(const QString& nick, bool isFriend, bool isIgnored);
-        bool operator<(const QListWidgetItem & other) const;
-        void setFriend(bool isFriend);
-        void setIgnored(bool isIgnored);
-        bool isFriend();
-        bool ignored();
-
-    private:
-        bool aFriend;
-        bool isIgnored;
-};
-
+class QAbstractItemModel;
+class QMenu;
 
 /**
  * @brief Chat widget.
@@ -69,22 +55,22 @@ class HWChatWidget : public QWidget
         Q_OBJECT
 
     public:
-        HWChatWidget(QWidget* parent, QSettings * gameSettings, bool notify);
-        void loadLists(const QString & nick);
-        void saveLists(const QString & nick);
+        HWChatWidget(QWidget* parent, bool notify);
         void setIgnoreListKick(bool enabled); ///< automatically kick people on ignore list (if possible)
-        void setShowReady(bool s);
         void setShowFollow(bool enabled);
-        QStringList ignoreList, friendsList;
         static const QString & styleSheet();
         void displayError(const QString & message);
         void displayNotice(const QString & message);
         void displayWarning(const QString & message);
         void setUser(const QString & nickname);
+        void setUsersModel(QAbstractItemModel * model);
+        void setSettings(QSettings * settings);
 
     protected:
         virtual void dragEnterEvent(QDragEnterEvent * event);
         virtual void dropEvent(QDropEvent * event);
+        virtual void resizeEvent(QResizeEvent * event);
+        virtual void showEvent(QShowEvent * event);
 
     private:
         static QString * s_styleSheet;
@@ -95,25 +81,48 @@ class HWChatWidget : public QWidget
 
         static void setStyleSheet(const QString & styleSheet = "");
 
-        void loadList(QStringList & list, const QString & file);
-        void saveList(QStringList & list, const QString & file);
-        void updateNickItem(QListWidgetItem *item);
-        void updateNickItems();
         void addLine(const QString & cssClass, QString line, bool isHighlight = false);
         bool parseCommand(const QString & line);
         void discardStyleSheet();
         void saveStyleSheet();
         QString linkedNick(const QString & nickname);
+        void beforeContentAdd();
+        void afterContentAdd();
+        bool isInGame();
+
+        /**
+         * @brief Checks whether the message contains a highlight.
+         * @param sender the sender of the message
+         * @param message the message
+         * @return true if the sender is somebody else and the message contains a highlight, otherwise false
+         */
+        bool containsHighlight(const QString & sender, const QString & message);
+        /**
+         * @brief Escapes HTML chars in the message and converts URls to HTML links.
+         * @param message the message to be converted to HTML
+         * @return the HTML message
+         */
+        QString messageToHTML(const QString & message);
+        void printChatString(
+            const QString & nick,
+            const QString & str,
+            const QString & cssClassPart,
+            bool highlight);
 
     public slots:
-        void onChatString(const QString& str);
-        void onChatString(const QString& nick, const QString& str);
+        void onChatAction(const QString & nick, const QString & str);
+        void onChatMessage(const QString & nick, const QString & str);
         void onServerMessage(const QString& str);
         void nickAdded(const QString& nick, bool notifyNick);
         void nickRemoved(const QString& nick);
+        void nickRemoved(const QString& nick, const QString& message);
         void clear();
-        void setReadyStatus(const QString & nick, bool isReady);
         void adminAccess(bool);
+        void onPlayerInfo(
+            const QString & nick,
+            const QString & ip,
+            const QString & version,
+            const QString & roomInfo);
 
     signals:
         void chatLine(const QString& str);
@@ -122,13 +131,15 @@ class HWChatWidget : public QWidget
         void info(const QString & str);
         void follow(const QString &);
         void nickCountUpdate(int cnt);
+        void consoleCommand(const QString & command);
 
     private:
+        PlayersListModel* m_usersModel;
         bool m_isAdmin;
-        QGridLayout mainLayout;
+        QHBoxLayout mainLayout;
         QTextBrowser* chatText;
         QStringList chatStrings;
-        QListWidget* chatNicks;
+        QListView* chatNicks;
         SmartLineEdit* chatEditLine;
         QAction * acInfo;
         QAction * acKick;
@@ -137,14 +148,16 @@ class HWChatWidget : public QWidget
         QAction * acIgnore;
         QAction * acFriend;
         QSettings * gameSettings;
+        QMenu * m_nicksMenu;
         QStringList m_helloSounds;
         QString m_hilightSound;
         QString m_userNick;
         QString m_clickedNick;
         QList<QRegExp> m_highlights; ///< regular expressions used for highlighting
         bool notify;
-        bool showReady;
         bool m_autoKickEnabled;
+        bool m_scrollToBottom;
+        int m_scrollBarPos;
 
     private slots:
         void returnPressed();
@@ -154,9 +167,9 @@ class HWChatWidget : public QWidget
         void onFollow();
         void onIgnore();
         void onFriend();
-        void chatNickDoubleClicked(QListWidgetItem * item);
-        void chatNickSelected(int index);
+        void chatNickDoubleClicked(const QModelIndex & index);
         void linkClicked(const QUrl & link);
+        void nicksContextMenuRequested(const QPoint & pos);
 };
 
 #endif // _CHAT_WIDGET_INCLUDED

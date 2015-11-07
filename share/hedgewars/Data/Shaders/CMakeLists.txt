@@ -1,5 +1,7 @@
-file(GLOB BaseShaders *.vs *.fs)
+file(GLOB vertshaders *.vs)
+file(GLOB fragshaders *.fs)
 
 install(FILES
-	${BaseShaders}
-	DESTINATION ${SHAREPATH}Data/Shaders)
+    ${vertshaders}
+    ${fragshaders}
+    DESTINATION ${SHAREPATH}Data/Shaders)

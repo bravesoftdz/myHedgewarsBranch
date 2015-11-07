@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QGridLayout>
@@ -118,24 +118,22 @@ PageTraining::PageTraining(QWidget* parent) : AbstractPage(parent)
     DataManager & dataMgr = DataManager::instance();
 
     // get locale
-    QSettings settings(cfgdir->absolutePath() + "/hedgewars.ini",
+    QSettings settings(dataMgr.settingsFileName(),
                        QSettings::IniFormat);
 
     QString loc = settings.value("misc/locale", "").toString();
     if (loc.isEmpty())
         loc = QLocale::system().name();
 
-    QString infoFile = dataMgr.findFileForRead(
-                           QString("Locale/missions_" + loc + ".txt"));
+    QString infoFile = QString("physfs://Locale/missions_" + loc + ".txt");
 
     // if file is non-existant try with language only
     if (!QFile::exists(infoFile))
-        infoFile = dataMgr.findFileForRead(QString(
-                                               "Locale/missions_" + loc.remove(QRegExp("_.*$")) + ".txt"));
+        infoFile = QString("physfs://Locale/missions_" + loc.remove(QRegExp("_.*$")) + ".txt");
 
     // fallback if file for current locale is non-existant
     if (!QFile::exists(infoFile))
-        infoFile = dataMgr.findFileForRead(QString("Locale/missions_en.txt"));
+        infoFile = QString("physfs://Locale/missions_en.txt");
 
 
     // preload mission info for current locale
@@ -186,15 +184,12 @@ void PageTraining::startSelected()
 
 void PageTraining::updateInfo()
 {
-    DataManager & dataMgr = DataManager::instance();
-
     if (lstMissions->currentItem())
     {
         // TODO also use .pngs in userdata folder
-        QString thumbFile = dataMgr.findFileForRead(
-                                "Graphics/Missions/Training/" +
+        QString thumbFile =     "physfs://Graphics/Missions/Training/" +
                                 lstMissions->currentItem()->data(Qt::UserRole).toString() +
-                                "@2x.png");
+                                "@2x.png";
 
         if (QFile::exists(thumbFile))
             btnPreview->setIcon(QIcon(thumbFile));

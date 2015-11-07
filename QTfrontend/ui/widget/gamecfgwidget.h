@@ -1,6 +1,6 @@
 /*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef GAMECONFIGWIDGET_H
@@ -31,10 +31,13 @@ class QCheckBox;
 class QVBoxLayout;
 class QLabel;
 class QTableView;
+class QTabWidget;
 
 class GameCFGWidget : public QGroupBox
 {
         Q_OBJECT
+
+        Q_PROPERTY(bool master READ isMaster WRITE setMaster)
 
     public:
         GameCFGWidget(QWidget* parent);
@@ -45,13 +48,15 @@ class GameCFGWidget : public QGroupBox
         QComboBox * GameSchemes;
         QComboBox * WeaponsName;
         HWMapContainer* pMapContainer;
-        QTableView * tv;
         QVariant schemeData(int column) const;
+        bool isMaster();
 
     public slots:
         void setParam(const QString & param, const QStringList & value);
         void fullNetConfig();
         void resendSchemeData();
+        void setMaster(bool master);
+        void setTabbed(bool tabbed);
 
     signals:
         void paramChanged(const QString & param, const QStringList & value);
@@ -71,16 +76,29 @@ class GameCFGWidget : public QGroupBox
         void jumpToWeapons();
         void mapgenChanged(MapGenerator m);
         void maze_sizeChanged(int s);
+        void slMapFeatureSizeChanged(int s);
         void onDrawnMapChanged(const QByteArray & data);
         void updateModelViews();
 
     private:
-        QGridLayout mainLayout;
+        QVBoxLayout mainLayout;
         QCheckBox * bindEntries;
         QString curNetAmmoName;
         QString curNetAmmo;
         QRegExp seedRegexp;
         QString m_curScript;
+        bool m_master;
+        QList<QWidget *> m_childWidgets;
+        QGridLayout * GBoxOptionsLayout;
+        QWidget * OptionsInnerContainer;
+        QWidget * StackContainer;
+
+        QWidget * mapContainerFree;
+        QWidget * mapContainerTabbed;
+        QWidget * optionsContainerFree;
+        QWidget * optionsContainerTabbed;
+        bool tabbed;
+        QTabWidget * tabs;
 
         void setNetAmmo(const QString& name, const QString& ammo);
 

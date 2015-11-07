@@ -1,7 +1,7 @@
 /*
  * Hedgewars, a free turn based strategy game
  * Copyright (c) 2009 Martin Minarik <ttsmj@pokec.sk>
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <QFile>
@@ -125,22 +125,20 @@ QStringList HWNamegen::dictContents(const QString filename)
     QStringList list;
 
     // find .txt to load the names from
-    QFile * file = new QFile(DataManager::instance().findFileForRead(QString(
-                                 "Names/%1.txt").arg(filename)));
+    QFile file(QString("physfs://Names/%1.txt").arg(filename));
 
-    if (file->exists() && file->open(QIODevice::ReadOnly | QIODevice::Text))
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QTextStream in(file);
-        while (!in.atEnd())
+        QTextStream in(&file);
+        QString line;
+        do
         {
-            QString line = in.readLine();
+            line = in.readLine();
+
             if(!line.isEmpty())
                 list.append(line);
-        }
+        } while (!line.isNull());
     }
-
-    // this QFile isn't needed any further
-    delete file;
 
     if (list.size() == 0)
         list.append(filename);
@@ -154,22 +152,20 @@ QStringList HWNamegen::dictsForHat(const QString hatname)
     QStringList list;
 
     // find .cfg to load the dicts from
-    QFile * file = new QFile(DataManager::instance().findFileForRead(QString(
-                                 "Names/%1.cfg").arg(hatname)));
+    QFile file(QString("physfs://Names/%1.cfg").arg(hatname));
 
-    if (file->exists() && file->open(QIODevice::ReadOnly | QIODevice::Text))
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QTextStream in(file);
-        while (!in.atEnd())
+        QTextStream in(&file);
+        QString line;
+        do
         {
-            QString line = in.readLine();
+            line = in.readLine();
+
             if(!line.isEmpty())
                 list.append(line);
-        }
+        } while (!line.isNull());
     }
-
-    // this QFile isn't needed any further
-    delete file;
 
     if (list.size() == 0)
         list.append(QString("generic"));
@@ -183,8 +179,7 @@ bool HWNamegen::loadTypes()
     typesAvailable = false;
 
     // find .ini to load the names from
-    QFile * file = new QFile(
-        DataManager::instance().findFileForRead(QString("Names/types.ini")));
+    QFile * file = new QFile(QString("physfs://Names/types.ini"));
 
 
     if (file->exists() && file->open(QIODevice::ReadOnly | QIODevice::Text))

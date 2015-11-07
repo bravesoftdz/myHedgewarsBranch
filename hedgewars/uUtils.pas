@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -21,29 +21,31 @@
 unit uUtils;
 
 interface
-uses uTypes, uFloat, GLunit;
+uses uTypes, uFloat;
 
 procedure SplitBySpace(var a, b: shortstring);
 procedure SplitByChar(var a, b: shortstring; c: char);
-procedure SplitByChar(var a, b: ansistring; c: char);
+procedure SplitByCharA(var a, b: ansistring; c: char);
 
-{$IFNDEF PAS2C}
 function  EnumToStr(const en : TGearType) : shortstring; overload;
 function  EnumToStr(const en : TVisualGearType) : shortstring; overload;
 function  EnumToStr(const en : TSound) : shortstring; overload;
 function  EnumToStr(const en : TAmmoType) : shortstring; overload;
+function  EnumToStr(const en : TStatInfoType) : shortstring; overload;
 function  EnumToStr(const en : THogEffect) : shortstring; overload;
 function  EnumToStr(const en : TCapGroup) : shortstring; overload;
-{$ENDIF}
+function  EnumToStr(const en : TSprite) : shortstring; overload;
+function  EnumToStr(const en : TMapGen) : shortstring; overload;
 
 function  Min(a, b: LongInt): LongInt; inline;
+function  MinD(a, b: double) : double; inline;
 function  Max(a, b: LongInt): LongInt; inline;
 
 function  IntToStr(n: LongInt): shortstring;
 function  StrToInt(s: shortstring): LongInt;
 function  FloatToStr(n: hwFloat): shortstring;
 
-function  DxDy2Angle(const _dY, _dX: hwFloat): GLfloat;
+function  DxDy2Angle(const _dY, _dX: hwFloat): real; inline;
 function  DxDy2Angle32(const _dY, _dX: hwFloat): LongInt;
 function  DxDy2AttackAngle(const _dY, _dX: hwFloat): LongInt;
 function  DxDy2AttackAnglef(const _dY, _dX: extended): LongInt;
@@ -61,6 +63,7 @@ function  endian(independent: LongWord): LongWord; inline;
 function  CheckCJKFont(s: ansistring; font: THWFont): THWFont;
 
 procedure AddFileLog(s: shortstring);
+procedure AddFileLogRaw(s: pchar); cdecl;
 
 function  CheckNoTeamOrHH: boolean; inline;
 
@@ -70,9 +73,24 @@ function  GetLaunchY(at: TAmmoType; angle: LongInt): LongInt;
 {$IFNDEF PAS2C}
 procedure Write(var f: textfile; s: shortstring);
 procedure WriteLn(var f: textfile; s: shortstring);
+function StrLength(s: PChar): Longword;
+procedure SetLengthA(var s: ansistring; len: Longword);
 {$ENDIF}
 
-procedure initModule(isGame: boolean);
+function  isPhone: Boolean; inline;
+
+{$IFDEF IPHONEOS}
+procedure startLoadingIndicator; cdecl; external;
+procedure stopLoadingIndicator; cdecl; external;
+procedure saveFinishedSynching; cdecl; external;
+function  isApplePhone: Boolean; cdecl; external;
+procedure AudioServicesPlaySystemSound(num: LongInt); cdecl; external;
+{$ENDIF}
+
+function  sanitizeForLog(s: shortstring): shortstring;
+function  sanitizeCharForLog(c: char): shortstring;
+
+procedure initModule(isNotPreview: boolean);
 procedure freeModule;
 
 
@@ -80,9 +98,12 @@ implementation
 uses {$IFNDEF PAS2C}typinfo, {$ENDIF}Math, uConsts, uVariables, SysUtils;
 
 {$IFDEF DEBUGFILE}
-var f: textfile;
+var logFile: textfile;
+{$IFDEF USE_VIDEO_RECORDING}
+    logMutex: TRTLCriticalSection; // mutex for debug file
 {$ENDIF}
-var CharArray: array[byte] of Char;
+{$ENDIF}
+var CharArray: array[0..255] of Char;
 
 procedure SplitBySpace(var a,b: shortstring);
 begin
@@ -101,27 +122,37 @@ if i > 0 then
             Inc(a[t], 32);
     b:= copy(a, i + 1, Length(a) - i);
     a[0]:= char(Pred(i))
+    {$IFDEF PAS2C}
+       a[i] := 0;
+    {$ENDIF}
     end
 else
     b:= '';
 end;
 
-procedure SplitByChar(var a, b: ansistring; c: char);
+{$IFNDEF PAS2C}
+procedure SetLengthA(var s: ansistring; len: Longword);
+begin
+    SetLength(s, len)
+end;
+{$ENDIF}
+
+procedure SplitByCharA(var a, b: ansistring; c: char);
 var i: LongInt;
 begin
 i:= Pos(c, a);
 if i > 0 then
     begin
     b:= copy(a, i + 1, Length(a) - i);
-    setlength(a, Pred(i));
+    SetLengthA(a, Pred(i));
     end else b:= '';
-end;
+end; { SplitByCharA }
 
-{$IFNDEF PAS2C}
 function EnumToStr(const en : TGearType) : shortstring; overload;
 begin
 EnumToStr:= GetEnumName(TypeInfo(TGearType), ord(en))
 end;
+
 function EnumToStr(const en : TVisualGearType) : shortstring; overload;
 begin
 EnumToStr:= GetEnumName(TypeInfo(TVisualGearType), ord(en))
@@ -137,6 +168,11 @@ begin
 EnumToStr:= GetEnumName(TypeInfo(TAmmoType), ord(en))
 end;
 
+function EnumToStr(const en : TStatInfoType) : shortstring; overload;
+begin
+EnumToStr:= GetEnumName(TypeInfo(TStatInfoType), ord(en))
+end;
+
 function EnumToStr(const en: THogEffect) : shortstring; overload;
 begin
 EnumToStr := GetEnumName(TypeInfo(THogEffect), ord(en))
@@ -146,7 +182,17 @@ function EnumToStr(const en: TCapGroup) : shortstring; overload;
 begin
 EnumToStr := GetEnumName(TypeInfo(TCapGroup), ord(en))
 end;
-{$ENDIF}
+
+function EnumToStr(const en: TSprite) : shortstring; overload;
+begin
+EnumToStr := GetEnumName(TypeInfo(TSprite), ord(en))
+end;
+
+function EnumToStr(const en: TMapGen) : shortstring; overload;
+begin
+EnumToStr := GetEnumName(TypeInfo(TMapGen), ord(en))
+end;
+
 
 function Min(a, b: LongInt): LongInt;
 begin
@@ -154,6 +200,14 @@ if a < b then
     Min:= a
 else
     Min:= b
+end;
+
+function MinD(a, b: double): double;
+begin
+if a < b then
+    MinD:= a
+else
+    MinD:= b
 end;
 
 function Max(a, b: LongInt): LongInt;
@@ -170,10 +224,18 @@ begin
 str(n, IntToStr)
 end;
 
-function  StrToInt(s: shortstring): LongInt;
+function StrToInt(s: shortstring): LongInt;
 var c: LongInt;
 begin
-val(s, StrToInt, c)
+{$IFDEF PAS2C}
+val(s, StrToInt);
+{$ELSE}
+val(s, StrToInt, c);
+{$IFDEF DEBUGFILE}
+if c <> 0 then
+    writeln(logFile, 'Error at position ' + IntToStr(c) + ' : ' + s[c])
+{$ENDIF}
+{$ENDIF}
 end;
 
 function FloatToStr(n: hwFloat): shortstring;
@@ -182,15 +244,11 @@ FloatToStr:= cstr(n) + '_' + inttostr(Lo(n.QWordValue))
 end;
 
 
-function DxDy2Angle(const _dY, _dX: hwFloat): GLfloat;
+function DxDy2Angle(const _dY, _dX: hwFloat): real; inline;
 var dY, dX: Extended;
 begin
-dY:= _dY.QWordValue / $100000000;
-if _dY.isNegative then
-    dY:= - dY;
-dX:= _dX.QWordValue / $100000000;
-if _dX.isNegative then
-    dX:= - dX;
+dY:= hwFloat2Float(_dY);
+dX:= hwFloat2Float(_dX);
 DxDy2Angle:= arctan2(dY, dX) * 180 / pi
 end;
 
@@ -198,12 +256,8 @@ function DxDy2Angle32(const _dY, _dX: hwFloat): LongInt;
 const _16divPI: Extended = 16/pi;
 var dY, dX: Extended;
 begin
-dY:= _dY.QWordValue / $100000000;
-if _dY.isNegative then
-    dY:= - dY;
-dX:= _dX.QWordValue / $100000000;
-if _dX.isNegative then
-    dX:= - dX;
+dY:= hwFloat2Float(_dY);
+dX:= hwFloat2Float(_dX);
 DxDy2Angle32:= trunc(arctan2(dY, dX) * _16divPI) and $1f
 end;
 
@@ -211,12 +265,8 @@ function DxDy2AttackAngle(const _dY, _dX: hwFloat): LongInt;
 const MaxAngleDivPI: Extended = cMaxAngle/pi;
 var dY, dX: Extended;
 begin
-dY:= _dY.QWordValue / $100000000;
-if _dY.isNegative then
-    dY:= - dY;
-dX:= _dX.QWordValue / $100000000;
-if _dX.isNegative then
-    dX:= - dX;
+dY:= hwFloat2Float(_dY);
+dX:= hwFloat2Float(_dX);
 DxDy2AttackAngle:= trunc(arctan2(dY, dX) * MaxAngleDivPI)
 end;
 
@@ -246,7 +296,7 @@ end;
 
 function DecodeBase64(s: shortstring): shortstring;
 const table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-var i, t, c: Longword;
+var i, t, c: LongInt;
 begin
 c:= 0;
 for i:= 1 to Length(s) do
@@ -279,10 +329,14 @@ end;
 
 
 function Str2PChar(const s: shortstring): PChar;
+var i :Integer ;
 begin
-CharArray:= s;
-CharArray[Length(s)]:= #0;
-Str2PChar:= @CharArray
+   for i:= 1 to Length(s) do
+      begin
+      CharArray[i - 1] := s[i];
+      end;
+   CharArray[Length(s)]:= #0;
+   Str2PChar:= @(CharArray[0]);
 end;
 
 
@@ -301,13 +355,38 @@ end;
 
 procedure AddFileLog(s: shortstring);
 begin
-s:= s;
+// s:= s;
 {$IFDEF DEBUGFILE}
-writeln(f, inttostr(GameTicks)  + ': ' + s);
-flush(f)
+
+{$IFDEF USE_VIDEO_RECORDING}
+EnterCriticalSection(logMutex);
+{$ENDIF}
+writeln(logFile, inttostr(GameTicks)  + ': ' + s);
+flush(logFile);
+
+{$IFDEF USE_VIDEO_RECORDING}
+LeaveCriticalSection(logMutex);
+{$ENDIF}
+
 {$ENDIF}
 end;
 
+procedure AddFileLogRaw(s: pchar); cdecl;
+begin
+s:= s;
+{$IFNDEF PAS2C}
+{$IFDEF DEBUGFILE}
+{$IFDEF USE_VIDEO_RECORDING}
+EnterCriticalSection(logMutex);
+{$ENDIF}
+write(logFile, s);
+flush(logFile);
+{$IFDEF USE_VIDEO_RECORDING}
+LeaveCriticalSection(logMutex);
+{$ENDIF}
+{$ENDIF}
+{$ENDIF}
+end;
 
 function CheckCJKFont(s: ansistring; font: THWFont): THWFont;
 var l, i : LongInt;
@@ -322,7 +401,7 @@ if (font >= CJKfnt16) or (length(s) = 0) then
 {$ENDIF}
     exit;
 
-l:= Utf8ToUnicode(@tmpstr, Str2PChar(s), length(s))-1;
+l:= Utf8ToUnicode(PWideChar(@tmpstr), PChar(s), min(length(tmpstr), length(s)))-1;
 i:= 0;
 
 while i < l do
@@ -331,15 +410,15 @@ while i < l do
     if (#$1100  <= u) and  (
                            (u <= #$11FF )  or // Hangul Jamo
        ((#$2E80  <= u) and (u <= #$2FDF))  or // CJK Radicals Supplement / Kangxi Radicals
-       ((#$2FF0  <= u) and (u <= #$303F))  or // Ideographic Description Characters / CJK Radicals Supplement
-       ((#$3130  <= u) and (u <= #$318F))  or // Hangul Compatibility Jamo
+       ((#$2FF0  <= u) and (u <= #$31FF))  or // Ideographic Description Characters / CJK Radicals Supplement / Hiragana / Hangul Compatibility Jamo / Katakana
        ((#$31C0  <= u) and (u <= #$31EF))  or // CJK Strokes
-       ((#$3200  <= u) and (u <= #$4DBF))  or // Enclosed CJK Letters and Months / CJK Compatibility / CJK Unified Ideographs Extension A
+       ((#$3200  <= u) and (u <= #$4DBF))  or // Enclosed CJK Letters and Months / CJK Compatibility / CJK Unified Ideographs Extension A / Circled Katakana
        ((#$4E00  <= u) and (u <= #$9FFF))  or // CJK Unified Ideographs
        ((#$AC00  <= u) and (u <= #$D7AF))  or // Hangul Syllables
        ((#$F900  <= u) and (u <= #$FAFF))  or // CJK Compatibility Ideographs
-       ((#$FE30  <= u) and (u <= #$FE4F)))    // CJK Compatibility Forms
-       then 
+       ((#$FE30  <= u) and (u <= #$FE4F))  or // CJK Compatibility Forms
+       ((#$FF66  <= u) and (u <= #$FF9D)))    // halfwidth katakana
+       then
         begin
             CheckCJKFont:=  THWFont( ord(font) + ((ord(High(THWFont))+1) div 2) );
             exit;
@@ -387,55 +466,140 @@ procedure WriteLn(var f: textfile; s: shortstring);
 begin
 system.writeln(f, s)
 end;
+
+function StrLength(s: PChar): Longword;
+begin
+    StrLength:= length(s)
+end;
 {$ENDIF}
 
-procedure initModule(isGame: boolean);
+// this function is just to determine whether we are running on a limited screen device
+function isPhone: Boolean; inline;
+begin
+    isPhone:= false;
+{$IFDEF IPHONEOS}
+    isPhone:= isApplePhone();
+{$ENDIF}
+{$IFDEF ANDROID}
+    //nasty nasty hack. TODO: implement callback to java to have a unified way of determining if it is a tablet
+    if (cScreenWidth < 1000) and (cScreenHeight < 500) then
+        isPhone:= true;
+{$ENDIF}
+end;
+
+
+function  sanitizeForLog(s: shortstring): shortstring;
+var i: byte;
+    r: shortstring;
+begin
+    r[0]:= s[0];
+    for i:= 1 to length(s) do
+        if (s[i] < #32) or (s[i] > #127) then
+            r[i]:= '?'
+            else
+            r[i]:= s[i];
+
+    sanitizeForLog:= r
+end;
+
+function  sanitizeCharForLog(c: char): shortstring;
+var r: shortstring;
+begin
+    if (c < #32) or (c > #127) then
+        r:= '#' + inttostr(byte(c))
+        else
+        begin
+        // some magic for pas2c
+        r[0]:= #1;
+        r[1]:= c;
+        end;
+
+    sanitizeCharForLog:= r
+end;
+
+procedure initModule(isNotPreview: boolean);
 {$IFDEF DEBUGFILE}
 var logfileBase: shortstring;
-{$IFNDEF MOBILE}var i: LongInt;{$ENDIF}
+    i: LongInt;
+    rwfailed: boolean;
 {$ENDIF}
 begin
 {$IFDEF DEBUGFILE}
-    if isGame then
-        logfileBase:= 'game'
+    if isNotPreview then
+    begin
+        if GameType = gmtRecord then
+            logfileBase:= 'rec'
+        else
+        {$IFDEF PAS2C}
+        logfileBase:= 'game_pas2c';
+        {$ELSE}
+        logfileBase:= 'game';
+        {$ENDIF}
+    end
     else
+        {$IFDEF PAS2C}
+        logfileBase:= 'preview_pas2c';
+        {$ELSE}
         logfileBase:= 'preview';
+        {$ENDIF}
+{$IFDEF USE_VIDEO_RECORDING}
+    InitCriticalSection(logMutex);
+{$ENDIF}
 {$I-}
-{$IFDEF MOBILE}
-    {$IFDEF IPHONEOS} Assign(f,'../Documents/hw-' + logfileBase + '.log'); {$ENDIF}
-    {$IFDEF ANDROID} Assign(f,pathPrefix + '/' + logfileBase + '.log'); {$ENDIF}
-    Rewrite(f);
-{$ELSE}
-    if (UserPathPrefix <> '') then
+    rwfailed:= false;
+    if (length(UserPathPrefix) > 0) then
         begin
-            i:= 0;
-            while(i < 7) do
+        {$IFNDEF PAS2C}
+        // create directory if it doesn't exist
+        if not FileExists(UserPathPrefix + '/Logs/') then
+            CreateDir(UserPathPrefix + '/Logs/');
+        {$ENDIF}
+        // if log is locked, write to the next one
+        i:= 0;
+        while(i < 7) do
             begin
-                assign(f, UserPathPrefix + '/Logs/' + logfileBase + inttostr(i) + '.log');
-                rewrite(f);
-                if IOResult = 0 then
-                    break;
-                inc(i)
+            assign(logFile, shortstring(UserPathPrefix) + '/Logs/' + logfileBase + inttostr(i) + '.log');
+            Rewrite(logFile);
+            // note: IOResult is a function in pascal and a variable in pas2c
+            rwfailed:= (IOResult <> 0);
+            if (not rwfailed) then
+                break;
+            inc(i)
             end;
-            if i = 7 then
-                f:= stderr; // if everything fails, write to stderr
-        end
-    else
-        f:= stderr;
+        end;
+
+{$IFNDEF PAS2C}
+    // if everything fails, write to stderr
+    if (length(UserPathPrefix) = 0) or (rwfailed) then
+        logFile:= stderr;
 {$ENDIF}
 {$I+}
+{$ENDIF}
+
+    //mobile stuff
+{$IFDEF IPHONEOS}
+    mobileRecord.PerformRumble:= @AudioServicesPlaySystemSound;
+    mobileRecord.GameLoading:= @startLoadingIndicator;
+    mobileRecord.GameLoaded:= @stopLoadingIndicator;
+    mobileRecord.SaveLoadingEnded:= @saveFinishedSynching;
+{$ELSE}
+    mobileRecord.PerformRumble:= nil;
+    mobileRecord.GameLoading:= nil;
+    mobileRecord.GameLoaded:= nil;
+    mobileRecord.SaveLoadingEnded:= nil;
 {$ENDIF}
 
 end;
 
 procedure freeModule;
 begin
-recordFileName:= '';
-
 {$IFDEF DEBUGFILE}
-    writeln(f, 'halt at ' + inttostr(GameTicks) + ' ticks. TurnTimeLeft = ' + inttostr(TurnTimeLeft));
-    flush(f);
-    close(f);
+    writeln(logFile, 'halt at ' + inttostr(GameTicks) + ' ticks. TurnTimeLeft = ' + inttostr(TurnTimeLeft));
+    flush(logFile);
+    close(logFile);
+{$IFDEF USE_VIDEO_RECORDING}
+    DoneCriticalSection(logMutex);
+{$ENDIF}
 {$ENDIF}
 end;
 

@@ -1,234 +1,248 @@
-find_package(SDL)
+find_package(SDL1or2)
 find_package(SDL_image)
 find_package(SDL_net)
 find_package(SDL_ttf)
 find_package(SDL_mixer)
 
-include(${CMAKE_MODULE_PATH}/FindSDL_Extras.cmake)
+include(CheckLibraryExists)
+include(${CMAKE_MODULE_PATH}/utils.cmake)
 
-configure_file(${hedgewars_SOURCE_DIR}/hedgewars/config.inc.in ${CMAKE_CURRENT_BINARY_DIR}/config.inc)
 
-#SOURCE AND PROGRAMS SECTION
-set(hwengine_project ${hedgewars_SOURCE_DIR}/hedgewars/hwengine.pas)
-set(engine_output_name "hwengine")
+enable_language(Pascal)
+add_flag_append(CMAKE_Pascal_FLAGS "-Cs2000000")
+add_flag_append(CMAKE_Pascal_FLAGS_DEBUG "-gv")
+add_flag_append(CMAKE_Pascal_FLAGS_RELEASE "-Xs")
+if(UNIX)
+    include(TargetArch)
+    target_architecture(CMAKE_TARGET_ARCHITECTURES)
+    if(${CMAKE_Pascal_COMPILER_VERSION} VERSION_GREATER 2.7 OR ${CMAKE_TARGET_ARCHITECTURES} MATCHES "x86_64" OR ${CMAKE_TARGET_ARCHITECTURES} MATCHES "i386")
+        add_flag_append(CMAKE_Pascal_FLAGS "-fPIC")
+    endif()
+endif(UNIX)
 
+# convert list into pascal array
+if(FONTS_DIRS)
+  list(LENGTH FONTS_DIRS ndirs)
+  set(FONTS_DIRS_ARRAY "array [0..${ndirs}] of PChar = (")
+  foreach(fontdir ${FONTS_DIRS})
+      set(FONTS_DIRS_ARRAY "${FONTS_DIRS_ARRAY}\n_P'${fontdir}',")
+  endforeach(fontdir)
+  set(FONTS_DIRS_ARRAY "${FONTS_DIRS_ARRAY}\nnil);\n")
+else(FONTS_DIRS)
+  set(FONTS_DIRS_ARRAY "array [0..1] of PChar = (nil, nil);")
+endif(FONTS_DIRS)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.inc.in ${CMAKE_CURRENT_BINARY_DIR}/config.inc)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
+#set the sources with the correct order of dependencies so that cmake won't be confused
 set(engine_sources
-    ${hwengine_project}
     SDLh.pas
-    PNGh.pas
-    uAI.pas
-    uAIActions.pas
-    uAIAmmoTests.pas
-    uAIMisc.pas
-    uAmmos.pas
-    uCaptions.pas
-    uChat.pas
-    uCollisions.pas
-    uCommands.pas
-    uCommandHandlers.pas
-    uConsole.pas
-    uConsts.pas
-    uDebug.pas
+    uSinTable.pas
     uFloat.pas
-    uGame.pas
-    uGears.pas
-    uGearsHandlers.pas
-    uGearsRender.pas
-    uIO.pas
+    uConsts.pas
+    LuaPas.pas
+    uTypes.pas
+    uVariables.pas
+    uUtils.pas
+    uMisc.pas
+    uConsole.pas
+    uCommands.pas
+    uDebug.pas
     uInputHandler.pas
-    uLand.pas
-    uLandGenMaze.pas
-    uLandGraphics.pas
-    uLandObjects.pas
-    uLandOutline.pas
-    uLandPainted.pas
+    uTextures.pas
+    uRenderUtils.pas
+    uRender.pas
+    uCaptions.pas
+    uIO.pas
+    uChat.pas
+    uPhysFSLayer.pas
+    uSound.pas
+    ArgParsers.pas
+    uRandom.pas
+    uLocale.pas
+    uStats.pas
+    uCursor.pas
+    uVideoRec.pas
+    uAILandMarks.pas
+    adler32.pas
     uLandTemplates.pas
     uLandTexture.pas
-    uLocale.pas
-    uMisc.pas
-    uMobile.pas
-    uRandom.pas
-    uRender.pas
-    uRenderUtils.pas
-    uScript.pas
-    uSinTable.pas
-    uSound.pas
-    uStats.pas
+    uLandGraphics.pas
+    uLandPainted.pas
+    uLandOutline.pas
+    uLandGenMaze.pas
+    uLandGenPerlin.pas
+    uLandGenTemplateBased.pas
+    uLandUtils.pas
+
+    #this is where dependency tracking becomes hard
     uStore.pas
-    uTeams.pas
-    uTextures.pas
-    uTypes.pas
-    uUtils.pas
-    uVariables.pas
-    uVisualGears.pas
+    uAmmos.pas
+    uLandObjects.pas
+    uLand.pas
+    uGearsList.pas
+    uCollisions.pas
+    uAIMisc.pas
+    uAIActions.pas
+    uAIAmmoTests.pas
+    uAI.pas
     uWorld.pas
-    GSHandlers.inc
-    VGSHandlers.inc
-    ArgParsers.inc
-    options.inc
-    adler32.pas
-    ${CMAKE_CURRENT_BINARY_DIR}/config.inc
+    uVisualGearsList.pas
+    uVisualGearsHandlers.pas
+    uVisualGears.pas
+
+    uGears.pas
+    uGame.pas
+    uCommandHandlers.pas
+    uGearsRender.pas
+    uGearsHedgehog.pas
+    uGearsHandlers.pas
+    uGearsHandlersRope.pas
+    uGearsHandlersMess.pas
+    uGearsUtils.pas
+    uTeams.pas
+
+    #these interact with everything, so compile last
+    uScript.pas
     )
 
-if(BUILD_ENGINE_LIBRARY)
-    message(STATUS "Engine will be built as library (experimental)")
-    set(hwengine_project ${hedgewars_SOURCE_DIR}/hedgewars/hwLibrary.pas)
-    set(pascal_flags "-dHWLIBRARY" ${pascal_flags})
 
-    # create position independent code, only required for x68_64 builds, similar to -fPIC
-    if(CMAKE_SIZEOF_VOID_P MATCHES "8")
-        set(pascal_flags "-Cg" ${pascal_flags})
-    endif(CMAKE_SIZEOF_VOID_P MATCHES "8")
-
-    # due to compiler/linker issues on Max OS X 10.6 -k-no_order_inits is needed to avoid linking fail
-    if(APPLE AND current_macosx_version GREATER "10.5")
-        set(pascal_flags "-k-no_order_inits" ${pascal_flags})
-    endif()
-
-    if (APPLE)
-        set(engine_output_name "hwengine.dylib")
-    endif (APPLE)
-endif(BUILD_ENGINE_LIBRARY)
-
-IF(FPC)
-    set(fpc_executable ${FPC})
-ELSE()
-    find_program(fpc_executable fpc)
-ENDIF()
-
-if(fpc_executable)
-    exec_program(${fpc_executable} ARGS "-iV" OUTPUT_VARIABLE fpc_output)
-endif(fpc_executable)
-
-set(noexecstack_flags "-k-z" "-knoexecstack")
-file(WRITE ${EXECUTABLE_OUTPUT_PATH}/checkstack.pas "begin end.")
-
-exec_program(${fpc_executable} ${EXECUTABLE_OUTPUT_PATH}
-    ARGS ${noexecstack_flags} checkstack.pas
-    OUTPUT_VARIABLE noout
-    RETURN_VALUE testnoexecstack
-    )
-
-if(${testnoexecstack})
-    set (noexecstack_flags "")
-endif(${testnoexecstack})
-
-
-if(APPLE)
-    string(REGEX MATCH "[pP][pP][cC]+" powerpc_build "${CMAKE_OSX_ARCHITECTURES}")
-    string(REGEX MATCH "[iI]386+" i386_build "${CMAKE_OSX_ARCHITECTURES}")
-    string(REGEX MATCH "[xX]86_64+" x86_64_build "${CMAKE_OSX_ARCHITECTURES}")
-
-    if(powerpc_build)
-        set(powerpc_build "powerpc")
-    endif()
-
-    #on OSX we need to provide the main() function when building as executable
-    if(NOT BUILD_ENGINE_LIBRARY)
-        #let's look for the bundled sdlmain, if not found build our own
-        find_package(SDL REQUIRED)
-        #remove the ";-framework Cocoa" from the SDL_LIBRARY variable
-        string(REGEX REPLACE "(.*);-.*" "\\1" sdl_dir "${SDL_LIBRARY}")
-        #find libsdmain.a
-        find_file(SDLMAIN_LIB libSDLMain.a PATHS ${sdl_dir}/Resources/)
-
-        if(SDLMAIN_LIB MATCHES "SDLMAIN_LIB-NOTFOUND")
-            set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-            include_directories(${SDL_INCLUDE_DIR})
-            add_library (SDLmain STATIC SDLMain.m)
-            #add a dependency to the hwengine target
-            set(engine_sources ${engine_sources} SDLmain)
-            set(SDLMAIN_LIB "${CMAKE_BINARY_DIR}/bin/libSDLmain.a")
-        endif()
-
-        set(pascal_flags "-k${SDLMAIN_LIB}" ${pascal_flags})
-    endif()
-endif(APPLE)
-
-
-#PASCAL DETECTION SECTION
-string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" fpc_version "${fpc_output}")
-
-if(fpc_version)
-    string(REGEX REPLACE "([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" fpc_vers_major "${fpc_version}")
-    string(REGEX REPLACE "[0-9]+\\.([0-9]+)\\.[0-9]+" "\\1" fpc_vers_minor "${fpc_version}")
-    string(REGEX REPLACE "[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" fpc_vers_patch "${fpc_version}")
-    message(STATUS "Freepascal version installed: ${fpc_vers_major}.${fpc_vers_minor}")
-    math(EXPR fpc_version "${fpc_vers_major}*10000 + ${fpc_vers_minor}*100 + ${fpc_vers_patch}")
-
-    if(fpc_version LESS "020200")
-        message(FATAL_ERROR "Minimum required version of FreePascal is 2.2.0")
-    elseif(APPLE AND (fpc_version LESS "020600"))
-        message(FATAL_ERROR "Minimum required version of FreePascal is 2.6.0 on Mac OS X")
-    endif()
-else()
-    message(FATAL_ERROR "No FreePascal compiler found!")
+if(${CMAKE_Pascal_COMPILER_VERSION} VERSION_LESS 2.2 OR # older versions are just ancient
+   (${CMAKE_Pascal_COMPILER_VERSION} VERSION_LESS 2.6 AND APPLE)) # because of 64bit and opengl bindings
+    message(FATAL_ERROR "Your FreePascal installation is too old (fpc ${CMAKE_Pascal_COMPILER_VERSION})!")
+elseif(${CMAKE_Pascal_COMPILER_VERSION} VERSION_GREATER 2.4)
+    #enable INLINE only with a recent version of fpc
+    add_flag_prepend(CMAKE_Pascal_FLAGS_RELEASE -Si)
 endif()
 
+#generic folder where our libraries reside
+add_flag_append(CMAKE_Pascal_FLAGS "-Fl${LIBRARY_OUTPUT_PATH}")
 
 #DEPENDECIES AND EXECUTABLES SECTION
-if(NOT NOPNG)
-    find_package(PNG)
-    if(${PNG_FOUND})
-        message(STATUS "PNG screenshots enabled (library found at ${PNG_LIBRARY})")
-        set(pascal_flags "-dPNG_SCREENSHOTS" ${pascal_flags})
-        if(APPLE)  # need to explictly link with the static lib -- maybe windows too?
-            string(REGEX REPLACE "(.*)libpng.*" "\\1" PNG_LIBDIR "${PNG_LIBRARY}")
-            set(pascal_flags "-k${PNG_LIBDIR}/libpng.a" ${pascal_flags})
-        endif()
+if(APPLE AND (NOT BUILD_ENGINE_LIBRARY))
+    #on OSX we need to provide the SDL_main() function when building as
+    #executable and the entry point too
+    add_subdirectory(sdlmain)
+    list(APPEND HW_LINK_LIBS SDLmain)
+    add_flag_append(CMAKE_Pascal_FLAGS "-k-lsdlmain")
+    add_flag_append(CMAKE_Pascal_FLAGS "-XMSDL_main")
+    #OpenGL deps
+    add_flag_append(CMAKE_Pascal_FLAGS "-k-framework -kCocoa")
+    add_flag_append(CMAKE_Pascal_FLAGS "-k-framework -kOpenGL")
+
+    #set the correct library or framework style depending on the main SDL
+    string(FIND "${SDL_LIBRARY}" "dylib" sdl_framework)
+    if(${sdl_framework} GREATER -1)
+        add_flag_append(CMAKE_Pascal_FLAGS "-k-lsdl -k-lsdl_image -k-lsdl_mixer -k-lsdl_ttf -k-lsdl_net")
     else()
-        message(STATUS "PNG library not found, switching to screenshots in BMP format")
+        add_flag_append(CMAKE_Pascal_FLAGS "-k-framework -kSDL -k-framework -kSDL_image -k-framework -kSDL_mixer -k-framework -kSDL_net -k-framework -kSDL_net -k-framework -kSDL_ttf")
     endif()
+endif()
+
+if(LIBAV_FOUND)
+    add_subdirectory(avwrapper)
+    list(APPEND HW_LINK_LIBS avwrapper)
+    add_definitions(-dUSE_VIDEO_RECORDING)
+    #only for SDL < 2, linking carried out by fpc
+    find_package_or_disable_msg(GLUT NOVIDEOREC "Video recording will not be built")
+endif()
+
+find_package_or_disable_msg(PNG NOPNG "Screenshots will be saved in BMP")
+if(PNG_FOUND)
+    list(INSERT engine_sources 0 PNGh.pas)
+    list(REMOVE_AT PNG_LIBRARIES 1) #removing the zlib library path
+    get_filename_component(PNG_LIBRARY_DIR ${PNG_LIBRARIES} PATH)
+    add_flag_append(CMAKE_Pascal_FLAGS "-k-L${PNG_LIBRARY_DIR} -Fl${PNG_LIBRARY_DIR}")
+    add_definitions(-dPNG_SCREENSHOTS)
+endif()
+
+if(LUA_SYSTEM)
+    get_filename_component(LUA_LIBRARY_DIR ${LUA_LIBRARY} PATH)
+    get_filename_component(LUA_LIBRARY_NAME ${LUA_LIBRARY} NAME)
+    #NAME_WE would strip the .1 (or .2) next to the ".so"
+    string(REGEX REPLACE "${CMAKE_SHARED_LIBRARY_PREFIX}(.*)${CMAKE_SHARED_LIBRARY_SUFFIX}" "\\1" LUA_LIBRARY_NAME "${LUA_LIBRARY_NAME}")
+    add_flag_append(CMAKE_Pascal_FLAGS "-Fl${LUA_LIBRARY_DIR} -XLAlua=${LUA_LIBRARY_NAME}")
 else()
-    message(STATUS "PNG screenshots disabled per user request, using BMP format")
+    add_definitions(-dLUA_INTERNAL)
+    list(APPEND HW_LINK_LIBS lua)
+    add_flag_append(CMAKE_Pascal_FLAGS "-XLAlua=${lua_output_name}")
 endif()
 
-set(fpc_flags ${noexecstack_flags} ${pascal_flags} ${hwengine_project})
+if(PHYSFS_SYSTEM)
+    get_filename_component(PHYSFS_LIBRARY_DIR ${PHYSFS_LIBRARY} PATH)
+    add_flag_append(CMAKE_Pascal_FLAGS "-Fl${PHYSFS_LIBRARY}")
+else()
+    add_definitions(-dPHYSFS_INTERNAL)
+    list(APPEND HW_LINK_LIBS physfs)
+    #-XLA is a beta fpc flag that renames libraries before passing them to the linker
+    #we also have to pass PHYSFS_INTERNAL to satisfy windows runtime requirements
+    #(should be harmless on other platforms)
+    add_flag_append(CMAKE_Pascal_FLAGS "-XLAphysfs=${physfs_output_name}")
+endif()
+list(APPEND HW_LINK_LIBS physlayer)
 
 
-IF(NOT APPLE)
-    #here is the command for standard executables or for shared library
-    add_custom_command(OUTPUT "${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}${CMAKE_EXECUTABLE_SUFFIX}"
-        COMMAND "${fpc_executable}"
-        ARGS ${fpc_flags}
-        MAIN_DEPENDENCY ${hwengine_project}
-        DEPENDS ${engine_sources}
-        )
-ELSE()
-    #these are the dependencies for building a universal binary on Mac OS X
-    foreach (build_arch ${powerpc_build} ${i386_build} ${x86_64_build})
-        set(lipo_args_list "${EXECUTABLE_OUTPUT_PATH}/hwengine.${build_arch}" ${lipo_args_list})
-        add_custom_command(OUTPUT "${EXECUTABLE_OUTPUT_PATH}/hwengine.${build_arch}"
-            COMMAND "${fpc_executable}"
-            ARGS ${fpc_flags} -ohwengine.${build_arch} -P${build_arch}
-            MAIN_DEPENDENCY ${hwengine_project}
-            DEPENDS ${engine_sources}
-            )
-        add_custom_target(hwengine.${build_arch} ALL DEPENDS "${EXECUTABLE_OUTPUT_PATH}/hwengine.${build_arch}")
-    endforeach()
+#Mix_Init/Mix_Quit from SDL_mixer 1.2.10
+check_library_exists(${SDLMIXER_LIBRARY} Mix_Init "" HAVE_MIXINIT)
+if(HAVE_MIXINIT)
+    add_definitions(-dSDL_MIXER_NEWER)
+endif(HAVE_MIXINIT)
 
-    add_custom_command(OUTPUT "${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}"
-        COMMAND "lipo"
-        ARGS ${lipo_args_list} -create -output ${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}
-        DEPENDS ${lipo_args_list}
-        )
-ENDIF()
+#IMG_Init/IMG_Quit from SDL_image 1.2.8
+check_library_exists(${SDLIMAGE_LIBRARY} IMG_Init "" HAVE_IMGINIT)
+if(HAVE_IMGINIT)
+    add_definitions(-dSDL_IMAGE_NEWER)
+endif(HAVE_IMGINIT)
 
-
-add_custom_target(${engine_output_name} ALL DEPENDS "${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}${CMAKE_EXECUTABLE_SUFFIX}")
-
-#when system Lua is not found we need to compile it before engine
-if(NOT LUA_FOUND)
-    add_dependencies(${engine_output_name} lua)
+if(${SDL_VERSION} VERSION_GREATER 1.3)
+    add_definitions(-dSDL2)
 endif()
 
-#this command is a workaround to some inlining issues present in older
-# FreePascal versions and fixed in 2.6, That version is mandatory on OSX,
-# hence the command is not needed there
-if(NOT APPLE)
-    add_custom_target(ENGINECLEAN COMMAND ${CMAKE_BUILD_TOOL} "clean" "${PROJECT_BINARY_DIR}" "${hedgewars_SOURCE_DIR}/hedgewars")
-    add_dependencies(${engine_output_name} ENGINECLEAN)
+#opengl 2
+IF(GL2)
+    add_definitions(-dGL2)
+ENDIF(GL2)
+
+#needs to be last
+add_definitions(-dDEBUGFILE)
+
+
+# source files are with full path after this
+set(sourcefiles_sofar "${CMAKE_CURRENT_SOURCE_DIR}/options.inc" "${CMAKE_CURRENT_BINARY_DIR}/config.inc")
+foreach(loop_var ${engine_sources})
+    list(APPEND sourcefiles_sofar "${CMAKE_CURRENT_SOURCE_DIR}/${loop_var}")
+endforeach(loop_var)
+
+
+#SOURCE AND PROGRAMS SECTION
+if(BUILD_ENGINE_LIBRARY)
+    message("***Engine will be built as library (experimental)***")
+    if(APPLE)
+        if (${current_macosx_version} VERSION_GREATER "10.5")
+            # due to compiler/linker issues on Max OS X 10.6 -k-no_order_inits is needed to avoid linking fail
+            add_flag_prepend(CMAKE_Pascal_FLAGS "-k-no_order_inits")
+        endif()
+    endif()
+
+    #workaround for missing <TARGET> support during object generation
+    set(engine_output_name "${CMAKE_SHARED_LIBRARY_PREFIX}hwengine${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(destination_dir ${target_library_install_dir})
+    add_flag_prepend(CMAKE_Pascal_FLAGS "-o${LIBRARY_OUTPUT_PATH}/${engine_output_name}")
+
+    add_definitions(-dHWLIBRARY)
+    set_source_files_properties(hwLibrary.pas PROPERTIES OBJECT_DEPENDS "${sourcefiles_sofar};${CMAKE_CURRENT_SOURCE_DIR}/hwengine.pas")
+    add_library(hwengine SHARED hwLibrary.pas)
+else()
+    # no need to change name here because target has same name
+    set(engine_output_name "hwengine${CMAKE_EXECUTABLE_SUFFIX}")
+    set(destination_dir ${target_binary_install_dir})
+    set_source_files_properties(hwengine.pas PROPERTIES OBJECT_DEPENDS "${sourcefiles_sofar}")
+    add_executable(hwengine hwengine.pas)
 endif()
 
-install(PROGRAMS "${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}${CMAKE_EXECUTABLE_SUFFIX}" DESTINATION ${target_dir})
+#even though not actually used, this will trigger relink if any lib changes
+target_link_libraries(hwengine ${HW_LINK_LIBS})
 
+install(PROGRAMS "${EXECUTABLE_OUTPUT_PATH}/${engine_output_name}" DESTINATION ${destination_dir})

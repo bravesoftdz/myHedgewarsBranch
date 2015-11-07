@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2012 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *)
 
 {$INCLUDE "options.inc"}
@@ -23,39 +23,48 @@ unit uCommands;
 interface
 
 var isDeveloperMode: boolean;
+var isExternalSource: boolean;
 type TCommandHandler = procedure (var params: shortstring);
 
 procedure initModule;
 procedure freeModule;
+procedure RegisterVariable(Name: shortstring; p: TCommandHandler; Trusted: boolean; Rand: boolean);
 procedure RegisterVariable(Name: shortstring; p: TCommandHandler; Trusted: boolean);
-procedure ParseCommand(CmdStr: shortstring; TrustedSource: boolean);
+procedure ParseCommand(CmdStr: shortstring; TrustedSource: boolean); inline;
+procedure ParseCommand(CmdStr: shortstring; TrustedSource, ExternalSource: boolean);
 procedure ParseTeamCommand(s: shortstring);
 procedure StopMessages(Message: Longword);
 
 implementation
-uses uConsts, uVariables, uConsole, uUtils, uDebug;
+uses uConsts, uVariables, uConsole, uUtils, SDLh;
 
 type  PVariable = ^TVariable;
     TVariable = record
         Next: PVariable;
         Name: string[15];
         Handler: TCommandHandler;
-        Trusted: boolean;
+        Trusted, Rand: boolean;
         end;
 
-var
-    Variables: PVariable;
+var Variables: PVariable;
 
 procedure RegisterVariable(Name: shortstring; p: TCommandHandler; Trusted: boolean);
-var
-    value: PVariable;
+begin
+RegisterVariable(Name, p, Trusted, false);
+end;
+
+procedure RegisterVariable(Name: shortstring; p: TCommandHandler; Trusted: boolean; Rand: boolean);
+var value: PVariable;
 begin
 New(value);
-TryDo(value <> nil, 'RegisterVariable: value = nil', true);
+if value = nil then
+    ParseCommand('fatal RegisterVariable: value = nil', true);
+
 FillChar(value^, sizeof(TVariable), 0);
 value^.Name:= Name;
 value^.Handler:= p;
 value^.Trusted:= Trusted;
+value^.Rand:= Rand;
 
 if Variables = nil then
     Variables:= value
@@ -67,27 +76,40 @@ else
 end;
 
 
-procedure ParseCommand(CmdStr: shortstring; TrustedSource: boolean);
+procedure ParseCommand(CmdStr: shortstring; TrustedSource: boolean); inline;
+begin
+    ParseCommand(CmdStr, TrustedSource, false)
+end;
+
+procedure ParseCommand(CmdStr: shortstring; TrustedSource, ExternalSource: boolean);
 var s: shortstring;
     t: PVariable;
     c: char;
 begin
+isExternalSource:= ExternalSource or ((CurrentTeam <> nil) and CurrentTeam^.ExtDriven);
 //WriteLnToConsole(CmdStr);
 if CmdStr[0]=#0 then
     exit;
+
+AddFileLog('[Cmd] ' + sanitizeForLog(CmdStr));
+
 c:= CmdStr[1];
 if (c = '/') or (c = '$') then
     Delete(CmdStr, 1, 1);
 s:= '';
 SplitBySpace(CmdStr, s);
-AddFileLog('[Cmd] ' + CmdStr + ' (' + inttostr(length(s)) + ')');
+
 t:= Variables;
 while t <> nil do
     begin
     if t^.Name = CmdStr then
         begin
         if TrustedSource or t^.Trusted then
+            begin
+            if t^.Rand and (not CheckNoTeamOrHH) then
+                CheckSum:= CheckSum xor LongWord(SDLNet_Read32(@CmdStr)) xor LongWord(s[0]) xor GameTicks;
             t^.Handler(s);
+            end;
         exit
         end
     else
@@ -117,7 +139,7 @@ begin
 if (Message and gmLeft) <> 0 then
     ParseCommand('/-left', true)
 else if (Message and gmRight) <> 0 then
-    ParseCommand('/-right', true) 
+    ParseCommand('/-right', true)
 else if (Message and gmUp) <> 0 then
     ParseCommand('/-up', true)
 else if (Message and gmDown) <> 0 then

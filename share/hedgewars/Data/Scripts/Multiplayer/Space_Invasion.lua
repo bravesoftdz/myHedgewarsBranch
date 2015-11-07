@@ -1,6 +1,6 @@
 
-loadfile(GetDataPath() .. "Scripts/Locale.lua")()
-loadfile(GetDataPath() .. "Scripts/Tracker.lua")()
+HedgewarsScriptLoad("/Scripts/Locale.lua")
+HedgewarsScriptLoad("/Scripts/Tracker.lua")
 
 ---------------------------------------------------
 ---------------------------------------------------
@@ -235,6 +235,7 @@ local fMod = 1000000 -- use this for dev and .16+ games
 -- some console stuff
 local shellID = 0
 local explosivesID = 0
+local luaGameTicks = 0
 
 -- gaudyRacer
 local boosterOn = false
@@ -289,13 +290,13 @@ local chainCounter = 0
 local chainLength = 0
 local shotsFired = 0
 local shotsHit = 0
-local SurfTime = 0
 local sniperHits = 0
 local pointBlankHits = 0
 ---------------------
 -- tumbler goods
 ---------------------
 
+local moveTimer = 0
 local leftOn = false
 local rightOn = false
 local upOn = false
@@ -316,6 +317,7 @@ local fireTimer = 0
 local primShotsMax = 5
 local primShotsLeft = 0
 
+local TimeLeftCounter = 0
 local TimeLeft = 0
 local stopMovement = false
 local tumbleStarted = false
@@ -327,6 +329,8 @@ local shieldHealth
 local shockwave
 local shockwaveHealth = 0
 local shockwaveRad = 300
+
+local Timer100 = 0
 
 local vTag = {}
 
@@ -341,7 +345,8 @@ local targetHit = false
 local FadeAlpha = 0 -- used to fade the circles out gracefully when player dies
 local pTimer = 0 -- tracking projectiles following player
 
---local m2Count = 0		-- handle speed of circs
+local circAdjustTimer = 0		-- handle adjustment of circs direction
+local m2Count = 0		-- handle speed of circs
 
 local vCirc = {}
 local vCCount = 0
@@ -350,6 +355,7 @@ local rCirc = {}
 local rCircX = {}
 local rCircY = {}
 local rAlpha = 255
+local rPingTimer = 0
 local radShotsLeft = 0
 
 local vCircActive = {}
@@ -612,7 +618,7 @@ function onNewRound()
 
 		for i = 0, (numhhs-1) do
 			if GetHogClan(hhs[i]) ~= bestClan then
-				SetEffect(hhs[i], heResurrectable, false)
+				SetEffect(hhs[i], heResurrectable, 0)
 				SetHealth(hhs[i],0)
 			end
 		end
@@ -994,7 +1000,8 @@ end
 --------------------------
 
 function onGameInit()
-	GameFlags = 0 + gfRandomOrder
+	ClearGameFlags()
+	EnableGameFlags(gfRandomOrder)
 	Theme = "EarthRise"
 	CaseFreq = 0
 	HealthCaseProb = 0
@@ -1097,7 +1104,6 @@ function onNewTurn()
 	pointBlankHits = 0
 	chainLength = 0
 	chainCounter = 0
-	SurfTime = 12
 
 	-------------------------
 	-- gaudy racer
@@ -1152,11 +1158,25 @@ function ThingsToBeRunOnGears(gear)
 
 end
 
+function onGearWaterSkip(gear)
+	if gear == CurrentHedgehog then
 
-function onGameTick20()
+		for i = 0,(TeamsCount-1) do
+			if teamClan[i] == GetHogClan(CurrentHedgehog) and (teamSurfer[i] == false) then
+				teamSurfer[i] = true
+				AddCaption(loc("Surfer! +15 points!"),0xffba00ff,capgrpVolume)
+				AwardPoints(15)
+			end
+		end
+
+	end
+end
+
+function onGameTick()
 
 
 	--WriteLnToConsole("Start of GameTick")
+	luaGameTicks = luaGameTicks + 1 -- GameTime
 
 	HandleCircles()
 
@@ -1167,7 +1187,9 @@ function onGameTick20()
 	--end
 
 
-	if GameTime%100 == 0 then
+	Timer100 = Timer100 + 1
+	if Timer100 >= 100 then
+		Timer100 = 0
 
 		if beam == true then
 			shieldHealth = shieldHealth - 1
@@ -1191,7 +1213,7 @@ function onGameTick20()
 		--runOnGears(HandleLifeSpan)
 		--runOnGears(DeleteFarFlungBarrel)
 
-		if CirclesAreGo == true and CurrentHedgehog ~= nil then
+		if CirclesAreGo == true then
 			CheckDistances()
 			--runOnGears(CheckVarious)	-- used to be in handletracking for some bizarre reason
 			--runOnGears(ProjectileTrack)
@@ -1215,7 +1237,7 @@ function onGameTick20()
 		if (TurnTimeLeft > 0) and (TurnTimeLeft ~= TurnTime) then
 			--AddCaption(LOC_NOT("Good to go!"))
 			tumbleStarted = true
-			TimeLeft = div(TurnTime, 1000)	--45
+			TimeLeft = (TurnTime/1000)	--45
 			FadeAlpha = 0
 			rAlpha = 255
 			AddGear(GetX(CurrentHedgehog), GetY(CurrentHedgehog), gtGrenade, 0, 0, 0, 1)
@@ -1233,7 +1255,9 @@ function onGameTick20()
 		--AddCaption(GetX(CurrentHedgehog) .. ";" .. GetY(CurrentHedgehog) )
 
 		-- Calculate and display turn time
-		if GameTime%1000 == 0 then
+		TimeLeftCounter = TimeLeftCounter + 1
+		if TimeLeftCounter == 1000 then
+			TimeLeftCounter = 0
 			TimeLeft = TimeLeft - 1
 
 			if TimeLeft >= 0 then
@@ -1298,8 +1322,10 @@ function onGameTick20()
 			end
 
 			-- handle movement based on IO
-			if GameTime%100 == 0 then -- 100
+			moveTimer = moveTimer + 1
+			if moveTimer == 100 then -- 100
 				--nw WriteLnToConsole("Start of Player MoveTimer")
+				moveTimer = 0
 
 				---------------
 				-- new trail code
@@ -1312,30 +1338,6 @@ function onGameTick20()
 				end
 				--------------
 				--------------
-
-				------------------------
-				-- surfer achievement
-				------------------------
-
-				if (WaterLine - GetY(CurrentHedgehog)) < 15 then
-					SurfTime = SurfTime -1
-				end
-
-				if SurfTime ~= 12 then
-
-					SurfTime = SurfTime - 1
-					if SurfTime <= 0 then
-						for i = 0,(TeamsCount-1) do
-							if teamClan[i] == GetHogClan(CurrentHedgehog) and (teamSurfer[i] == false) then
-								teamSurfer[i] = true
-								SurfTime = 12
-								AddCaption(loc("Surfer! +15 points!"),0xffba00ff,capgrpVolume)
-								AwardPoints(15)
-							end
-						end
-					end
-				end
-
 
 				dx, dy = GetGearVelocity(CurrentHedgehog)
 
@@ -1434,7 +1436,7 @@ function onGearAdd(gear)
 	--end
 
 	if GetGearType(gear) == gtHedgehog then
-		SetEffect(gear, heResurrectable, true)
+		SetEffect(gear, heResurrectable, 1)
 
 		-----------
 		-- control
@@ -1608,7 +1610,7 @@ function CreateMeSomeCircles()
 
 		vType[i] = "generic"
 		vCounter[i] = 0
-		vCounterLim[i] = 150
+		vCounterLim[i] = 3000
 		vCircScore[i] = 0
 		vCircHealth[i] = 1
 
@@ -1801,7 +1803,7 @@ function SetUpCircle(i)
 			vType[i] = "drone"
 			vCircRadMin[i] = 50	*5
 			vCircRadMax[i] = 90	*5
-			vCounterLim[i] = 150
+			vCounterLim[i] = 3000
 			vCircScore[i] = 10
 			vCircHealth[i] = 1
 		--else
@@ -1826,7 +1828,7 @@ function SetUpCircle(i)
 			vCircRadMin[i] = 100*5
 			vCircRadMax[i] = 180*5
 			vCircWidth[i] = 1
-			vCounterLim[i] = 100
+			vCounterLim[i] = 2000
 			vCircScore[i] = 30
 			vCircHealth[i] = 3
 		else
@@ -1998,7 +2000,7 @@ function CheckVarious(gear)
 		end
 
 	-- if player is hit by circle bazooka
-	elseif (GetGearType(gear) == gtShell) and (CurrentHedgehog ~= nil) then --or (GetGearType(gear) == gtBall) then
+	elseif (GetGearType(gear) == gtShell) then --or (GetGearType(gear) == gtBall) then
 
 		dist = GetDistFromGearToGear(gear, CurrentHedgehog)
 
@@ -2129,7 +2131,9 @@ function HandleCircles()
 
 	if rAlpha ~= 255 then
 
-		if GameTime%100 == 0 then
+		rPingTimer = rPingTimer + 1
+		if rPingTimer == 100 then
+			rPingTimer = 0
 
 			rAlpha = rAlpha + 5
 			if rAlpha >= 255 then
@@ -2245,7 +2249,10 @@ function HandleCircles()
 	end
 
 	-- alter the circles velocities
-	if GameTime%2000 == 0 then
+	circAdjustTimer = circAdjustTimer + 1
+	if circAdjustTimer == 2000 then
+
+		circAdjustTimer = 0
 
 		for i = 0,(vCCount-1) do
 
@@ -2253,9 +2260,9 @@ function HandleCircles()
 			-- or make them move in random directions
 
 			if vCircX[i] > 5500 then
-				vCircDX[i] = -4	--5 circmovchange
+				vCircDX[i] = -5	--5 circmovchange
 			elseif vCircX[i] < -1500 then
-				vCircDX[i] = 4	--5 circmovchange
+				vCircDX[i] = 5	--5 circmovchange
 			else
 
 				z = GetRandom(2)
@@ -2268,9 +2275,9 @@ function HandleCircles()
 			end
 
 			if vCircY[i] > 1500 then
-				vCircDY[i] = -4	--5 circmovchange
+				vCircDY[i] = -5	--5 circmovchange
 			elseif vCircY[i] < -2900 then
-				vCircDY[i] = 4	--5 circmovchange
+				vCircDY[i] = 5	--5 circmovchange
 			else
 				z = GetRandom(2)
 				if z == 1 then
@@ -2286,10 +2293,10 @@ function HandleCircles()
 	end
 
 	-- move the circles according to their current velocities
-	--m2Count = m2Count + 1
-	--if m2Count == 25 then	--25 circmovchange
+	m2Count = m2Count + 1
+	if m2Count == 25 then	--25 circmovchange
 
-	--	m2Count = 0
+		m2Count = 0
 		for i = 0,(vCCount-1) do
 			vCircX[i] = vCircX[i] + vCircDX[i]
 			vCircY[i] = vCircY[i] + vCircDY[i]
@@ -2330,7 +2337,7 @@ function HandleCircles()
 
 
 
-	--end
+	end
 
 	for i = 0,(vCCount-1) do
 		g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(vCirc[i])		-- vCircCol[i] g10
@@ -2387,19 +2394,17 @@ function ProjectileTrack(gear)
 		--WriteLnToConsole("I just got the velocity of the shell. It is dx: " .. dx .. "; dy: " .. dy)
 		--WriteLnToConsole("CurrentHedgehog is at X: " .. GetX(CurrentHedgehog) .. "; Y: " .. GetY(CurrentHedgehog) )
 
-        if CurrentHedgehog ~= nil then
-            if GetX(gear) > GetX(CurrentHedgehog) then
-                dx = dx - turningSpeed--0.1
-            else
-                dx = dx + turningSpeed--0.1
-            end
+		if GetX(gear) > GetX(CurrentHedgehog) then
+			dx = dx - turningSpeed--0.1
+		else
+			dx = dx + turningSpeed--0.1
+		end
 
-            if GetY(gear) > GetY(CurrentHedgehog) then
-                dy = dy - turningSpeed--0.1
-            else
-                dy = dy + turningSpeed--0.1
-            end
-        end
+		if GetY(gear) > GetY(CurrentHedgehog) then
+			dy = dy - turningSpeed--0.1
+		else
+			dy = dy + turningSpeed--0.1
+		end
 
 
 		if (GetGearType(gear) == gtShell) then

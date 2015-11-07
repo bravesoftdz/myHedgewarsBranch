@@ -5,7 +5,7 @@
         <file>res/css/chat.css</file>
         <file>res/css/christmas.css</file>
         <file>res/css/easter.css</file>
-        <file>res/css/birthday.css</file>		  
+        <file>res/css/birthday.css</file>
         <file>res/hh25x25.png</file>
         <file>res/hh25x25grey.png</file>
         <file>res/ammopic.png</file>
@@ -28,12 +28,37 @@
         <file>res/botlevels/net3.png</file>
         <file>res/botlevels/net4.png</file>
         <file>res/botlevels/net5.png</file>
+        <file>res/campaign/A_Classic_Fairytale/first_blood.png</file>
+        <file>res/campaign/A_Classic_Fairytale/shadow.png</file>
+        <file>res/campaign/A_Classic_Fairytale/journey.png</file>
+        <file>res/campaign/A_Classic_Fairytale/united.png</file>
+        <file>res/campaign/A_Classic_Fairytale/backstab.png</file>
+        <file>res/campaign/A_Classic_Fairytale/dragon.png</file>
+        <file>res/campaign/A_Classic_Fairytale/family.png</file>
+        <file>res/campaign/A_Classic_Fairytale/queen.png</file>
+        <file>res/campaign/A_Classic_Fairytale/enemy.png</file>
+        <file>res/campaign/A_Classic_Fairytale/epil.png</file>
+        <file>res/campaign/A_Space_Adventure/cosmos.png</file>
+        <file>res/campaign/A_Space_Adventure/moon01.png</file>
+        <file>res/campaign/A_Space_Adventure/moon02.png</file>
+        <file>res/campaign/A_Space_Adventure/ice01.png</file>
+        <file>res/campaign/A_Space_Adventure/ice02.png</file>
+        <file>res/campaign/A_Space_Adventure/desert01.png</file>
+        <file>res/campaign/A_Space_Adventure/desert02.png</file>
+        <file>res/campaign/A_Space_Adventure/desert03.png</file>
+        <file>res/campaign/A_Space_Adventure/fruit01.png</file>
+        <file>res/campaign/A_Space_Adventure/fruit02.png</file>
+        <file>res/campaign/A_Space_Adventure/fruit03.png</file>
+        <file>res/campaign/A_Space_Adventure/death01.png</file>
+        <file>res/campaign/A_Space_Adventure/death02.png</file>
+        <file>res/campaign/A_Space_Adventure/final.png</file>
         <file>res/bonus.png</file>
         <file>res/Hedgehog.png</file>
         <file>res/net.png</file>
         <file>res/About.png</file>
         <file>res/SimpleGame.png</file>
         <file>res/Campaign.png</file>
+        <file>res/CampaignDefault.png</file>
         <file>res/Multiplayer.png</file>
         <file>res/Trainings.png</file>
         <file>res/Background.png</file>
@@ -44,6 +69,9 @@
         <file>res/HedgewarsTitle.png</file>
         <file>res/LocalPlay.png</file>
         <file>res/NetworkPlay.png</file>
+        <file>res/NetworkPlayDisabled.png</file>
+        <file>res/audio.png</file>
+        <file>res/camera.png</file>
         <file>res/Settings.png</file>
         <file>res/dropdown.png</file>
         <file>res/new.png</file>
@@ -56,6 +84,7 @@
         <file>res/Load.png</file>
         <file>res/Save.png</file>
         <file>res/Record.png</file>
+        <file>res/Videos.png</file>
         <file>res/weaponsicon.png</file>
         <file>res/teamicon.png</file>
         <file>res/panelbg.png</file>
@@ -95,26 +124,23 @@
         <file>res/iconHealth.png</file>
         <file>res/iconSuddenDeath.png</file>
         <file>res/iconDamage.png</file>
+        <file>res/iconDamageLockG.png</file>
+        <file>res/iconDamageLockR.png</file>
         <file>res/iconTime.png</file>
+        <file>res/iconTimeLockG.png</file>
+        <file>res/iconTimeLockR.png</file>
         <file>res/iconMine.png</file>
         <file>res/iconDud.png</file>
         <file>res/iconRope.png</file>
+        <file>res/iconEarth.png</file>
         <file>res/dice.png</file>
         <file>res/Star.png</file>
-	<file>res/Flake.png</file>
-	<file>res/Egg.png</file>
-	<file>res/Confetti.png</file>
+        <file>res/inverse-corner-bl.png</file>
+        <file>res/Flake.png</file>
+        <file>res/Egg.png</file>
+        <file>res/Confetti.png</file>
         <file>res/file_save.png</file>
         <file>res/file_demo.png</file>
-        <file>res/chat_default.png</file>
-        <file>res/chat_ignore.png</file>
-        <file>res/chat_friend.png</file>
-        <file>res/chat_default_on.png</file>
-        <file>res/chat_ignore_on.png</file>
-        <file>res/chat_friend_on.png</file>
-        <file>res/chat_default_off.png</file>
-        <file>res/chat_ignore_off.png</file>
-        <file>res/chat_friend_off.png</file>
         <file>res/addfriend.png</file>
         <file>res/remfriend.png</file>
         <file>res/ignore.png</file>
@@ -137,10 +163,29 @@
         <file>res/StatsMostSelfDamage.png</file>
         <file>res/StatsSelfKilled.png</file>
         <file>res/StatsSkipped.png</file>
+        <file>res/StatsCustomAchievement.png</file>
+        <file>res/Start.png</file>
         <file>res/mapRandom.png</file>
         <file>res/mapMaze.png</file>
         <file>res/mapMissing.png</file>
         <file>res/mapCustom.png</file>
         <file>res/mapMission.png</file>
+        <file>res/chat/friend.png</file>
+        <file>res/chat/ignore.png</file>
+        <file>res/chat/lamp.png</file>
+        <file>res/chat/hedgehog.png</file>
+        <file>res/chat/hedgehog_gray.png</file>
+        <file>res/chat/roomadmin.png</file>
+        <file>res/chat/roomadmin_gray.png</file>
+        <file>res/chat/serveradmin.png</file>
+        <file>res/chat/serveradmin_gray.png</file>
+        <file>res/chat/lamp_off.png</file>
+        <file>res/chat/ingame.png</file>
+        <file>res/splash.png</file>
+        <file>res/html/about.html</file>
+        <file>res/chat/hedgehogcontributor.png</file>
+        <file>res/chat/hedgehogcontributor_gray.png</file>
+        <file>res/chat/roomadmincontributor.png</file>
+        <file>res/chat/roomadmincontributor_gray.png</file>
     </qresource>
 </RCC>

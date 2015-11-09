@@ -1094,6 +1094,7 @@ begin
     AllInactive := false;
     Gear^.X := Gear^.X + Gear^.dX;
     Gear^.Y := Gear^.Y + Gear^.dY;
+    WorldWrap(Gear);
     Gear^.dY := Gear^.dY + cGravity;
     CheckGearDrowning(Gear);
     CheckCollision(Gear);
@@ -1959,7 +1960,7 @@ begin
     if land = 0 then land:= TestCollisionYwithGear(Gear,-2);
     if land = 0 then land:= TestCollisionXwithGear(Gear,-2);
     if land = 0 then land:= TestCollisionYwithGear(Gear, 2);
-    if (land <> 0) and (land and lfBouncy = 0) then
+    if (land <> 0) and ((land and lfBouncy = 0) or ((Gear^.State and gstMoving) = 0)) then
         begin
         if ((Gear^.State and gstMoving) <> 0) or (not isZero(Gear^.dX)) or (not isZero(Gear^.dY)) then
             begin
@@ -5197,7 +5198,9 @@ end;
 ////////////////////////////////////////////////////////////////////////////////
 procedure doStepPoisonCloud(Gear: PGear);
 begin
-    WorldWrap(Gear);
+    // don't bounce
+    if WorldEdge <> weBounce then
+        WorldWrap(Gear);
     if Gear^.Timer = 0 then
         begin
         DeleteGear(Gear);
@@ -5253,13 +5256,12 @@ while i > 0 do
                         d:= 2
                     else
                         d:= 3;
-                    // always round up
-                    if dmg mod d > 0 then
-                        dmg:= dmg div d + 1
-                    else
-                        dmg:= dmg div d;
 
-                    ApplyDamage(tmp, CurrentHedgehog, dmg, dsUnknown);
+                    // always rounding down
+                    dmg:= dmg div d;
+
+                    if dmg > 0 then
+                        ApplyDamage(tmp, CurrentHedgehog, dmg, dsUnknown);
                     end;
                 end;
 
@@ -5429,7 +5431,7 @@ begin
         for i:= 0 to graves.size - 1 do
             if graves.ar^[i]^.Health > 0 then
                 begin
-                resgear := AddGear(hwRound(graves.ar^[i]^.X), hwRound(graves.ar^[i]^.Y), gtHedgehog, gstWait, _0, _0, 0);
+                resgear := AddGear(hwRound(graves.ar^[i]^.X), hwRound(graves.ar^[i]^.Y), gtHedgehog, gstWait, _0, _0, 0,graves.ar^[i]^.Pos);
                 resgear^.Hedgehog := graves.ar^[i]^.Hedgehog;
                 resgear^.Health := graves.ar^[i]^.Health;
                 PHedgehog(graves.ar^[i]^.Hedgehog)^.Gear := resgear;

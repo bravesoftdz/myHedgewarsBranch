@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ interface
 program hwengine;
 {$ENDIF}
 
-uses SDLh, uMisc, uConsole, uGame, uConsts, uLand, uAmmos, uVisualGears, uGears, uStore, uWorld, uInputHandler
+uses {$IFDEF IPHONEOS}cmem, {$ENDIF} SDLh, uMisc, uConsole, uGame, uConsts, uLand, uAmmos, uVisualGears, uGears, uStore, uWorld, uInputHandler
      , uSound, uScript, uTeams, uStats, uIO, uLocale, uChat, uAI, uAIMisc, uAILandMarks, uLandTexture, uCollisions
      , SysUtils, uTypes, uVariables, uCommands, uUtils, uCaptions, uDebug, uCommandHandlers, uLandPainted
      , uPhysFSLayer, uCursor, uRandom, ArgParsers, uVisualGearsHandlers, uTextures, uRender
@@ -138,7 +138,8 @@ begin
         ScreenFadeValue:= sfMax;
         ScreenFadeSpeed:= 5;
         
-        if (not flagDumpLand and MakeScreenshot(s, 1, 0)) or (flagDumpLand and MakeScreenshot(s, 1, 1) and MakeScreenshot(s, 1, 2)) then
+        if (not flagDumpLand and MakeScreenshot(s, 1, 0)) or
+           (flagDumpLand and MakeScreenshot(s, 1, 1) and ((cReducedQuality and rqBlurryLand <> 0) or MakeScreenshot(s, 1, 2))) then
             WriteLnToConsole('Screenshot saved: ' + s)
         else
             begin
@@ -540,7 +541,11 @@ end;
 
 ///////////////////////////////////////////////////////////////////////////////
 procedure GenLandPreview;
+{$IFDEF MOBILE}
+var Preview: TPreview;
+{$ELSE}
 var Preview: TPreviewAlpha;
+{$ENDIF}
 begin
     initEverything(false);
 
@@ -549,7 +554,11 @@ begin
     TryDo(InitStepsFlags = cifRandomize, 'Some parameters not set (flags = ' + inttostr(InitStepsFlags) + ')', true);
 
     ScriptOnPreviewInit;
+{$IFDEF MOBILE}
+    GenPreview(Preview);
+{$ELSE}
     GenPreviewAlpha(Preview);
+{$ENDIF}
     WriteLnToConsole('Sending preview...');
     SendIPCRaw(@Preview, sizeof(Preview));
     SendIPCRaw(@MaxHedgehogs, sizeof(byte));
@@ -601,9 +610,13 @@ begin
         end;
 
     {$IFDEF PAS2C}
-    exit(HaltNoError);
+        exit(HaltNoError);
     {$ELSE}
-    halt(HaltNoError);
+        {$IFDEF IPHONEOS}
+            exit;
+        {$ELSE}
+            halt(HaltNoError);
+        {$ENDIF}
     {$ENDIF}
 {$IFDEF HWLIBRARY}
 end;

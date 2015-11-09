@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ implementation
 uses SDLh, uInputHandler, uTypes, uVariables, uCommands, uUtils, uTextures, uRender, uIO, uScript, uRenderUtils;
 
 const MaxStrIndex = 27;
-      MaxInputStrLen = 240;
+      MaxInputStrLen = 200;
 
 type TChatLine = record
     Tex: PTexture;
@@ -47,19 +47,15 @@ type TChatLine = record
     end;
     TChatCmd = (ccQuit, ccPause, ccFinish, ccShowHistory, ccFullScreen);
 
-type TInputStrL = array[0..260] of byte;
-
 var Strs: array[0 .. MaxStrIndex] of TChatLine;
     MStrs: array[0 .. MaxStrIndex] of shortstring;
     LocalStrs: array[0 .. MaxStrIndex] of shortstring;
-    LocalStrsL: array[0 .. MaxStrIndex] of TInputStrL;
     missedCount: LongWord;
     lastStr: LongWord;
     localLastStr: LongInt;
     history: LongInt;
     visibleCount: LongWord;
     InputStr: TChatLine;
-    InputStrL: TInputStrL; // for full str + 4-byte utf-8 char
     ChatReady: boolean;
     showAll: boolean;
     liveLua: boolean;
@@ -72,16 +68,17 @@ var Strs: array[0 .. MaxStrIndex] of TChatLine;
 
 
 const
-    InputStrLNoPred: byte = 255;
-
-    colors: array[#0..#6] of TSDL_Color = (
-            (r:$FF; g:$FF; b:$FF; a:$FF), // unused, feel free to take it for anything
-            (r:$FF; g:$FF; b:$FF; a:$FF), // chat message [White]
-            (r:$FF; g:$00; b:$FF; a:$FF), // action message [Purple]
-            (r:$90; g:$FF; b:$90; a:$FF), // join/leave message [Lime]
-            (r:$FF; g:$FF; b:$A0; a:$FF), // team message [Light Yellow]
-            (r:$FF; g:$00; b:$00; a:$FF), // error messages [Red]
-            (r:$00; g:$FF; b:$FF; a:$FF)  // input line [Light Blue]
+    colors: array[#0..#9] of TSDL_Color = (
+            (r:$FF; g:$FF; b:$FF; a:$FF), // #0 unused, feel free to take it for anything
+            (r:$FF; g:$FF; b:$FF; a:$FF), // #1 chat message [White]
+            (r:$FF; g:$00; b:$FF; a:$FF), // #2 action message [Purple]
+            (r:$90; g:$FF; b:$90; a:$FF), // #3 join/leave message [Lime]
+            (r:$FF; g:$FF; b:$A0; a:$FF), // #4 team message [Light Yellow]
+            (r:$FF; g:$00; b:$00; a:$FF), // #5 error messages [Red]
+            (r:$00; g:$FF; b:$FF; a:$FF), // #6 input line [Light Blue]
+            (r:$FF; g:$80; b:$80; a:$FF), // #7 team gone [Light Red]
+            (r:$FF; g:$D0; b:$80; a:$FF), // #8 team back [Light Orange]
+            (r:$DF; g:$DF; b:$DF; a:$FF)  // #9 hog speech [Light Gray]
             );
     ChatCommandz: array [TChatCmd] of record
             ChatCmd: string[31];
@@ -97,6 +94,13 @@ const
 
 const Padding  = 2;
       ClHeight = 2 * Padding + 16; // font height
+
+// relevant for UTF-8 handling
+function IsFirstCharByte(c: char): boolean; inline;
+begin
+    // based on https://en.wikipedia.org/wiki/UTF-8#Description
+    IsFirstCharByte:= (byte(c) and $C0) <> $80;
+end;
 
 function charIsForHogSpeech(c: char): boolean;
 begin
@@ -151,6 +155,9 @@ begin
     UpdateCursorCoords();
 end;
 
+(* This procedure [re]renders a texture showing str for the chat line cl.
+ * It will use the color stored in cl and update width
+ *)
 procedure RenderChatLineTex(var cl: TChatLine; var str: shortstring);
 var strSurface,
     resSurface: PSDL_Surface;
@@ -159,6 +166,8 @@ var strSurface,
 const
     shadowint  = $80 shl AShift;
 begin
+
+FreeAndNilTexture(cl.Tex);
 
 font:= CheckCJKFont(ansistring(str), fnt16);
 
@@ -198,9 +207,6 @@ const ClDisplayDuration = 12500;
 procedure SetLine(var cl: TChatLine; str: shortstring; isInput: boolean);
 var color  : TSDL_Color;
 begin
-if cl.Tex <> nil then
-    FreeAndNilTexture(cl.Tex);
-
 if isInput then
     begin
     cl.s:= str;
@@ -231,16 +237,14 @@ end;
 
 // For uStore texture recreation
 procedure ReloadLines;
-var i, t: LongWord;
+var i: LongWord;
 begin
     if InputStr.s <> '' then
         SetLine(InputStr, InputStr.s, true);
     for i:= 0 to MaxStrIndex do
         if Strs[i].s <> '' then
             begin
-            t:= Strs[i].Time;
-            SetLine(Strs[i], Strs[i].s, false);
-            Strs[i].Time:= t
+            RenderChatLineTex(Strs[i], Strs[i].s);
             end;
 end;
 
@@ -427,7 +431,6 @@ if s <> LocalStrs[localLastStr] then
     // put in input history
     localLastStr:= (localLastStr + 1) mod MaxStrIndex;
     LocalStrs[localLastStr]:= s;
-    LocalStrsL[localLastStr]:= InputStrL;
     end;
 
 t:= LocalTeam;
@@ -576,7 +579,7 @@ begin
 end;
 
 procedure DelBytesFromInputStrBack(endIdx: integer; count: byte);
-var i, startIdx: integer;
+var startIdx: integer;
 begin
     // nothing to do if count is 0
     if count = 0 then
@@ -588,45 +591,41 @@ begin
     // delete bytes from string
     Delete(InputStr.s, startIdx, count);
 
-    // wipe utf8 info for deleted char
-    InputStrL[endIdx]:= InputStrLNoPred;
-
-    // shift utf8 char info to reflect new string
-    for i:= endIdx + 1 to Length(InputStr.s) + count do
-        begin
-        if InputStrL[i] <> InputStrLNoPred then
-            begin
-            InputStrL[i-count]:= InputStrL[i] - count;
-            InputStrL[i]:= InputStrLNoPred;
-            end;
-        end;
-
     SetLine(InputStr, InputStr.s, true);
 end;
 
-// returns count of removed bytes
-function DelCharFromInputStr(idx: integer): integer;
-var btw: byte;
+procedure MoveCursorToPreviousChar();
 begin
-    // note: idx is always at last byte of utf8 chars. cuz relevant for InputStrL
-
-    if (Length(InputStr.s) < 1) or (idx < 1) or (idx > Length(InputStr.s)) then
-        exit(0);
-
-    btw:= byte(idx) - InputStrL[idx];
-
-    DelCharFromInputStr:= btw;
-
-    DelBytesFromInputStrBack(idx, btw);
+    if cursorPos > 0 then
+        repeat
+            dec(cursorPos);
+        until ((cursorPos = 0) or IsFirstCharByte(InputStr.s[cursorPos + 1]));
 end;
 
-// unchecked
-procedure DoCursorStepForward();
+procedure MoveCursorToNextChar();
+var len: integer;
 begin
-    // go to end of next utf8-char
-    repeat
-        inc(cursorPos);
-    until InputStrL[cursorPos] <> InputStrLNoPred;
+    len:= Length(InputStr.s);
+    if cursorPos < len then
+        repeat
+            inc(cursorPos);
+        until ((cursorPos = len) or IsFirstCharByte(InputStr.s[cursorPos + 1]));
+end;
+
+procedure DeleteLastUTF8CharFromStr(var s: shortstring);
+var l: byte;
+begin
+    l:= Length(s);
+
+    while (l > 1) and (not IsFirstCharByte(s[l])) do
+        begin
+        dec(l);
+        end;
+
+    if l > 0 then
+        dec(l);
+
+    s[0]:= char(l);
 end;
 
 procedure DeleteSelected();
@@ -635,8 +634,8 @@ begin
         begin
         DelBytesFromInputStrBack(max(cursorPos, selectedPos), abs(selectedPos-cursorPos));
         cursorPos:= min(cursorPos, selectedPos);
-        ResetSelection();
         end;
+    ResetSelection();
     UpdateCursorCoords();
 end;
 
@@ -656,10 +655,6 @@ type TCharSkip = ( none, wspace, numalpha, special );
 function GetInputCharSkipClass(index: LongInt): TCharSkip;
 var  c: char;
 begin
-    // multi-byte chars counts as letter
-    if (index > 1) and (InputStrL[index] <> index - 1) then
-        exit(numalpha);
-
     c:= InputStr.s[index];
 
     // non-ascii counts as letter
@@ -700,33 +695,31 @@ if backwards then
         begin
         skip:= GetInputCharSkipClass(cursorPos);
         if skip = wspace then
-            cursorPos:= InputStrL[cursorPos];
+            MoveCursorToPreviousChar();
         end;
     // skip same-type chars
     while (cursorPos > 0) and (GetInputCharSkipClass(cursorPos) = skip) do
-        cursorPos:= InputStrL[cursorPos];
+        MoveCursorToPreviousChar();
     end
 else
     begin
     // skip same-type chars
     while cursorPos < Length(InputStr.s) do
         begin
-        DoCursorStepForward();
+        MoveCursorToNextChar();
         if (GetInputCharSkipClass(cursorPos) <> skip) then
             begin
-            // go back 1 char
-            cursorPos:= InputStrL[cursorPos];
+            MoveCursorToPreviousChar();
             break;
             end;
         end;
     // skip trailing whitespace, similar to Qt
     while cursorPos < Length(InputStr.s) do
         begin
-        DoCursorStepForward();
+        MoveCursorToNextChar();
         if (GetInputCharSkipClass(cursorPos) <> wspace) then
             begin
-            // go back 1 char
-            cursorPos:= InputStrL[cursorPos];
+            MoveCursorToPreviousChar();
             break;
             end;
         end;
@@ -748,42 +741,44 @@ begin
         end;
 end;
 
-// TODO: honor utf8, don't break utf8 chars when shifting chars beyond limit
 procedure InsertIntoInputStr(s: shortstring);
-var i, l, il, lastc: integer;
+var limit: integer;
 begin
-    // safe length for string
-    l:= min(MaxInputStrLen-cursorPos, Length(s));
-    s:= copy(s,1,l);
+    // we check limit for trailing stuff before insertion limit for a reason
+    // (possible remaining space after too long UTF8-insertion has been shortened)
 
-    // if we insert rather than append, shift info in InputStrL accordingly
-    if cursorPos < Length(InputStr.s) then
+    // length limit for stuff to that will trail the insertion
+    limit:= max(cursorPos, MaxInputStrLen-Length(s));
+
+    while Length(InputStr.s) > limit do
         begin
-        for i:= Length(InputStr.s) downto cursorPos + 1 do
-            begin
-            if InputStrL[i] <> InputStrLNoPred then
-                begin
-                il:= i + l;
-                // only shift if not overflowing
-                if il <= MaxInputStrLen then
-                    InputStrL[il]:= InputStrL[i] + l;
-                InputStrL[i]:= InputStrLNoPred;
-                end;
-            end;
+        DeleteLastUTF8CharFromStr(InputStr.s);
         end;
 
-    InputStrL[cursorPos + l]:= cursorPos;
-    // insert string truncated to safe length
-    Insert(s, InputStr.s, cursorPos + 1);
-    if Length(InputStr.s) > MaxInputStrLen then
-        InputStr.s[0]:= char(MaxInputStrLen);
+    // length limit for stuff to insert
+    limit:= max(0, MaxInputStrLen-cursorPos);
 
-    SetLine(InputStr, InputStr.s, true);
+    if limit = 0 then
+        s:= ''
+    else while Length(s) > limit do
+        begin
+        DeleteLastUTF8CharFromStr(s);
+        end;
 
-    // move cursor to end of inserted string
-    lastc:= MaxInputStrLen;
-    cursorPos:= min(lastc, cursorPos + l);
-    UpdateCursorCoords();
+    if Length(s) > 0 then
+        begin
+        // insert string truncated to safe length
+        Insert(s, InputStr.s, cursorPos + 1);
+
+        if Length(InputStr.s) > MaxInputStrLen then
+            InputStr.s[0]:= char(MaxInputStrLen);
+
+        SetLine(InputStr, InputStr.s, true);
+
+        // move cursor to end of inserted string
+        inc(cursorPos, Length(s));
+        UpdateCursorCoords();
+        end;
 end;
 
 procedure PasteFromClipboard();
@@ -802,9 +797,10 @@ end;
 
 procedure KeyPressChat(Key, Sym: Longword; Modifier: Word);
 const firstByteMark: array[0..3] of byte = (0, $C0, $E0, $F0);
+      nonStateMask = (not (KMOD_NUM or KMOD_CAPS));
 var i, btw, index: integer;
     utf8: shortstring;
-    action, selMode, ctrl: boolean;
+    action, selMode, ctrl, ctrlonly: boolean;
     skip: TCharSkip;
 begin
     LastKeyPressTick:= RealTicks;
@@ -814,6 +810,7 @@ begin
 
     selMode:= (modifier and (KMOD_LSHIFT or KMOD_RSHIFT)) <> 0;
     ctrl:= (modifier and (KMOD_LCTRL or KMOD_RCTRL)) <> 0;
+    ctrlonly:= ctrl and ((modifier and nonStateMask and (not (KMOD_LCTRL or KMOD_RCTRL))) = 0);
     skip:= none;
 
     case Sym of
@@ -821,60 +818,41 @@ begin
             begin
             if selectedPos < 0 then
                 begin
-                if ctrl then
-                    skip:= GetInputCharSkipClass(cursorPos);
-
-                // remove char before cursor
-                dec(cursorPos, DelCharFromInputStr(cursorPos));
+                HandleSelection(true);
 
                 // delete more if ctrl is held
-                if ctrl and (selectedPos < 0) then
-                    begin
-                    HandleSelection(true);
-                    SkipInputChars(skip, true);
-                    DeleteSelected();
-                    end
+                if ctrl then
+                    SkipInputChars(GetInputCharSkipClass(cursorPos), true)
                 else
-                    UpdateCursorCoords();
+                    MoveCursorToPreviousChar();
 
-                end
-            else
-                DeleteSelected();
+                end;
+
+            DeleteSelected();
+            UpdateCursorCoords();
             end;
         SDLK_DELETE:
             begin
             if selectedPos < 0 then
                 begin
-                // remove char after cursor
-                if cursorPos < Length(InputStr.s) then
-                    begin
-                    DoCursorStepForward();
-                    if ctrl then
-                        skip:= GetInputCharSkipClass(cursorPos);
+                HandleSelection(true);
 
-                    // delete char
-                    dec(cursorPos, DelCharFromInputStr(cursorPos));
-
-                    // delete more if ctrl is held
-                    if ctrl and (cursorPos < Length(InputStr.s)) then
-                        begin
-                        HandleSelection(true);
-                        SkipInputChars(skip, false);
-                        DeleteSelected();
-                        end;
-                    end
+                // delete more if ctrl is held
+                if ctrl then
+                    SkipInputChars(GetInputCharSkipClass(cursorPos), false)
                 else
-                    UpdateCursorCoords();
-                end
-            else
-                DeleteSelected();
+                    MoveCursorToNextChar();
+
+                end;
+
+            DeleteSelected();
+            UpdateCursorCoords();
             end;
         SDLK_ESCAPE:
             begin
             if Length(InputStr.s) > 0 then
                 begin
                 SetLine(InputStr, '', true);
-                FillChar(InputStrL, sizeof(InputStrL), InputStrLNoPred);
                 ResetCursor();
                 end
             else CleanupInput
@@ -885,7 +863,6 @@ begin
                 begin
                 AcceptChatString(InputStr.s);
                 SetLine(InputStr, '', false);
-                FillChar(InputStrL, sizeof(InputStrL), InputStrLNoPred);
                 ResetCursor();
                 end;
             CleanupInput
@@ -898,12 +875,10 @@ begin
             if (index > localLastStr) then
                 begin
                 SetLine(InputStr, '', true);
-                FillChar(InputStrL, sizeof(InputStrL), InputStrLNoPred);
                 end
             else
                 begin
                 SetLine(InputStr, LocalStrs[index], true);
-                InputStrL:= LocalStrsL[index];
                 end;
             cursorPos:= Length(InputStr.s);
             ResetSelection();
@@ -946,7 +921,7 @@ begin
                     begin
                     HandleSelection(selMode);
                     // go to end of previous utf8-char
-                    cursorPos:= InputStrL[cursorPos];
+                    MoveCursorToPreviousChar();
                     end
                 else // if we're leaving selection mode, jump to its left end
                     begin
@@ -971,7 +946,7 @@ begin
                 if selMode or (selectedPos < 0) then
                     begin
                     HandleSelection(selMode);
-                    DoCursorStepForward();
+                    MoveCursorToNextChar();
                     end
                 else // if we're leaving selection mode, jump to its right end
                     begin
@@ -995,7 +970,7 @@ begin
         SDLK_a:
             begin
             // select all
-            if ctrl then
+            if ctrlonly then
                 begin
                 ResetSelection();
                 cursorPos:= 0;
@@ -1009,7 +984,7 @@ begin
         SDLK_c:
             begin
             // copy
-            if ctrl then
+            if ctrlonly then
                 CopySelectionToClipboard()
             else
                 action:= false;
@@ -1017,15 +992,18 @@ begin
         SDLK_v:
             begin
             // paste
-            if ctrl then
-                PasteFromClipboard()
+            if ctrlonly then
+                begin
+                DeleteSelected();
+                PasteFromClipboard();
+                end
             else
                 action:= false;
             end;
         SDLK_x:
             begin
             // cut
-            if ctrl then
+            if ctrlonly then
                 begin
                 CopySelectionToClipboard();
                 DeleteSelected();
@@ -1062,6 +1040,7 @@ begin
         if Length(InputStr.s) + btw > MaxInputStrLen then
             exit;
 
+        // if speech bubble quotes are used as first input, add the closing quote and place cursor inbetween
         if (Length(InputStr.s) = 0) and (Length(utf8) = 1) and (charIsForHogSpeech(utf8[1])) then
             begin
             InsertIntoInputStr(utf8);
@@ -1127,9 +1106,6 @@ begin
     else
         begin
         SetLine(InputStr, '/team ', true);
-        // update InputStrL and cursor accordingly
-        // this allows cursor-jumping over '/team ' as if it was a single char
-        InputStrL[6]:= 0;
         cursorPos:= 6;
         UpdateCursorCoords();
         end;
@@ -1161,8 +1137,6 @@ begin
     inputStr.Tex := nil;
     for i:= 0 to MaxStrIndex do
         Strs[i].Tex := nil;
-
-    FillChar(InputStrL, sizeof(InputStrL), InputStrLNoPred);
 
     LastKeyPressTick:= 0;
     ResetCursor();

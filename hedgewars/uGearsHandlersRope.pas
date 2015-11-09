@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,8 @@ begin
         OutError('ERROR: doStepRopeAfterAttack called while HHGear = nil', IsNilHHFatal);
         DeleteGear(Gear);
         exit()
-        end;
+        end
+    else if not CurrentTeam^.ExtDriven and (FollowGear <> nil) then FollowGear := HHGear;
 
     tX:= HHGear^.X;
     if WorldWrap(HHGear) and (WorldEdge = weWrap) and
@@ -137,7 +138,8 @@ begin
         OutError('ERROR: doStepRopeWork called while HHGear = nil', IsNilHHFatal);
         DeleteGear(Gear);
         exit()
-        end;
+        end
+    else if not CurrentTeam^.ExtDriven and (FollowGear <> nil) then FollowGear := HHGear;
 
     if ((HHGear^.State and gstHHDriven) = 0) or
         (CheckGearDrowning(HHGear)) or (Gear^.PortalCounter <> 0) then
@@ -425,6 +427,7 @@ var
     HHGear: PGear;
     tx, ty, tt: hwFloat;
 begin
+    
     Gear^.X := Gear^.X - Gear^.dX;
     Gear^.Y := Gear^.Y - Gear^.dY;
     Gear^.Elasticity := Gear^.Elasticity + _1;
@@ -435,7 +438,8 @@ begin
         OutError('ERROR: doStepRopeAttach called while HHGear = nil', IsNilHHFatal);
         DeleteGear(Gear);
         exit()
-        end;
+        end
+    else if not CurrentTeam^.ExtDriven and (FollowGear <> nil) then FollowGear := HHGear;
 
     DeleteCI(HHGear);
 

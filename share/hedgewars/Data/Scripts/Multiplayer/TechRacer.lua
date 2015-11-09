@@ -1,6 +1,11 @@
 ------------------------------------------
--- TECH RACER v0.2
+-- TECH RACER v0.8
 -----------------------------------------
+
+--------------
+-- TO DO
+--------------
+-- allow scrolling of maps (was going to add this in the engine itself, but it can be done now by refreshing preview)
 
 --------------
 --0.2
@@ -14,6 +19,55 @@
 -- changed theme
 -- minor cleanups?
 
+--------------
+--0.3
+--------------
+-- ehh, scrap everything? those old maps probably still desync so they can die for now
+-- hopefully fix map 3
+-- add two new crappy map to test an idea.
+
+--------------
+--0.4
+--------------
+-- updated version text (lol)
+-- some preliminary support for hand-drawn map loading
+-- some support for being really lazy
+-- an extra map or two
+-- param for infinite UFO fuel
+-- param for number of rounds
+
+--------------
+--0.5
+--------------
+-- migrated maps to an external script
+
+--------------
+--0.6
+--------------
+-- move 1 line of code :D (allows loading of HWMAP points to actually work)
+
+--------------
+--0.7
+--------------
+-- allow waypoints to be loaded automatically via TechMaps or HWMAP
+-- (temporarily?) remove ability to place waypoints manually
+-- break stuff?
+
+--------------
+--0.8
+--------------
+-- should (more or less) work "out of the box" now
+-- generate map previews for level
+-- randomly assign a map in the case of no map param
+-- no longer allow custom ammosets (ammo should be specified by map so that records can be valid, though we probably still need to completely limit gameflags)
+
+--------------
+--0.9
+--------------
+-- added variable portal limiter (and effects) from Escape script
+-- allow variable ufoFuel (nil is default, 2000 is infinite)
+-- disallow specifying fuel in params (do this in TechMaps or HedgeEditor please)
+
 -----------------------------
 -- SCRIPT BEGINS
 -----------------------------
@@ -22,14 +76,94 @@ HedgewarsScriptLoad("/Scripts/Locale.lua")
 HedgewarsScriptLoad("/Scripts/OfficialChallenges.lua")
 HedgewarsScriptLoad("/Scripts/Tracker.lua")
 HedgewarsScriptLoad("/Scripts/Params.lua")
+HedgewarsScriptLoad("/Scripts/TechMaps.lua")
 
 ------------------
 -- Got Variables?
 ------------------
 
+local atkArray =
+				{
+				{amBazooka, 	"amBazooka",		0},
+				{amBee, 		"amBee",			0},
+				{amMortar, 		"amMortar",			0},
+				{amDrill, 		"amDrill",			0},
+				{amSnowball, 	"amSnowball",		0},
+
+				{amGrenade,		"amGrenade",		0},
+				{amClusterBomb,	"amClusterBomb",	0},
+				{amMolotov, 	"amMolotov",		0},
+				{amWatermelon, 	"amWatermelon",		0},
+				{amHellishBomb,	"amHellishBomb",	0},
+				{amGasBomb, 	"amGasBomb",		0},
+
+				{amShotgun,		"amShotgun",		0},
+				{amDEagle,		"amDEagle",			0},
+				{amFlamethrower,"amFlamethrower",	0},
+				{amSniperRifle,	"amSniperRifle",	0},
+				{amSineGun, 	"amSineGun",		0},
+				{amIceGun, 		"amIceGun",			0},
+				{amLandGun,		"amLandGun",		0},
+
+				{amFirePunch, 	"amFirePunch",		0},
+				{amWhip,		"amWhip",			0},
+				{amBaseballBat, "amBaseballBat",	0},
+				{amKamikaze, 	"amKamikaze",		0},
+				{amSeduction, 	"amSeduction",		0},
+				{amHammer,		"amHammer",			0},
+
+				{amMine, 		"amMine",			0},
+				{amDynamite, 	"amDynamite",		0},
+				{amCake, 		"amCake",			0},
+				{amBallgun, 	"amBallgun",		0},
+				{amRCPlane,		"amRCPlane",		0},
+				{amSMine,		"amSMine",			0},
+				{amAirMine,		"amAirMine",		0},
+
+				{amAirAttack,	"amAirAttack",		0},
+				{amMineStrike,	"amMineStrike",		0},
+				{amDrillStrike,	"amDrillStrike",	0},
+				{amAirMine,		"amAirMine",		0},
+				{amNapalm, 		"amNapalm",			0},
+				{amPiano,		"amPiano",			0},
+
+				{amKnife,		"amKnife",			0},
+
+				{amBirdy,		"amBirdy",			0}
+
+				}
+
+local utilArray =
+				{
+				{amBlowTorch, 		"amBlowTorch",		0},
+				{amPickHammer,		"amPickHammer",		0},
+				{amGirder, 			"amGirder",			0},
+				{amRubber, 			"amRubber",			0},
+				{amPortalGun,		"amPortalGun",		0},
+
+				{amRope, 			"amRope",			0},
+				{amParachute, 		"amParachute",		0},
+				{amTeleport,		"amTeleport",		0},
+				{amJetpack,			"amJetpack",		0},
+
+				{amInvulnerable,	"amInvulnerable",	0},
+				{amLaserSight,		"amLaserSight",		0},
+				{amVampiric,		"amVampiric",		0},
+
+				{amLowGravity, 		"amLowGravity",		0},
+				{amExtraDamage, 	"amExtraDamage",	0},
+				{amExtraTime,		"amExtraTime",		0},
+
+				{amResurrector, 	"amResurrector",	0},
+				{amTardis, 			"amTardis",			0},
+
+				{amSwitch,			"amSwitch",			0}
+				}
+
 local activationStage = 0
 local jet = nil
-
+portalDistance = 5000 -- 15
+ufoFuel = 0
 local fMod = 1000000 -- 1
 local roundLimit = 3
 local roundNumber = 0
@@ -47,9 +181,10 @@ local currCount = 0
 
 local specialPointsX = {}
 local specialPointsY = {}
+local specialPointsFlag = {}
 local specialPointsCount = 0
 
-mapID = 22
+mapID = nil
 
 --------------------------
 -- hog and team tracking variales
@@ -88,7 +223,7 @@ local wpCol = {}
 local wpActive = {}
 local wpRad = 450 --75
 local wpCount = 0
-local wpLimit = 8
+local wpLimit = 20
 
 local usedWeapons = {}
 
@@ -417,8 +552,6 @@ function HandleGhost()
 
         end
 
-
-
 end
 
 function BoomGirder(x,y,rot)
@@ -464,11 +597,30 @@ function ClearMap()
 
 end
 
+function CallBob(x,y)
+	if not racerActive then
+        if wpCount == 0 or wpX[wpCount - 1] ~= x or wpY[wpCount - 1] ~= y then
+
+            wpX[wpCount] = x
+            wpY[wpCount] = y
+            wpCol[wpCount] = 0xffffffff
+            wpCirc[wpCount] = AddVisualGear(wpX[wpCount],wpY[wpCount],vgtCircle,0,true)
+
+            SetVisualGearValues(wpCirc[wpCount], wpX[wpCount], wpY[wpCount], 20, 100, 1, 10, 0, wpRad, 5, wpCol[wpCount])
+
+            wpCount = wpCount + 1
+
+            --AddCaption(loc("Waypoint placed.") .. " " .. loc("Available points remaining: ") .. (wpLimit-wpCount))
+        end
+    end
+end
+
+
+
 function HandleFreshMapCreation()
 
 	-- the boom stage, boom girders, reset ammo, and delete other map objects
 	if activationStage == 1 then
-
 
 		ClearMap()
 		activationStage = activationStage + 1
@@ -476,791 +628,25 @@ function HandleFreshMapCreation()
 	-- the creation stage, place girders and needed gears, grant ammo
 	elseif activationStage == 2 then
 
+		InterpretPoints()
+
 		-- these are from onParameters()
-		if mapID == "0" then
-			--AddCaption("don't load any map")
-		elseif mapID == "1" then
-
-			--simple testmap
-			------ GIRDER LIST ------
-			PlaceSprite(306, 530, sprAmGirder, 7)
-			PlaceSprite(451, 474, sprAmGirder, 4)
-			PlaceSprite(595, 531, sprAmGirder, 5)
-			PlaceSprite(245, 679, sprAmGirder, 6)
-			PlaceSprite(305, 822, sprAmGirder, 5)
-			PlaceSprite(449, 887, sprAmGirder, 4)
-			PlaceSprite(593, 825, sprAmGirder, 7)
-			PlaceSprite(657, 681, sprAmGirder, 6)
-			PlaceSprite(1063, 682, sprAmGirder, 6)
-			PlaceSprite(1121, 532, sprAmGirder, 7)
-			PlaceSprite(1266, 476, sprAmGirder, 4)
-			PlaceSprite(1411, 535, sprAmGirder, 5)
-			PlaceSprite(1472, 684, sprAmGirder, 6)
-			PlaceSprite(1415, 828, sprAmGirder, 7)
-			PlaceSprite(1271, 892, sprAmGirder, 4)
-			PlaceSprite(1126, 827, sprAmGirder, 5)
-			PlaceSprite(841, 1079, sprAmGirder, 4)
-			PlaceSprite(709, 1153, sprAmGirder, 7)
-			PlaceSprite(975, 1154, sprAmGirder, 5)
-			PlaceSprite(653, 1265, sprAmGirder, 2)
-			PlaceSprite(1021, 1266, sprAmGirder, 2)
-			PlaceSprite(713, 1369, sprAmGirder, 5)
-			PlaceSprite(960, 1371, sprAmGirder, 7)
-			PlaceSprite(835, 1454, sprAmGirder, 4)
-			PlaceSprite(185, 1617, sprAmGirder, 2)
-			PlaceSprite(1317, 1399, sprAmGirder, 2)
-			PlaceSprite(1711, 1811, sprAmGirder, 2)
-			PlaceSprite(2087, 1424, sprAmGirder, 2)
-			PlaceSprite(2373, 1804, sprAmGirder, 2)
-			PlaceSprite(2646, 1434, sprAmGirder, 2)
-			PlaceSprite(1876, 667, sprAmGirder, 6)
-			PlaceSprite(1934, 517, sprAmGirder, 7)
-			PlaceSprite(2079, 461, sprAmGirder, 4)
-			PlaceSprite(2224, 519, sprAmGirder, 5)
-			PlaceSprite(1935, 810, sprAmGirder, 5)
-			PlaceSprite(2080, 875, sprAmGirder, 4)
-			PlaceSprite(2224, 811, sprAmGirder, 7)
-			PlaceSprite(2370, 582, sprAmGirder, 4)
-			PlaceSprite(2370, 759, sprAmGirder, 4)
-			PlaceSprite(2530, 582, sprAmGirder, 4)
-			PlaceSprite(2690, 582, sprAmGirder, 4)
-			PlaceSprite(2530, 759, sprAmGirder, 4)
-			PlaceSprite(2690, 759, sprAmGirder, 4)
-			PlaceSprite(2836, 634, sprAmGirder, 5)
-			PlaceSprite(2835, 822, sprAmGirder, 5)
-			PlaceSprite(2951, 751, sprAmGirder, 5)
-			PlaceSprite(2950, 939, sprAmGirder, 5)
-			PlaceSprite(2964, 1054, sprAmGirder, 7)
-			PlaceSprite(2978, 1172, sprAmGirder, 5)
-			PlaceSprite(3095, 1185, sprAmGirder, 7)
-			PlaceSprite(3211, 1069, sprAmGirder, 7)
-			PlaceSprite(3038, 843, sprAmGirder, 1)
-			PlaceSprite(3126, 825, sprAmGirder, 7)
-			PlaceSprite(3271, 768, sprAmGirder, 4)
-			PlaceSprite(3357, 1014, sprAmGirder, 4)
-			PlaceSprite(3416, 826, sprAmGirder, 5)
-			PlaceSprite(3454, 969, sprAmGirder, 6)
-			PlaceSprite(3439, 369, sprAmGirder, 6)
-			PlaceSprite(3500, 220, sprAmGirder, 7)
-			PlaceSprite(3502, 513, sprAmGirder, 5)
-			PlaceSprite(3646, 162, sprAmGirder, 4)
-			PlaceSprite(3791, 224, sprAmGirder, 5)
-			PlaceSprite(3851, 374, sprAmGirder, 6)
-			PlaceSprite(3792, 518, sprAmGirder, 7)
-			PlaceSprite(3994, 1731, sprAmGirder, 7)
-			PlaceSprite(3877, 1848, sprAmGirder, 7)
-			PlaceSprite(3789, 1942, sprAmGirder, 3)
-			PlaceSprite(3986, 1929, sprAmGirder, 2)
-			PlaceSprite(2837, 1937, sprAmGirder, 4)
-			PlaceSprite(2997, 1938, sprAmGirder, 4)
-			PlaceSprite(3157, 1938, sprAmGirder, 4)
-			PlaceSprite(1152, 1844, sprAmGirder, 4)
-			PlaceSprite(1299, 1898, sprAmGirder, 5)
-			PlaceSprite(1005, 1900, sprAmGirder, 7)
-			PlaceSprite(3578, 575, sprAmGirder, 6)
-			PlaceSprite(3714, 576, sprAmGirder, 6)
-			PlaceSprite(3579, 740, sprAmGirder, 6)
-			PlaceSprite(3714, 741, sprAmGirder, 6)
-			PlaceSprite(3580, 903, sprAmGirder, 6)
-			PlaceSprite(3715, 904, sprAmGirder, 6)
-			PlaceSprite(3552, 452, sprAmGirder, 1)
-			PlaceSprite(3528, 370, sprAmGirder, 2)
-			PlaceSprite(3568, 297, sprAmGirder, 3)
-			PlaceSprite(3736, 455, sprAmGirder, 3)
-			PlaceSprite(3757, 378, sprAmGirder, 2)
-			PlaceSprite(3725, 299, sprAmGirder, 1)
-			PlaceSprite(3646, 261, sprAmGirder, 0)
-			PlaceSprite(3648, 997, sprAmGirder, 4)
-			PlaceSprite(3649, 1275, sprAmGirder, 2)
-			PlaceSprite(3514, 1750, sprAmGirder, 0)
-
-			------ AMMO CRATE LIST ------
-			tempG = SpawnAmmoCrate(1707, 1755, amBazooka)
-			tempG = SpawnAmmoCrate(3983, 1873, amBazooka)
-			tempG = SpawnAmmoCrate(184, 1561, amBazooka)
-			tempG = SpawnAmmoCrate(2644, 1378, amBazooka)
-			tempG = SpawnAmmoCrate(2914, 865, amBazooka)
-
-			------ MINE LIST ------
-			SetTimer(AddGear(2340, 580, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2399, 580, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2448, 580, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2517, 579, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2575, 581, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2647, 582, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2720, 582, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2760, 581, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2331, 757, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2409, 758, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2477, 758, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2545, 759, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2613, 760, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2679, 758, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2744, 757, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2813, 610, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2855, 650, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2887, 686, gtMine, 0, 0, 0, 0), 1)
-
-		elseif mapID == "2" then
-
-			-- simple land flags test map
-			------ GIRDER LIST ------
-			PlaceSprite(335, 622, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(474, 569, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(343, 748, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(466, 756, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(609, 702, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(635, 570, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(770, 702, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(960, 730, sprAmGirder, 18, nil, nil, nil, nil, 2048)
-			PlaceSprite(1061, 608, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(1207, 552, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(1205, 409, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2312, 637, sprAmGirder, 6)
-			PlaceSprite(2312, 472, sprAmGirder, 6)
-			PlaceSprite(2311, 308, sprAmGirder, 6)
-			PlaceSprite(2292, 155, sprAmGirder, 6)
-			PlaceSprite(727, 611, sprAmGirder, 6)
-			PlaceSprite(1298, 480, sprAmGirder, 6)
-
-			------ RUBBER BAND LIST ------
-			PlaceSprite(1411, 625, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1525, 739, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1638, 852, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1754, 963, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1870, 1076, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(2013, 1131, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(2159, 1070, sprAmRubber, 3, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(2268, 952, sprAmRubber, 3, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(2315, 802, sprAmRubber, 2, nil, nil, nil, nil, lfBouncy)
-
-			------ AMMO CRATE LIST ------
-			tempG = SpawnAmmoCrate(472, 711, amBazooka)
-			tempG = SpawnUtilityCrate(540, 660, amParachute)
-			tempG = SpawnAmmoCrate(1155, 528, amBazooka)
-
-			------ UTILITY CRATE LIST ------
-			tempG = SpawnUtilityCrate(2006, 1102, amRope)
-
-		elseif mapID == "3" then
-
-			-- more detailed landflag test map
-			------ GIRDER LIST ------
-			PlaceSprite(396, 665, sprAmGirder, 1)
-			PlaceSprite(619, 665, sprAmGirder, 3)
-			PlaceSprite(696, 635, sprAmGirder, 0)
-			PlaceSprite(319, 637, sprAmGirder, 0)
-			PlaceSprite(268, 604, sprAmGirder, 2)
-			PlaceSprite(746, 603, sprAmGirder, 2)
-			PlaceSprite(325, 495, sprAmGirder, 7)
-			PlaceSprite(689, 493, sprAmGirder, 5)
-			PlaceSprite(504, 422, sprAmGirder, 6)
-			PlaceSprite(595, 422, sprAmGirder, 4)
-			PlaceSprite(412, 422, sprAmGirder, 4)
-			PlaceSprite(320, 696, sprAmGirder, 4)
-			PlaceSprite(249, 786, sprAmGirder, 6)
-			PlaceSprite(249, 948, sprAmGirder, 6)
-			PlaceSprite(191, 785, sprAmGirder, 6)
-			PlaceSprite(191, 946, sprAmGirder, 6)
-			PlaceSprite(191, 1107, sprAmGirder, 6)
-			PlaceSprite(249, 1109, sprAmGirder, 6)
-			PlaceSprite(130, 1251, sprAmGirder, 7)
-			PlaceSprite(306, 1251, sprAmGirder, 5)
-			PlaceSprite(72, 1360, sprAmGirder, 2)
-			PlaceSprite(364, 1360, sprAmGirder, 2)
-			PlaceSprite(132, 1462, sprAmGirder, 5)
-			PlaceSprite(304, 1463, sprAmGirder, 7)
-			PlaceSprite(182, 1616, sprAmGirder, 6)
-			PlaceSprite(255, 1613, sprAmGirder, 6)
-			PlaceSprite(217, 1796, sprAmGirder, 4)
-			PlaceSprite(221, 1381, sprAmGirder, 0)--
-			PlaceSprite(154, 669, sprAmGirder, 1)
-			PlaceSprite(124, 553, sprAmGirder, 6)
-			PlaceSprite(326, 467, sprAmGirder, 3)
-			PlaceSprite(223, 592, sprAmGirder, 3)
-
-			PlaceSprite(638, 791, sprAmGirder, 5)
-			PlaceSprite(752, 907, sprAmGirder, 5)
-			PlaceSprite(866, 1022, sprAmGirder, 5)
-			PlaceSprite(402, 1863, sprAmGirder, 18, nil, nil, nil, nil, 2048)
-			PlaceSprite(442, 1863, sprAmGirder, 22, nil, nil, nil, nil, 2048)
-			PlaceSprite(2067, 1945, sprAmGirder, 15, nil, nil, nil, nil, 16384)
-			PlaceSprite(2005, 1797, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(1943, 1653, sprAmGirder, 15, nil, nil, nil, nil, 16384)
-			PlaceSprite(1999, 1504, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2143, 1445, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2288, 1503, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(2432, 1565, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2593, 1565, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2752, 1565, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2206, 1949, sprAmGirder, 15, nil, nil, nil, nil, 16384)
-			PlaceSprite(2262, 1800, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2407, 1745, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2569, 1745, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2715, 1802, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(2898, 1624, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3014, 1740, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(2830, 1919, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3131, 1856, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3191, 1968, sprAmGirder, 11, nil, nil, nil, nil, 16384)
-			PlaceSprite(3264, 2021, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2840, 2006, sprAmGirder, 12, nil, nil, nil, nil, 16384)
-			PlaceSprite(1505, 395, sprAmGirder, 7)
-			PlaceSprite(1445, 544, sprAmGirder, 6)
-			PlaceSprite(1506, 686, sprAmGirder, 5)
-			PlaceSprite(1650, 339, sprAmGirder, 4)
-			PlaceSprite(1797, 397, sprAmGirder, 5)
-			PlaceSprite(1857, 547, sprAmGirder, 6)
-			PlaceSprite(1797, 688, sprAmGirder, 7)
-			PlaceSprite(1652, 754, sprAmGirder, 4)
-			PlaceSprite(3326, 863, sprAmGirder, 4)
-			PlaceSprite(3474, 921, sprAmGirder, 5)
-			PlaceSprite(3180, 921, sprAmGirder, 7)
-			PlaceSprite(3120, 1071, sprAmGirder, 6)
-			PlaceSprite(3183, 1214, sprAmGirder, 5)
-			PlaceSprite(3536, 1071, sprAmGirder, 6)
-			PlaceSprite(3480, 1214, sprAmGirder, 7)
-			PlaceSprite(3330, 1279, sprAmGirder, 4)
-			PlaceSprite(2502, 556, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2601, 634, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2616, 441, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2716, 519, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(2756, 379, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2862, 466, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(2918, 379, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(3023, 467, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(3080, 378, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(3172, 527, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3232, 428, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3289, 647, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3350, 545, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3406, 764, sprAmGirder, 14, nil, nil, nil, nil, 16384)
-			PlaceSprite(3469, 556, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(3616, 503, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(3552, 828, sprAmGirder, 13, nil, nil, nil, nil, 16384)
-			PlaceSprite(3696, 763, sprAmGirder, 16, nil, nil, nil, nil, 16384)
-			PlaceSprite(3708, 575, sprAmGirder, 15, nil, nil, nil, nil, 16384)
-			PlaceSprite(3705, 680, sprAmGirder, 10, nil, nil, nil, nil, 16384)
-
-			PlaceSprite(1481, 1133, sprAmGirder, 7)
-			PlaceSprite(1626, 1078, sprAmGirder, 4)
-			PlaceSprite(1772, 1135, sprAmGirder, 5)
-			PlaceSprite(1422, 1280, sprAmGirder, 6)
-			PlaceSprite(1831, 1286, sprAmGirder, 6)
-			PlaceSprite(1773, 1429, sprAmGirder, 7)
-			PlaceSprite(1627, 1492, sprAmGirder, 4)
-			PlaceSprite(1482, 1427, sprAmGirder, 5)
-			PlaceSprite(587, 855, sprAmGirder, 4)
-			PlaceSprite(425, 855, sprAmGirder, 4)
-			PlaceSprite(302, 822, sprAmGirder, 1)
-
-			------ RUBBER BAND LIST ------
-			PlaceSprite(505, 708, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(175, 451, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(822, 1693, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(982, 1691, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1142, 1688, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1302, 1684, sprAmRubber, 0, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1450, 1750, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1566, 1860, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-			PlaceSprite(1680, 1973, sprAmRubber, 1, nil, nil, nil, nil, lfBouncy)
-
-			------ AMMO CRATE LIST ------
-			tempG = SpawnAmmoCrate(324, 613, amFirePunch)
-			tempG = SpawnAmmoCrate(2361, 1721, amBazooka)
-			tempG = SpawnAmmoCrate(2430, 1721, amBazooka)
-			tempG = SpawnAmmoCrate(2510, 1721, amBazooka)
-			tempG = SpawnAmmoCrate(2581, 1721, amBazooka)
-			tempG = SpawnAmmoCrate(405, 1839, amSineGun)
-			tempG = SpawnAmmoCrate(481, 1839, amSineGun)
-
-			------ UTILITY CRATE LIST ------
-			tempG = SpawnUtilityCrate(696, 611, amParachute)
-			tempG = SpawnUtilityCrate(825, 1664, amJetpack)
-			tempG = SpawnUtilityCrate(919, 1657, amJetpack)
-			tempG = SpawnUtilityCrate(1015, 1662, amJetpack)
-			tempG = SpawnUtilityCrate(1095, 1654, amJetpack)
-			tempG = SpawnUtilityCrate(1166, 1659, amJetpack)
-			tempG = SpawnUtilityCrate(1250, 1650, amJetpack)
-			tempG = SpawnUtilityCrate(1335, 1655, amJetpack)
-
-			------ MINE LIST ------
-			SetTimer(AddGear(221, 1373, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(609, 661, gtMine, 0, 0, 0, 0), 3000)
-
-			------ STICKY MINE LIST ------
-			tempG = AddGear(190, 756, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(191, 810, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(189, 868, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(190, 923, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(192, 984, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(192, 1045, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(189, 1097, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(192, 1159, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(248, 753, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(248, 808, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(249, 868, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(250, 921, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(246, 982, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(247, 1041, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(249, 1094, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(249, 1156, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2571, 665, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2614, 623, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2658, 580, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2704, 533, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2751, 484, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2830, 466, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2912, 465, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2992, 465, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3072, 468, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2465, 592, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2518, 540, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2580, 477, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2635, 425, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2713, 381, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2796, 378, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2892, 379, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(2988, 379, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3061, 377, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3136, 377, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(627, 770, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(661, 804, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(705, 850, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(754, 899, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(805, 950, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(850, 996, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(902, 1048, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(888, 1034, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(788, 933, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(839, 985, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(736, 881, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(686, 829, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(649, 792, gtSMine, 0, 0, 0, 0)
-
+		if (mapID == nil) or (mapID == 0) then
+			LoadMap(2000)
 		else
-
-
-
-			-- first test epic multi map
-			------ GIRDER LIST ------
-			PlaceSprite(430, 1871, sprAmGirder, 2)
-			PlaceSprite(1249, 1914, sprAmGirder, 4)
-			PlaceSprite(1394, 1849, sprAmGirder, 7)
-			PlaceSprite(1522, 1848, sprAmGirder, 5)
-			PlaceSprite(1578, 1959, sprAmGirder, 2)
-			PlaceSprite(1545, 2011, sprAmGirder, 0)
-			PlaceSprite(430, 1749, sprAmGirder, 6)
-			PlaceSprite(430, 1589, sprAmGirder, 6)
-			PlaceSprite(358, 1499, sprAmGirder, 4)
-			PlaceSprite(198, 1499, sprAmGirder, 4)
-			PlaceSprite(72, 1571, sprAmGirder, 7)
-			PlaceSprite(339, 1618, sprAmGirder, 4)
-			PlaceSprite(520, 1499, sprAmGirder, 4)
-			PlaceSprite(680, 1499, sprAmGirder, 4)
-			PlaceSprite(839, 1499, sprAmGirder, 4)
-			PlaceSprite(1000, 1499, sprAmGirder, 4)
-			PlaceSprite(1404, 1730, sprAmGirder, 5)
-			PlaceSprite(1288, 1613, sprAmGirder, 5)
-			PlaceSprite(1200, 1529, sprAmGirder, 1)
-			PlaceSprite(1125, 1495, sprAmGirder, 0)
-			PlaceSprite(1667, 2011, sprAmGirder, 4)
-			PlaceSprite(1812, 1951, sprAmGirder, 7)
-			PlaceSprite(1964, 2024, sprAmGirder, 0)
-			PlaceSprite(1957, 1892, sprAmGirder, 4)
-			PlaceSprite(2103, 1949, sprAmGirder, 5)
-			PlaceSprite(2242, 2017, sprAmGirder, 4)
-			PlaceSprite(2404, 2017, sprAmGirder, 4)
-			PlaceSprite(2548, 1955, sprAmGirder, 7)
-			PlaceSprite(2635, 1871, sprAmGirder, 3)
-			PlaceSprite(2749, 1836, sprAmGirder, 4)
-			PlaceSprite(2751, 1999, sprAmGirder, 2)
-			PlaceSprite(2749, 1947, sprAmGirder, 0)
-			PlaceSprite(2865, 1870, sprAmGirder, 1)
-			PlaceSprite(2954, 1954, sprAmGirder, 5)
-			PlaceSprite(3061, 2017, sprAmGirder, 0)
-			PlaceSprite(3137, 1984, sprAmGirder, 3)
-			PlaceSprite(3169, 1864, sprAmGirder, 6)
-			PlaceSprite(3169, 1702, sprAmGirder, 6)
-			PlaceSprite(3170, 1540, sprAmGirder, 6)
-			PlaceSprite(3170, 1418, sprAmGirder, 2)
-			PlaceSprite(3138, 1339, sprAmGirder, 1)
-			PlaceSprite(3107, 1260, sprAmGirder, 2)
-			PlaceSprite(3153, 1194, sprAmGirder, 3)
-			PlaceSprite(3230, 1163, sprAmGirder, 0)
-			PlaceSprite(3305, 1201, sprAmGirder, 1)
-			PlaceSprite(3334, 1277, sprAmGirder, 2)
-			PlaceSprite(3227, 1540, sprAmGirder, 6)
-			PlaceSprite(3228, 1419, sprAmGirder, 2)
-			PlaceSprite(3334, 1358, sprAmGirder, 2)
-			PlaceSprite(3280, 1387, sprAmGirder, 0)
-			PlaceSprite(3227, 1702, sprAmGirder, 6)
-			PlaceSprite(3227, 1864, sprAmGirder, 6)
-			PlaceSprite(3253, 1981, sprAmGirder, 1)
-			PlaceSprite(3366, 2017, sprAmGirder, 4)
-			PlaceSprite(3528, 2018, sprAmGirder, 4)
-			PlaceSprite(3689, 2018, sprAmGirder, 4)
-			PlaceSprite(246, 1262, sprAmGirder, 4)
-			PlaceSprite(407, 1262, sprAmGirder, 4)
-			PlaceSprite(568, 1262, sprAmGirder, 4)
-			PlaceSprite(731, 1262, sprAmGirder, 4)
-			PlaceSprite(894, 1261, sprAmGirder, 4)
-			PlaceSprite(1056, 1261, sprAmGirder, 4)
-			PlaceSprite(1179, 1262, sprAmGirder, 0)
-			PlaceSprite(1288, 1314, sprAmGirder, 5)
-			PlaceSprite(1406, 1433, sprAmGirder, 5)
-			PlaceSprite(1525, 1549, sprAmGirder, 5)
-			PlaceSprite(1642, 1666, sprAmGirder, 5)
-			PlaceSprite(1749, 1728, sprAmGirder, 0)
-			PlaceSprite(1956, 1802, sprAmGirder, 6)
-			PlaceSprite(1956, 1640, sprAmGirder, 6)
-			PlaceSprite(1782, 1638, sprAmGirder, 6)
-			PlaceSprite(1835, 1487, sprAmGirder, 7)
-			PlaceSprite(1942, 1430, sprAmGirder, 0)
-			PlaceSprite(2051, 1486, sprAmGirder, 5)
-			PlaceSprite(2109, 1639, sprAmGirder, 6)
-			PlaceSprite(2177, 1778, sprAmGirder, 5)
-			PlaceSprite(2323, 1840, sprAmGirder, 4)
-			PlaceSprite(49, 1029, sprAmGirder, 0)
-			PlaceSprite(499, 1172, sprAmGirder, 6)
-			PlaceSprite(527, 1054, sprAmGirder, 3)
-			PlaceSprite(604, 1026, sprAmGirder, 0)
-			PlaceSprite(680, 1056, sprAmGirder, 1)
-			PlaceSprite(719, 1168, sprAmGirder, 6)
-			PlaceSprite(89, 728, sprAmGirder, 4)
-			PlaceSprite(251, 728, sprAmGirder, 4)
-			PlaceSprite(412, 728, sprAmGirder, 4)
-			PlaceSprite(572, 728, sprAmGirder, 4)
-			PlaceSprite(733, 728, sprAmGirder, 4)
-			PlaceSprite(894, 728, sprAmGirder, 4)
-			PlaceSprite(1016, 728, sprAmGirder, 0)
-			PlaceSprite(1067, 799, sprAmGirder, 6)
-			PlaceSprite(1139, 891, sprAmGirder, 4)
-			PlaceSprite(1067, 1171, sprAmGirder, 6)
-			PlaceSprite(1067, 1049, sprAmGirder, 2)
-			PlaceSprite(1136, 999, sprAmGirder, 4)
-			PlaceSprite(1005, 854, sprAmGirder, 2)
-			PlaceSprite(972, 803, sprAmGirder, 0)
-			PlaceSprite(920, 780, sprAmGirder, 2)
-			PlaceSprite(891, 1206, sprAmGirder, 2)
-			PlaceSprite(887, 1150, sprAmGirder, 0)
-			PlaceSprite(3018, 1311, sprAmGirder, 4)
-			PlaceSprite(2871, 1369, sprAmGirder, 7)
-			PlaceSprite(2809, 1523, sprAmGirder, 6)
-			PlaceSprite(2809, 1647, sprAmGirder, 2)
-			PlaceSprite(2469, 1777, sprAmGirder, 7)
-			PlaceSprite(2612, 1715, sprAmGirder, 4)
-			PlaceSprite(2809, 1702, sprAmGirder, 0)
-			PlaceSprite(2727, 1694, sprAmGirder, 0)
-
-			PlaceSprite(3334, 1481, sprAmGirder, 6)
-			PlaceSprite(3334, 1643, sprAmGirder, 6)
-			PlaceSprite(3334, 1804, sprAmGirder, 6)
-			PlaceSprite(3403, 1940, sprAmGirder, 5)
-			PlaceSprite(1120, 944, sprAmGirder, 2)
-			PlaceSprite(1163, 945, sprAmGirder, 2)
-			PlaceSprite(1141, 781, sprAmGirder, 5)
-			PlaceSprite(81, 629, sprAmGirder, 1)
-			PlaceSprite(102, 498, sprAmGirder, 3)
-			PlaceSprite(81, 373, sprAmGirder, 1)
-			PlaceSprite(179, 453, sprAmGirder, 6)
-			PlaceSprite(100, 260, sprAmGirder, 3)
-			PlaceSprite(179, 330, sprAmGirder, 2)
-			PlaceSprite(249, 544, sprAmGirder, 4)
-			PlaceSprite(410, 545, sprAmGirder, 4)
-			PlaceSprite(571, 543, sprAmGirder, 4)
-			PlaceSprite(731, 543, sprAmGirder, 4)
-			PlaceSprite(891, 544, sprAmGirder, 4)
-			PlaceSprite(1014, 544, sprAmGirder, 0)
-			PlaceSprite(1779, 1321, sprAmGirder, 6)
-			PlaceSprite(1779, 1159, sprAmGirder, 6)
-			PlaceSprite(1779, 997, sprAmGirder, 6)
-			PlaceSprite(1779, 836, sprAmGirder, 6)
-			PlaceSprite(1722, 684, sprAmGirder, 5)
-			PlaceSprite(1137, 545, sprAmGirder, 4)
-			PlaceSprite(1298, 545, sprAmGirder, 4)
-			PlaceSprite(1460, 546, sprAmGirder, 4)
-			PlaceSprite(1608, 600, sprAmGirder, 5)
-			PlaceSprite(1508, 1005, sprAmGirder, 4)
-			PlaceSprite(160, 246, sprAmGirder, 1)
-			PlaceSprite(1821, 1356, sprAmGirder, 3)
-			PlaceSprite(1938, 1323, sprAmGirder, 4)
-			PlaceSprite(2086, 1381, sprAmGirder, 5)
-			PlaceSprite(4004, 2018, sprAmGirder, 4)
-			PlaceSprite(3934, 1926, sprAmGirder, 6)
-			PlaceSprite(3965, 1835, sprAmGirder, 0)
-			PlaceSprite(4015, 1763, sprAmGirder, 6)
-			PlaceSprite(4015, 1603, sprAmGirder, 6)
-			PlaceSprite(4015, 1442, sprAmGirder, 6)
-			PlaceSprite(4015, 1280, sprAmGirder, 6)
-			PlaceSprite(4014, 1118, sprAmGirder, 6)
-			PlaceSprite(4014, 956, sprAmGirder, 6)
-			PlaceSprite(4014, 793, sprAmGirder, 6)
-			PlaceSprite(4014, 632, sprAmGirder, 6)
-			PlaceSprite(4014, 469, sprAmGirder, 6)
-			PlaceSprite(3981, 351, sprAmGirder, 1)
-			PlaceSprite(3985, 204, sprAmGirder, 3)
-			PlaceSprite(4045, 156, sprAmGirder, 0)
-			PlaceSprite(3667, 344, sprAmGirder, 0)
-			PlaceSprite(4016, 1925, sprAmGirder, 6)
-			PlaceSprite(3998, 1926, sprAmGirder, 6)
-			PlaceSprite(3980, 1925, sprAmGirder, 6)
-			PlaceSprite(3957, 1926, sprAmGirder, 6)
-			PlaceSprite(3843, 1832, sprAmGirder, 4)
-			PlaceSprite(3682, 1832, sprAmGirder, 4)
-			PlaceSprite(3561, 1833, sprAmGirder, 0)
-			PlaceSprite(3484, 1796, sprAmGirder, 1)
-			PlaceSprite(3455, 1675, sprAmGirder, 6)
-			PlaceSprite(3455, 1513, sprAmGirder, 6)
-			PlaceSprite(3455, 1351, sprAmGirder, 6)
-			PlaceSprite(1601, 476, sprAmGirder, 7)
-			PlaceSprite(1706, 421, sprAmGirder, 0)
-			PlaceSprite(1888, 366, sprAmGirder, 6)
-
-			PlaceSprite(3997, 1743, sprAmGirder, 6)
-			PlaceSprite(3979, 1742, sprAmGirder, 6)
-			PlaceSprite(3962, 1741, sprAmGirder, 6)
-			PlaceSprite(3943, 1741, sprAmGirder, 6)
-			PlaceSprite(2199, 393, sprAmGirder, 7)
-			PlaceSprite(2304, 337, sprAmGirder, 0)
-			PlaceSprite(2409, 392, sprAmGirder, 5)
-			PlaceSprite(2470, 502, sprAmGirder, 2)
-			PlaceSprite(2412, 606, sprAmGirder, 7)
-			PlaceSprite(2308, 673, sprAmGirder, 0)
-			PlaceSprite(2202, 612, sprAmGirder, 5)
-			PlaceSprite(2138, 507, sprAmGirder, 2)
-			PlaceSprite(2739, 378, sprAmGirder, 7)
-			PlaceSprite(2847, 322, sprAmGirder, 0)
-			PlaceSprite(2953, 378, sprAmGirder, 5)
-			PlaceSprite(2680, 489, sprAmGirder, 2)
-			PlaceSprite(3012, 489, sprAmGirder, 2)
-			PlaceSprite(2736, 594, sprAmGirder, 5)
-			PlaceSprite(2841, 657, sprAmGirder, 0)
-			PlaceSprite(2949, 594, sprAmGirder, 7)
-			PlaceSprite(2448, 837, sprAmGirder, 7)
-			PlaceSprite(2594, 779, sprAmGirder, 4)
-			PlaceSprite(2739, 836, sprAmGirder, 5)
-			PlaceSprite(2390, 950, sprAmGirder, 2)
-			PlaceSprite(2789, 950, sprAmGirder, 2)
-			PlaceSprite(2593, 904, sprAmGirder, 4)
-			PlaceSprite(2727, 1056, sprAmGirder, 7)
-			PlaceSprite(2452, 1058, sprAmGirder, 5)
-			PlaceSprite(2510, 1215, sprAmGirder, 6)
-			PlaceSprite(2663, 1208, sprAmGirder, 6)
-			PlaceSprite(2510, 1378, sprAmGirder, 6)
-			PlaceSprite(2664, 1369, sprAmGirder, 6)
-			PlaceSprite(300, 275, sprAmGirder, 0)
-			PlaceSprite(439, 274, sprAmGirder, 0)
-			PlaceSprite(628, 273, sprAmGirder, 4)
-			PlaceSprite(811, 271, sprAmGirder, 0)
-			PlaceSprite(737, 373, sprAmGirder, 4)
-			PlaceSprite(934, 440, sprAmGirder, 0)
-			PlaceSprite(1075, 439, sprAmGirder, 0)
-			PlaceSprite(1209, 438, sprAmGirder, 0)
-			PlaceSprite(1383, 439, sprAmGirder, 4)
-			--PlaceSprite(2159, 1525, sprAmGirder, 6)
-			PlaceSprite(3547, 344, sprAmGirder, 4)
-			PlaceSprite(3584, 254, sprAmGirder, 6)
-			PlaceSprite(3508, 132, sprAmGirder, 5)
-			PlaceSprite(3335, 1117, sprAmGirder, 6)
-			PlaceSprite(3335, 956, sprAmGirder, 6)
-			PlaceSprite(3335, 795, sprAmGirder, 6)
-			PlaceSprite(3335, 634, sprAmGirder, 6)
-			PlaceSprite(3335, 513, sprAmGirder, 2)
-			PlaceSprite(3401, 404, sprAmGirder, 7)
-			PlaceSprite(3455, 1190, sprAmGirder, 6)
-			PlaceSprite(3455, 1029, sprAmGirder, 6)
-			PlaceSprite(3455, 868, sprAmGirder, 6)
-			PlaceSprite(3455, 705, sprAmGirder, 6)
-			PlaceSprite(3455, 582, sprAmGirder, 2)
-			PlaceSprite(3485, 503, sprAmGirder, 3)
-			PlaceSprite(3601, 475, sprAmGirder, 4)
-			PlaceSprite(3719, 444, sprAmGirder, 3)
-			PlaceSprite(3094, 828, sprAmGirder, 5)
-			PlaceSprite(2064, 947, sprAmGirder, 7)
-			PlaceSprite(1826, 512, sprAmGirder, 7)
-
-			PlaceSprite(3420, 49, sprAmGirder, 1)
-			PlaceSprite(410, 682, sprAmGirder, 3)
-			PlaceSprite(528, 653, sprAmGirder, 4)
-			PlaceSprite(688, 653, sprAmGirder, 4)
-			PlaceSprite(805, 684, sprAmGirder, 1)
-			PlaceSprite(528, 672, sprAmGirder, 4)
-			PlaceSprite(688, 672, sprAmGirder, 4)
-			PlaceSprite(500, 696, sprAmGirder, 4)
-			PlaceSprite(701, 696, sprAmGirder, 4)
-
-			------ AMMO CRATE LIST ------
-			tempG = SpawnAmmoCrate(889, 1126, amBaseballBat)
-			tempG = SpawnAmmoCrate(1211, 975, amSineGun)
-			tempG = SpawnAmmoCrate(3619, 451, amFirePunch)
-
-			------ UTILITY CRATE LIST ------
-			tempG = SpawnUtilityCrate(304, 1594, amRope)
-			tempG = SpawnUtilityCrate(1538, 1987, amJetpack)
-			tempG = SpawnUtilityCrate(1958, 2000, amExtraTime)
-			tempG = SpawnUtilityCrate(2744, 1923, amJetpack)
-			tempG = SpawnUtilityCrate(3283, 1363, amParachute)
-			tempG = SpawnUtilityCrate(2749, 1812, amRope)
-			tempG = SpawnUtilityCrate(970, 779, amJetpack)
-
-			tempG = SpawnUtilityCrate(3284, 1332, amExtraTime)
-			tempG = SpawnUtilityCrate(1082, 975, amBlowTorch)
-			tempG = SpawnUtilityCrate(1547, 981, amJetpack)
-			tempG = SpawnUtilityCrate(1707, 397, amRope)
-			tempG = SpawnUtilityCrate(2309, 649, amExtraTime)
-			tempG = SpawnUtilityCrate(1116, 867, amExtraTime)
-
-			------ AMMO CRATE LIST ------
-			tempG = SpawnAmmoCrate(2559, 880, amBazooka)
-			tempG = SpawnAmmoCrate(2630, 880, amBazooka)
-			tempG = SpawnAmmoCrate(1951, 1406, amGrenade)
-
-			------ UTILITY CRATE LIST ------
-			tempG = SpawnUtilityCrate(3536, 320, amBlowTorch)
-			tempG = SpawnUtilityCrate(3582, 1994, amJetpack)
-			tempG = SpawnUtilityCrate(682, 349, amExtraTime)
-			tempG = SpawnUtilityCrate(2842, 633, amExtraTime)
-
-			------ BARREL LIST ------
-			SetHealth(AddGear(506, 1034, gtExplosives, 0, 0, 0, 0), 1)
-			SetHealth(AddGear(556, 1002, gtExplosives, 0, 0, 0, 0), 1)
-			SetHealth(AddGear(615, 1002, gtExplosives, 0, 0, 0, 0), 1)
-			SetHealth(AddGear(676, 1010, gtExplosives, 0, 0, 0, 0), 1)
-			SetHealth(AddGear(716, 1050, gtExplosives, 0, 0, 0, 0), 1)
-			SetHealth(AddGear(67, 1005, gtExplosives, 0, 0, 0, 0), 50)
-
-			------ MINE LIST ------
-			SetTimer(AddGear(1187, 1908, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1235, 1908, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1283, 1908, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1323, 1908, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1361, 1875, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1399, 1837, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1426, 1810, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(234, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(308, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(377, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(460, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(550, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(633, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(722, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(795, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(881, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(975, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1060, 1493, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1127, 1489, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1207, 1526, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1261, 1580, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1315, 1634, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1372, 1692, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1416, 1736, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1465, 1792, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1518, 1838, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1566, 1886, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1623, 2005, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1686, 2005, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1799, 1957, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1839, 1917, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1902, 1886, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1933, 1886, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2076, 1916, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2138, 1978, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2221, 2011, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2305, 2011, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2390, 2011, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2578, 1918, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(2494, 2002, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1758, 1728, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1683, 1707, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1635, 1657, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1572, 1596, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1517, 1542, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1447, 1477, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1401, 1432, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1338, 1365, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1290, 1310, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1230, 1266, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1149, 1260, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1054, 1257, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(978, 1257, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(895, 1258, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(819, 1257, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(753, 1258, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(671, 1260, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(599, 1260, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(526, 1259, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(466, 1259, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(408, 1261, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(336, 1260, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(290, 1259, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(218, 1260, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1777, 1263, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1776, 1198, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1778, 1141, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1781, 1078, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1778, 1027, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1778, 985, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1779, 925, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(1777, 882, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(4052, 2010, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(3965, 226, gtMine, 0, 0, 0, 0), 1)
-			SetTimer(AddGear(3962, 326, gtMine, 0, 0, 0, 0), 1)
-
-				------ STICKY MINE LIST ------
-			tempG = AddGear(3170, 1907, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3170, 1860, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3169, 1809, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3170, 1761, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3170, 1711, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3172, 1668, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3170, 1624, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3169, 1579, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3171, 1526, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3168, 1469, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3171, 1418, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3227, 1416, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3226, 1465, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3225, 1523, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3224, 1576, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3225, 1624, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3228, 1667, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3228, 1707, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3230, 1757, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3228, 1803, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3229, 1856, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3228, 1910, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(258, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(329, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(410, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(482, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(565, 533, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(670, 533, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(763, 533, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(858, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(917, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1012, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1147, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1102, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1220, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1293, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1368, 535, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(1440, 536, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(223, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(814, 534, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3909, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3867, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3824, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3784, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3732, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3682, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3627, 1822, gtSMine, 0, 0, 0, 0)
-			tempG = AddGear(3557, 1823, gtSMine, 0, 0, 0, 0)
+			LoadMap(mapID)
 		end
 
+		for i = 0,(wpCount-1) do
+			DeleteVisualGear(wpCirc[i])
+		end
+		wpCount = 0
+
+		for i = 1, techCount-1 do
+			CallBob(techX[i],techY[i])
+		end
 
 		activationStage = 200
-
 		--runOnHogs(RestoreHog)
 
 	end
@@ -1286,22 +672,35 @@ end
 ----------------------------------
 
 function onParameters()
-    parseParams()
-	mapID = params["m"]
-end
 
-function onPreviewInit()
-	onGameInit()
+	parseParams()
+	mapID = tonumber(params["m"])
+
+	--ufoFuel = tonumber(params["ufoFuel"])
+	roundLimit = tonumber(params["rounds"])
+
+	if (roundLimit == 0) or (roundLimit == nil) then
+		roundLimit = 3
+	end
+
+	if mapID == nil then
+		mapID = 2 + GetRandom(7)
+	end
+
 end
 
 function onGameInit()
+
+		if mapID == nil then
+			mapID = 2 + GetRandom(7)
+		end
 
 		Theme = "Cave"
 
 		MapGen = mgDrawn
 		TemplateFilter = 0
 
-		EnableGameFlags(gfInfAttack, gfDisableWind)
+		EnableGameFlags(gfInfAttack, gfDisableWind, gfBorder)
 		DisableGameFlags(gfSolidLand)
 		CaseFreq = 0
         TurnTime = 90000
@@ -1324,8 +723,181 @@ function limitHogs(gear)
 
 end
 
-function onGameStart()
+function onSpecialPoint(x,y,flag)
+    specialPointsX[specialPointsCount] = x
+    specialPointsY[specialPointsCount] = y
+	specialPointsFlag[specialPointsCount] = flag
+    specialPointsCount = specialPointsCount + 1
+end
 
+function InterpretPoints()
+
+	-- flags run from 0 to 127
+	for i = 0, (specialPointsCount-1) do
+
+		-- Mines
+		if specialPointsFlag[i] == 1 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 1)
+		elseif specialPointsFlag[i] == 2 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 1000)
+		elseif specialPointsFlag[i] == 3 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 2000)
+		elseif specialPointsFlag[i] == 4 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 3000)
+		elseif specialPointsFlag[i] == 5 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 4000)
+		elseif specialPointsFlag[i] == 6 then
+			SetTimer(AddGear(specialPointsX[i], specialPointsY[i], gtMine, 0, 0, 0, 0), 5000)
+
+		-- Sticky Mines
+		elseif specialPointsFlag[i] == 7 then
+			AddGear(specialPointsX[i], specialPointsY[i], gtSMine, 0, 0, 0, 0)
+
+		-- Air Mines
+		elseif specialPointsFlag[i] == 8 then
+			AddGear(specialPointsX[i], specialPointsY[i], gtAirMine, 0, 0, 0, 0)
+
+		-- Health Crates
+		elseif specialPointsFlag[i] == 9 then
+			SetHealth(SpawnHealthCrate(specialPointsX[i],specialPointsY[i]),25)
+		elseif specialPointsFlag[i] == 10 then
+			SetHealth(SpawnHealthCrate(specialPointsX[i],specialPointsY[i]),50)
+		elseif specialPointsFlag[i] == 11 then
+			SetHealth(SpawnHealthCrate(specialPointsX[i],specialPointsY[i]),75)
+		elseif specialPointsFlag[i] == 12 then
+			SetHealth(SpawnHealthCrate(specialPointsX[i],specialPointsY[i]),100)
+
+		-- Cleaver
+		elseif specialPointsFlag[i] == 13 then
+			AddGear(specialPointsX[i], specialPointsY[i], gtKnife, 0, 0, 0, 0)
+
+		-- Target
+		elseif specialPointsFlag[i] == 14 then
+			AddGear(specialPointsX[i], specialPointsY[i], gtTarget, 0, 0, 0, 0)
+
+		--Barrels
+		elseif specialPointsFlag[i] == 15 then
+			SetHealth(AddGear(specialPointsX[i], specialPointsY[i], gtExplosives, 0, 0, 0, 0),1)
+		elseif specialPointsFlag[i] == 16 then
+			SetHealth(AddGear(specialPointsX[i], specialPointsY[i], gtExplosives, 0, 0, 0, 0),25)
+		elseif specialPointsFlag[i] == 17 then
+			SetHealth(AddGear(specialPointsX[i], specialPointsY[i], gtExplosives, 0, 0, 0, 0),50)
+		elseif specialPointsFlag[i] == 18 then
+			SetHealth(AddGear(specialPointsX[i], specialPointsY[i], gtExplosives, 0, 0, 0, 0),75)
+		elseif specialPointsFlag[i] == 19 then
+			SetHealth(AddGear(specialPointsX[i], specialPointsY[i], gtExplosives, 0, 0, 0, 0),100)
+
+		-- There are about 58+- weps / utils
+		-- Weapon Crates
+		elseif (specialPointsFlag[i] >= 20) and (specialPointsFlag[i] < (#atkArray+20)) then
+			SpawnAmmoCrate(specialPointsX[i],specialPointsY[i],atkArray[specialPointsFlag[i]-19][1])
+
+
+		-- Utility Crates
+		elseif (specialPointsFlag[i] >= (#atkArray+20)) and (specialPointsFlag[i] < (#atkArray+20+#utilArray)) then
+			SpawnUtilityCrate(specialPointsX[i],specialPointsY[i],utilArray[specialPointsFlag[i]-19-#atkArray][1])
+
+		--79-82 (reserved for future wep crates)
+		--89,88,87,86 and 85,84,83,82 (reserved for the 2 custom sprites and their landflags)
+
+		--90-99 reserved for scripted structures
+		--[[elseif specialPointsFlag[i] == 90 then
+			--PlaceStruc("generator")
+		elseif specialPointsFlag[i] == 91 then
+			--PlaceStruc("healingstation")
+		elseif specialPointsFlag[i] == 92 then
+			--PlaceStruc("respawner")
+		elseif specialPointsFlag[i] == 93 then
+			--PlaceStruc("teleportationnode")
+		elseif specialPointsFlag[i] == 94 then
+			--PlaceStruc("biofilter")
+		elseif specialPointsFlag[i] == 95 then
+			--PlaceStruc("supportstation")
+		elseif specialPointsFlag[i] == 96 then
+			--PlaceStruc("constructionstation")
+		elseif specialPointsFlag[i] == 97 then
+			--PlaceStruc("reflectorshield")
+		elseif specialPointsFlag[i] == 98 then
+			--PlaceStruc("weaponfilter")]]
+
+		elseif specialPointsFlag[i] == 98 then
+			portalDistance = specialPointsX[i]
+			ufoFuel = specialPointsY[i]
+
+		-- Normal Girders
+		elseif specialPointsFlag[i] == 100 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 0, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 101 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 1, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 102 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 2, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 103 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 3, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 104 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 4, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 105 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 5, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 106 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 6, 4294967295, nil, nil, nil, lfNormal)
+		elseif specialPointsFlag[i] == 107 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 7, 4294967295, nil, nil, nil, lfNormal)
+
+		-- Invulnerable Girders
+		elseif specialPointsFlag[i] == 108 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 0, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 109 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 1, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 110 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 2, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 111 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 3, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 112 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 4, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 113 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 5, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 114 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 6, 2516582650, nil, nil, nil, lfIndestructible)
+		elseif specialPointsFlag[i] == 115 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 7, 2516582650, nil, nil, nil, lfIndestructible)
+
+		-- Icy Girders
+		elseif specialPointsFlag[i] == 116 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 0, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 117 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 1, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 118 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 2, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 119 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 3, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 120 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 4, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 121 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 5, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 121 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 6, 16448250, nil, nil, nil, lfIce)
+		elseif specialPointsFlag[i] == 123 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmGirder, 7, 16448250, nil, nil, nil, lfIce)
+
+		-- Rubber Bands
+		elseif specialPointsFlag[i] == 124 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmRubber, 0, 4294967295, nil, nil, nil, lfBouncy)
+		elseif specialPointsFlag[i] == 125 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmRubber, 1, 4294967295, nil, nil, nil, lfBouncy)
+		elseif specialPointsFlag[i] == 126 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmRubber, 2, 4294967295, nil, nil, nil, lfBouncy)
+		elseif specialPointsFlag[i] == 127 then
+			PlaceSprite(specialPointsX[i], specialPointsY[i], sprAmRubber, 3, 4294967295, nil, nil, nil, lfBouncy)
+
+		-- Waypoints
+		else -- 0 / no value
+			CallBob(specialPointsX[i], specialPointsY[i])
+		end
+
+	end
+
+end
+
+function onGameStart()
 
 		trackTeams()
 
@@ -1333,11 +905,7 @@ function onGameStart()
         lastRound = TotalRounds
         RoundHasChanged = false -- true
 
-        for i = 0, (specialPointsCount-1) do
-                PlaceWayPoint(specialPointsX[i], specialPointsY[i])
-        end
-
-        RebuildTeamInfo()
+	    RebuildTeamInfo()
 
 		for i=0 , TeamsCount - 1 do
 			cnthhs = 0
@@ -1350,36 +918,18 @@ function onGameStart()
 
                                 loc("Build a track and race.") .. "|" ..
                                 loc("Round Limit:") .. " " .. roundLimit .. "|" ..
+								loc("You can further customize the race by changing the scheme script paramater.") .. "|" ..
+								--loc("For example, the below line would play map 4, with infinite fuel for the flying saucer, and four rounds.") .. "|" ..
+								--"m=4, ufo=true, rounds=4" .. "|" ..
 
                                 "", 4, 4000
                                 )
 
         TryRepositionHogs()
 
-end
+		activationStage = 2
+		HandleFreshMapCreation()
 
-function PlaceWayPoint(x,y)
-    if not racerActive then
-        if wpCount == 0 or wpX[wpCount - 1] ~= x or wpY[wpCount - 1] ~= y then
-
-            wpX[wpCount] = x
-            wpY[wpCount] = y
-            wpCol[wpCount] = 0xffffffff
-            wpCirc[wpCount] = AddVisualGear(wpX[wpCount],wpY[wpCount],vgtCircle,0,true)
-
-            SetVisualGearValues(wpCirc[wpCount], wpX[wpCount], wpY[wpCount], 20, 100, 1, 10, 0, wpRad, 5, wpCol[wpCount])
-
-            wpCount = wpCount + 1
-
-            AddCaption(loc("Waypoint placed.") .. " " .. loc("Available points remaining: ") .. (wpLimit-wpCount))
-        end
-    end
-end
-
-function onSpecialPoint(x,y,flag)
-    specialPointsX[specialPointsCount] = x
-    specialPointsY[specialPointsCount] = y
-    specialPointsCount = specialPointsCount + 1
 end
 
 
@@ -1402,7 +952,7 @@ function onNewTurn()
         trackTime = 0
 
         currCount = 0 -- hopefully this solves problem
-        AddAmmo(CurrentHedgehog, amAirAttack, 0)
+    --    AddAmmo(CurrentHedgehog, amAirAttack, 0)
         gTimer = 0
 
         -- Set the waypoints to unactive on new round
@@ -1414,21 +964,21 @@ function onNewTurn()
 
         -- Handle Starting Stage of Game
         if (gameOver == false) and (gameBegun == false) then
-                if wpCount >= 3 then
+               -- if wpCount >= 3 then
                         gameBegun = true
-						--activationStage = 200
+						--  --[[activationStage = 200]]
                         roundNumber = 0
                         firstClan = GetHogClan(CurrentHedgehog)
                         ShowMission(loc("RACER"),
                         loc("GAME BEGUN!!!"),
                         loc("Complete the track as fast as you can!"), 2, 4000)
-                else
-                        ShowMission(loc("RACER"),
-                        loc("NOT ENOUGH WAYPOINTS"),
-                        loc("Place more waypoints using the 'Air Attack' weapon."), 2, 4000)
-                        AddAmmo(CurrentHedgehog, amAirAttack, 4000)
-						SetWeapon(amAirAttack)
-                end
+                --else
+                --        ShowMission(loc("RACER"),
+                --        loc("NOT ENOUGH WAYPOINTS"),
+                --        loc("Place more waypoints using the 'Air Attack' weapon."), 2, 4000)
+                --        AddAmmo(CurrentHedgehog, amAirAttack, 4000)
+				--		SetWeapon(amAirAttack)
+               -- end
         end
 
         if gameOver == true then
@@ -1446,10 +996,13 @@ end
 
 function onGameTick20()
 
-
-		if jet ~= nil then
-			--SetHealth(jet, 2000)
+		if (jet ~= nil) and (ufoFuel ~= 0) then
+			if ufoFuel == 2000 then
+				SetHealth(jet, 2000)
+			end
 		end
+
+		runOnGears(PortalEffects)
 
         -- airstrike detected, convert this into a potential waypoint spot
         if cGear ~= nil then
@@ -1465,7 +1018,7 @@ function onGameTick20()
                 AddCaption(loc("Please place the way-point further from the waterline."))
                 PlaySound(sndDenied)
             else
-                PlaceWayPoint(x, y)
+                CallBob(x, y)
                 if wpCount == wpLimit then
                     AddCaption(loc("Race complexity limit reached."))
                     DisableTumbler()
@@ -1562,6 +1115,61 @@ function onGameTick20()
 
 end
 
+-- handle short range portal gun
+function PortalEffects(gear)
+
+	if GetGearType(gear) == gtPortal then
+
+		tag = GetTag(gear)
+		if tag == 0 then
+			col = 0xfab02aFF -- orange ball
+		elseif tag == 1 then
+			col = 0x00FF00FF -- orange portal
+		elseif tag == 2 then
+			col = 0x364df7FF  -- blue ball
+		elseif tag == 3 then
+			col = 0xFFFF00FF  -- blue portal
+		end
+
+		if (tag == 0) or (tag == 2) then -- i.e ball form
+			tempE = AddVisualGear(GetX(gear), GetY(gear), vgtDust, 0, true)
+			g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(tempE)
+			SetVisualGearValues(tempE, g1, g2, g3, g4, g5, g6, g7, 1, g9, col )
+
+			remLife = getGearValue(gear,"life")
+			remLife = remLife - 1
+			setGearValue(gear, "life", remLife)
+
+			if remLife == 0 then
+
+				tempE = AddVisualGear(GetX(gear)+15, GetY(gear), vgtSmoke, 0, true)
+				g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(tempE)
+				SetVisualGearValues(tempE, g1, g2, g3, g4, g5, g6, g7, g8, g9, col )
+
+				tempE = AddVisualGear(GetX(gear)-15, GetY(gear), vgtSmoke, 0, true)
+				g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(tempE)
+				SetVisualGearValues(tempE, g1, g2, g3, g4, g5, g6, g7, g8, g9, col )
+
+				tempE = AddVisualGear(GetX(gear), GetY(gear)+15, vgtSmoke, 0, true)
+				g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(tempE)
+				SetVisualGearValues(tempE, g1, g2, g3, g4, g5, g6, g7, g8, g9, col )
+
+				tempE = AddVisualGear(GetX(gear), GetY(gear)-15, vgtSmoke, 0, true)
+				g1, g2, g3, g4, g5, g6, g7, g8, g9, g10 = GetVisualGearValues(tempE)
+				SetVisualGearValues(tempE, g1, g2, g3, g4, g5, g6, g7, g8, g9, col )
+
+
+				PlaySound(sndVaporize)
+				DeleteGear(gear)
+
+			end
+
+		end
+
+	end
+
+end
+
 function onGearResurrect(gear)
 
         AddVisualGear(GetX(gear), GetY(gear), vgtBigExplosion, 0, false)
@@ -1578,8 +1186,10 @@ function isATrackedGear(gear)
 		(GetGearType(gear) == gtTarget) or
 		(GetGearType(gear) == gtFlame) or
 		(GetGearType(gear) == gtExplosives) or
+		(GetGearType(gear) == gtPortal) or
 		(GetGearType(gear) == gtMine) or
 		(GetGearType(gear) == gtSMine) or
+		(GetGearType(gear) == gtAirMine) or
 		(GetGearType(gear) == gtCase)
 	then
 		return(true)
@@ -1590,21 +1200,28 @@ end
 
 function onGearAdd(gear)
 
-        if isATrackedGear(gear) then
-			trackGear(gear)
+       if isATrackedGear(gear) then
+		trackGear(gear)
+
+		if GetGearType(gear) == gtPortal then
+			setGearValue(gear,"life",portalDistance)
+		elseif GetGearType(gear) == gtHedgehog then
+            hhs[numhhs] = gear
+            numhhs = numhhs + 1
+            SetEffect(gear, heResurrectable, 1)
 		end
 
-		if GetGearType(gear) == gtHedgehog then
-                hhs[numhhs] = gear
-                numhhs = numhhs + 1
-                SetEffect(gear, heResurrectable, 1)
-        end
+	end
 
-        if GetGearType(gear) == gtAirAttack then
-                cGear = gear
-        elseif GetGearType(gear) == gtJetpack then
-			jet = gear
+	if GetGearType(gear) == gtAirAttack then
+       cGear = gear
+	elseif GetGearType(gear) == gtJetpack then
+		jet = gear
+		if (ufoFuel ~= 0) then
+			SetHealth(jet, ufoFuel)
 		end
+	end
+
 
 end
 
@@ -1662,5 +1279,17 @@ function onAchievementsDeclaration()
     end
 end
 
+function onAmmoStoreInit()
 
+	SetAmmo(amSkip, 9, 0, 0, 0)
+
+	for i = 1, #atkArray do
+		SetAmmo(atkArray[i][1], 0, 0, 0, 1)
+	end
+
+	for i = 1, #utilArray do
+		SetAmmo(utilArray[i][1], 0, 0, 0, 1)
+	end
+
+end
 

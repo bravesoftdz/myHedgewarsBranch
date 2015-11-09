@@ -32,6 +32,7 @@ option(ANDROID "Enable Android build (off)" OFF)
 
 option(MINIMAL_FLAGS "Respect system flags as much as possible (off)" OFF)
 option(NOAUTOUPDATE "Disable OS X Sparkle update checking (off)" OFF)
+option(SKIPBUNDLE "Do not create relocate bundle (off)" OFF)
 
 option(BUILD_ENGINE_C "Compile hwengine as native C (off)" OFF)
 option(GL2 "Enable OpenGL 2 rendering !!!EXPERIMENTAL - DO NOT USE!!! [default: off)" OFF)
@@ -51,8 +52,8 @@ set(FONTS_DIRS "" CACHE STRING "Additional paths to folders where required fonts
 #versioning
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
 set(CPACK_PACKAGE_VERSION_MINOR 9)
-set(CPACK_PACKAGE_VERSION_PATCH 22)
-set(HEDGEWARS_PROTO_VER 50)
+set(CPACK_PACKAGE_VERSION_PATCH 23)
+set(HEDGEWARS_PROTO_VER 52)
 set(HEDGEWARS_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 include(${CMAKE_MODULE_PATH}/revinfo.cmake)
 

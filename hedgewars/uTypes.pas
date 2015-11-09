@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ type
 {$IFDEF USE_TOUCH_INTERFACE}
             sprFireButton, sprArrowUp, sprArrowDown, sprArrowLeft, sprArrowRight,
             sprJumpWidget, sprAMWidget, sprPauseButton, sprTimerButton, sprTargetButton,
+            sprSwitchButton,
 {$ENDIF}
             sprFlake, sprHandRope, sprHandBazooka, sprHandShotgun,
             sprHandDEagle, sprHandAirAttack, sprHandBaseball, sprPHammer,
@@ -88,7 +89,7 @@ type
             sprBulletHit, sprSnowball, sprHandSnowball, sprSnow,
             sprSDFlake, sprSDWater, sprSDCloud, sprSDSplash, sprSDDroplet, sprTardis,
             sprSlider, sprBotlevels, sprHandKnife, sprKnife, sprStar, sprIceTexture, sprIceGun,
-            sprFrozenHog, sprAmRubber, sprBoing, sprCustom1, sprCustom2, sprAirMine
+            sprFrozenHog, sprAmRubber, sprBoing, sprCustom1, sprCustom2, sprAirMine, sprHandAirMine
             );
 
     // Gears that interact with other Gears and/or Land
@@ -455,7 +456,7 @@ type
             sidConfirm, sidSuddenDeath, sidRemaining, sidFuel, sidSync,
             sidNoEndTurn, sidNotYetAvailable, sidRoundSD, sidRoundsSD, sidReady,
             sidBounce1, sidBounce2, sidBounce3, sidBounce4, sidBounce5, sidBounce,
-            sidMute, sidAFK, sidAutoCameraOff, sidAutoCameraOn);
+            sidMute, sidAFK, sidAutoCameraOff, sidAutoCameraOn, sidPressTarget);
 
     // Events that are important for the course of the game or at least interesting for other reasons
     TEventId = (eidDied, eidDrowned, eidRoundStart, eidRoundWin, eidRoundDraw,

@@ -1,6 +1,6 @@
 {-
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,6 +115,8 @@ protoNumber2ver v = Map.findWithDefault "Unknown" v vermap
             , (48, "0.9.21-dev")
             , (49, "0.9.21")
             , (50, "0.9.22-dev")
+            , (51, "0.9.22")
+            , (52, "0.9.23-dev")
             ]
 
 askFromConsole :: B.ByteString -> IO B.ByteString

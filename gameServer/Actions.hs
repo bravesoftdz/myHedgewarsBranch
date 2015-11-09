@@ -1,6 +1,6 @@
 {-
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -381,8 +381,9 @@ processAction (SendTeamRemovalMessage teamName) = do
         ModifyRoom (\r -> r{
                 gameInfo = liftM (\g -> g{
                     teamsInGameNumber = teamsInGameNumber g - 1
-                    , roundMsgs = (if isJust $ lastFilteredTimedMsg g then (:) (fromJust $ lastFilteredTimedMsg g) else id)
-                      $ rmTeamMsg : roundMsgs g
+                    , lastFilteredTimedMsg = Nothing
+                    , roundMsgs = (if isJust $ lastFilteredTimedMsg g then ((:) rmTeamMsg . (:) (fromJust $ lastFilteredTimedMsg g)) else ((:) rmTeamMsg)) 
+                        $ roundMsgs g
                 }) $ gameInfo r
             })
         ]
@@ -756,15 +757,16 @@ processAction CheckRecord = do
 
 
 processAction (CheckFailed msg) = do
-    Just (CheckInfo fileName _) <- client's checkInfo
+    Just (CheckInfo fileName _ _) <- client's checkInfo
     io $ moveFailedRecord fileName
 
 
 processAction (CheckSuccess info) = do
-    Just (CheckInfo fileName teams) <- client's checkInfo
+    Just (CheckInfo fileName teams gameDetails) <- client's checkInfo
     p <- client's clientProto
     si <- gets serverInfo
-    io $ writeChan (dbQueries si) $ StoreAchievements p (B.pack fileName) (map toPair teams) info
+    when (isJust gameDetails)
+        $ io $ writeChan (dbQueries si) $ StoreAchievements p (B.pack fileName) (map toPair teams) (fromJust gameDetails) info
     io $ moveCheckedRecord fileName
     where
         toPair t = (teamname t, teamowner t)

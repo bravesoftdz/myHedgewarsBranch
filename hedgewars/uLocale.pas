@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ function  FormatA(fmt: ansistring; var arg: ansistring): ansistring;
 function  GetEventString(e: TEventId): ansistring;
 
 {$IFDEF HWLIBRARY}
-procedure LoadLocaleWrapper(str: pchar); cdecl; export;
+procedure LoadLocaleWrapper(path: pchar; filename: pchar); cdecl; export;
 {$ENDIF}
 
 implementation
@@ -133,9 +133,19 @@ else
 end;
 
 {$IFDEF HWLIBRARY}
-procedure LoadLocaleWrapper(str: pchar); cdecl; export;
+procedure LoadLocaleWrapper(path: pchar; filename: pchar); cdecl; export;
 begin
-    LoadLocale(Strpas(str));
+    PathPrefix := Strpas(path);
+ 
+    uUtils.initModule(false);
+    uVariables.initModule;
+    uPhysFSLayer.initModule;
+ 
+    LoadLocale(Strpas(filename));
+ 
+    uPhysFSLayer.freeModule;
+    uVariables.freeModule;
+    uUtils.freeModule;
 end;
 {$ENDIF}
 

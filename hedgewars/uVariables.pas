@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 unit uVariables;
 interface
 
-uses SDLh, uTypes, uFloat, GLunit, uConsts, Math, uUtils, uMatrix;
+uses SDLh, uTypes, uFloat, GLunit, uConsts, Math, uUtils{$IFDEF GL2}, uMatrix{$ENDIF};
 
 var
 /////// init flags ///////
@@ -179,6 +179,7 @@ var
     cElastic        : hwFloat;
     cGravity        : hwFloat;
     cGravityf       : real;
+    cBuildMaxDist   : LongInt;
     cDamageModifier : hwFloat;
     cLaserSighting  : boolean;
     cVampiric       : boolean;
@@ -237,7 +238,7 @@ var
 
     LuaTemplateNumber : LongWord;
 
-    LastVoice : TVoice = ( snd: sndNone; voicepack: nil );
+    LastVoice : TVoice;
 
     mobileRecord: TMobileRecord;
 
@@ -258,7 +259,10 @@ var
 
 var
     // these consts are here because they would cause circular dependencies in uConsts/uTypes
-    cPathz: array[TPathType] of shortstring = (
+    cPathz: array[TPathType] of shortstring;
+
+const
+    cPathzInit: array[TPathType] of shortstring = (
         '',                              // ptNone
         '//',                            // ptData
         '/Graphics',                     // ptGraphics
@@ -285,7 +289,10 @@ var
     );
 
 var
-    Fontz: array[THWFont] of THHFont = (
+    Fontz: array[THWFont] of THHFont;
+
+const
+    FontzInit: array[THWFont] of THHFont = (
             (Handle: nil;
             Height: 12;
             style: TTF_STYLE_NORMAL;
@@ -315,7 +322,10 @@ var
             );
 
 var
-    SpritesData: array[TSprite] of TSpriteData = (
+    SpritesData: array[TSprite] of TSpriteData;
+
+const
+    SpritesDataInit: array[TSprite] of TSpriteData = (
             (FileName:  'BlueWater'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
             Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: true; getImageDimensions: true),// sprWater
             (FileName:     'Clouds'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
@@ -417,13 +427,13 @@ var
 {$IFDEF USE_TOUCH_INTERFACE}
             (FileName: 'firebutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprFireButton
-            (FileName: 'arrowUp'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            (FileName: 'arrowup'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowUp
-            (FileName: 'arrowDown'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            (FileName: 'arrowdown'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowDown
-            (FileName: 'arrowLeft'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            (FileName: 'arrowleft'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowLeft
-            (FileName: 'arrowRight'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            (FileName: 'arrowright'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 100; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprArrowRight
             (FileName: 'forwardjump'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprAMWidget
@@ -431,10 +441,12 @@ var
             Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprJumpWidget
             (FileName: 'pause'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 120; Height: 100; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprPauseButton
-            (FileName: 'pause'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;//TODO correct image
-            Width: 120; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTimerButton
-            (FileName: 'forwardjump'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;//TODO correct image
-            Width: 120; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTargetButton
+            (FileName: 'timerbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTimerButton
+            (FileName: 'targetbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprTargetButton
+            (FileName: 'switchbutton'; Path: ptButtons; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width: 128; Height: 128; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHigh; getDimensions: false; getImageDimensions: true), // sprSwitchButton
 {$ENDIF}
             (FileName:      'Flake'; Path:ptCurrTheme; AltPath: ptNone; Texture: nil; Surface: nil;
             Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprFlake
@@ -685,8 +697,8 @@ var
             Width:  80; Height: 50; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true),// sprSDSplash
             (FileName:  'SDDroplet'; Path: ptCurrTheme; AltPath: ptSuddenDeath; Texture: nil; Surface: nil;
             Width:  16; Height: 16; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprSDDroplet
-            (FileName:  'TARDIS'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  48; Height: 79; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprTardis
+            (FileName:  'Timebox'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  50; Height: 81; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true),// sprTardis
             (FileName:  'slider'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
             Width: 3; Height: 17; imageWidth: 3; imageHeight: 17; saveSurf: false; priority: tpLow; getDimensions: false; getImageDimensions: false), // sprSlider
             (FileName:  'botlevels'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
@@ -712,7 +724,9 @@ var
             (FileName:       'custom2'; Path: ptCurrTheme;AltPath: ptGraphics; Texture: nil; Surface: nil;
             Width:   0; Height:  0; imageWidth: 0; imageHeight: 0; saveSurf: true; priority: tpLow; getDimensions: true; getImageDimensions: true), // sprCustom2
             (FileName:      'AirMine'; Path: ptGraphics; AltPath: ptNone; Texture: nil; Surface: nil;
-            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true)// sprAirMine
+            Width:  32; Height: 32; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpHighest; getDimensions: false; getImageDimensions: true), // sprAirMine
+            (FileName:  'amAirMine'; Path: ptHedgehog; AltPath: ptNone; Texture: nil; Surface: nil;
+            Width:  64; Height: 64; imageWidth: 0; imageHeight: 0; saveSurf: false; priority: tpMedium; getDimensions: false; getImageDimensions: true) // sprHandAirMine
             );
 
 const
@@ -733,8 +747,8 @@ const
             (Sprite:   sprJuggle; FramesCount: 49; Interval:  38; cmd: '/juggle'; Voice: sndNone; VoiceDelay: 0)
             );
 
-var
-    Ammoz: array [TAmmoType] of record
+type
+    TAmmozRec = record
             NameId: TAmmoStrId;
             NameTex: PTexture;
             Probability, NumberInCase: Longword;
@@ -747,7 +761,13 @@ var
             PosCount: Longword;
             PosSprite: TSprite;
             ejectX, ejectY: Longint;
-            end = (
+            end;
+
+var
+    Ammoz: array [TAmmoType] of TAmmozRec;
+
+const
+    AmmozInit: array [TAmmoType] of TAmmozRec = (
             (NameId: sidNothing;
             NameTex: nil;
             Probability: 0;
@@ -1345,7 +1365,7 @@ var
             NameTex: nil;
             Probability: 100;
             NumberInCase: 4;
-            Ammo: (Propz: 0;
+            Ammo: (Propz: ammoprop_NeedUpDown;
                 Count: 4;
                 NumPerTurn: 0;
                 Timer: 0;
@@ -2136,6 +2156,7 @@ var
             NumberInCase: 1;
             Ammo: (Propz: ammoprop_Power or
                           ammoprop_AltUse or
+                          ammoprop_NeedUpDown or
                           ammoprop_NoRoundEnd;
                 Count: 2;
                 NumPerTurn: 0;
@@ -2217,6 +2238,7 @@ var
             Probability: 20;
             NumberInCase: 1;
             Ammo: (Propz: ammoprop_NoRoundEnd or
+                          ammoprop_NeedUpDown or
                           ammoprop_Utility;
                 Count: 1;
                 NumPerTurn: 0;
@@ -2492,7 +2514,19 @@ end;
 
 procedure initModule;
 var s: shortstring;
+    i: integer;
 begin
+    // init LastVoice
+    LastVoice.snd:= sndNone;
+    LastVoice.voicepack:= nil;
+
+    // init arrays
+    Move(cPathzInit, cPathz, sizeof(cPathz));
+    Move(FontzInit, Fontz, sizeof(Fontz));
+    Move(SpritesDataInit, SpritesData, sizeof(SpritesData));
+    Move(AmmozInit, Ammoz, sizeof(Ammoz));
+
+
     cLocale:= cLocaleFName;
     SplitByChar(cLocale, s, '.');
 
@@ -2565,6 +2599,7 @@ begin
     cElastic                := _0_9;
     cGravity                := cMaxWindSpeed * 2;
     cGravityf               := 0.00025 * 2;
+    cBuildMaxDist           := cDefaultBuildMaxDist;
     cDamageModifier         := _1;
     TargetPoint             := cTargetPointRef;
 
@@ -2620,7 +2655,7 @@ begin
     AttackBar       := 0; // 0 - none, 1 - just bar at the right-down corner, 2 - from weapon
     cCaseFactor     := 5;  {0..9}
     cLandMines      := 4;
-    cAirMines       := 4;
+    cAirMines       := 0;
     cExplosives     := 2;
 
     GameState       := Low(TGameState);
@@ -2672,8 +2707,13 @@ begin
     vobSDVelocity:= 15;
     vobSDFallSpeed:= 250;
 
+{$IFDEF MOBILE}
+    cMinScreenWidth  := min(cScreenWidth, 480);
+    cMinScreenHeight := min(cScreenHeight, 320);
+{$ELSE}
     cMinScreenWidth  := min(cScreenWidth, 640);
     cMinScreenHeight := min(cScreenHeight, 480);
+{$ENDIF}
 
     cNewScreenWidth    := cScreenWidth;
     cNewScreenHeight   := cScreenHeight;
@@ -2700,6 +2740,43 @@ begin
     AprilOne := false;
 
     ChatPasteBuffer:= '';
+
+    // initialize pointers to nil
+    // (don't rely on implicit init of fpc, because that one only happens ONCE when used as lib)
+    CurAmmoGear:= nil;
+    lastGearByUID:= nil;
+    GearsList:= nil;
+    CurrentTeam:= nil;
+    PreviousTeam:= nil;
+    CurrentHedgehog:= nil;
+    FollowGear:= nil;
+    lastVisualGearByUID:= nil;
+
+    ChefHatTexture:= nil;
+    CrosshairTexture:= nil;
+    GenericHealthTexture:= nil;
+    WeaponTooltipTex:= nil;
+    HHTexture:= nil;
+    LandBackSurface:= nil;
+    ConfirmTexture:= nil;
+    MissionIcons:= nil;
+    ropeIconTex:= nil;
+
+    for i:= Low(ClansArray) to High(ClansArray) do
+        begin
+        ClansArray[i]:= nil;
+        end;
+
+    for i:= Low(TeamsArray) to High(TeamsArray) do
+        begin
+        TeamsArray[i]:= nil;
+        end;
+
+    for i:= Low(CountTexz) to High(CountTexz) do
+        begin
+        CountTexz[i]:= nil;
+        end;
+
 end;
 
 procedure freeModule;

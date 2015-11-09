@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -213,6 +213,7 @@ var xx, yy, newDx, newDy, lx, ly: hwFloat;
     speech: PVisualGear;
     newGear:  PGear;
     CurWeapon: PAmmo;
+    usedAmmoType: TAmmoType;
     altUse: boolean;
     elastic: hwFloat;
 begin
@@ -222,6 +223,7 @@ CurWeapon:= GetCurAmmoEntry(Gear^.Hedgehog^);
 with Gear^,
     Gear^.Hedgehog^ do
         begin
+        usedAmmoType:= CurAmmoType;
         if ((State and gstHHDriven) <> 0) and ((State and (gstAttacked or gstChooseTarget)) = 0) and (((State and gstMoving) = 0)
         or (Power > 0)
         or (CurAmmoType = amTeleport)
@@ -304,7 +306,7 @@ with Gear^,
                    amPickHammer: newGear:= AddGear(hwRound(lx), hwRound(ly) + cHHRadius, gtPickHammer, 0, _0, _0, 0);
                          amSkip: ParseCommand('/skip', true);
                          amRope: newGear:= AddGear(hwRound(lx), hwRound(ly), gtRope, 0, xx, yy, 0);
-                         amMine: newGear:= AddGear(hwRound(lx) + hwSign(dX) * 7, hwRound(ly), gtMine, gstWait, SignAs(_0_02, dX), _0, 3000);
+                         amMine: newGear:= AddGear(hwRound(lx) + hwSign(dX) * 7, hwRound(ly), gtMine, gstWait, SignAs(_0_02, dX), _0, 0);
                         amSMine: newGear:= AddGear(hwRound(lx), hwRound(ly), gtSMine,    0, xx*Power/cPowerDivisor, yy*Power/cPowerDivisor, 0);
                         amKnife: begin
                                  newGear:= AddGear(hwRound(lx), hwRound(ly), gtKnife,    0, xx*Power/cPowerDivisor, yy*Power/cPowerDivisor, 0);
@@ -449,7 +451,7 @@ with Gear^,
             if CurAmmoType = amAirMine then newGear^.Hedgehog:= nil;
 
             if ((CurAmmoType = amMine) or (CurAmmoType = amSMine) or (CurAmmoType = amAirMine)) and (GameFlags and gfInfAttack <> 0) then
-                newGear^.FlightTime:= GameTicks + 1000
+                newGear^.FlightTime:= GameTicks + min(TurnTimeLeft,1000)
             else if CurAmmoType = amDrill then
                 newGear^.FlightTime:= GameTicks + 250;
             if Ammoz[CurAmmoType].Ammo.Propz and ammoprop_NeedTarget <> 0 then
@@ -509,7 +511,7 @@ with Gear^,
         else
             Message:= Message and (not gmAttack);
 
-    ScriptCall('onHogAttack', ord(CurAmmoType));
+    ScriptCall('onHogAttack', ord(usedAmmoType));
     end; // of with Gear^, Gear^.Hedgehog^ do
 
     TargetPoint.X := NoPointX;
@@ -570,6 +572,7 @@ end;
 procedure doStepHedgehogDead(Gear: PGear);
 const frametime = 200;
       timertime = frametime * 6;
+var grave:  PGear;
 begin
 if Gear^.Hedgehog^.Unplaced then
     exit;
@@ -585,7 +588,10 @@ else if Gear^.Timer = 1 then
     Gear^.Hedgehog^.Effects[heFrozen]:= 0;
     Gear^.State:= Gear^.State or gstNoDamage;
     doMakeExplosion(hwRound(Gear^.X), hwRound(Gear^.Y), 30, CurrentHedgehog, EXPLAutoSound);
-    AddGear(hwRound(Gear^.X), hwRound(Gear^.Y), gtGrave, 0, _0, _0, 0)^.Hedgehog:= Gear^.Hedgehog;
+    grave:= AddGear(hwRound(Gear^.X), hwRound(Gear^.Y), gtGrave, 0, _0, _0, 0);
+    grave^.Hedgehog:= Gear^.Hedgehog;
+    grave^.Pos:= Gear^.uid;
+    
     DeleteGear(Gear);
     SetAllToActive
     end
@@ -904,6 +910,7 @@ if isFalling then
         end;
     Gear^.State:= Gear^.State or gstMoving;
     if (Gear^.State and gstHHDriven <> 0) and
+       (FollowGear <> nil) and
        (not CurrentTeam^.ExtDriven) and (hwSqr(Gear^.dX) + hwSqr(Gear^.dY) > _0_003) then
         begin
         // TODO: why so aggressive at setting FollowGear when falling?

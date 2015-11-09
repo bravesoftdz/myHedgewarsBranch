@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1094,6 +1094,7 @@ begin
     AllInactive := false;
     Gear^.X := Gear^.X + Gear^.dX;
     Gear^.Y := Gear^.Y + Gear^.dY;
+    WorldWrap(Gear);
     Gear^.dY := Gear^.dY + cGravity;
     CheckGearDrowning(Gear);
     CheckCollision(Gear);
@@ -1503,6 +1504,11 @@ begin
         Gear^.dY := _0;
         SetLittle(HHGear^.dX);
         HHGear^.dY := _0;
+        end
+    else if Gear^.dY.isNegative and (TestCollisionYwithGear(HHGear, -1) <> 0) then
+        begin
+        Gear^.dY := cGravity;
+        HHGear^.dY := cGravity;
         end
     else
         begin
@@ -1914,7 +1920,9 @@ begin
                        (hwRound(hwSqr(tX) + hwSqr(tY)) < sqr(Gear^.Karma)) then
                         begin
                         Gear^.Hedgehog:= CurrentHedgehog;
+                        tmpG:= FollowGear;
                         doMakeExplosion(hwRound(Gear^.X), hwRound(Gear^.Y), Gear^.Karma, Gear^.Hedgehog, EXPLAutoSound);
+                        FollowGear:= tmpG;
                         DeleteGear(Gear);
                         exit
                         end
@@ -1929,7 +1937,8 @@ begin
                 Gear^.State:= Gear^.State and (not gstAttacking);
                 Gear^.Timer:= Gear^.WDTimer
                 end;
-            dec(Gear^.Timer);
+            if Gear^.Timer > 0 then
+                dec(Gear^.Timer);
             end
         end
     else // gsttmpFlag = 0
@@ -1951,9 +1960,9 @@ begin
     if land = 0 then land:= TestCollisionYwithGear(Gear,-2);
     if land = 0 then land:= TestCollisionXwithGear(Gear,-2);
     if land = 0 then land:= TestCollisionYwithGear(Gear, 2);
-    if (land <> 0) and (land and lfBouncy = 0) then
+    if (land <> 0) and ((land and lfBouncy = 0) or ((Gear^.State and gstMoving) = 0)) then
         begin
-        if (not isZero(Gear^.dX)) or (not isZero(Gear^.dY)) then
+        if ((Gear^.State and gstMoving) <> 0) or (not isZero(Gear^.dX)) or (not isZero(Gear^.dY)) then
             begin
             PlaySound(sndRopeAttach);
             Gear^.dX:= _0;
@@ -2667,7 +2676,7 @@ begin
             //4: FollowGear := AddGear(hwRound(Gear^.X), hwRound(Gear^.Y), gtWaterMelon, 0, cBombsSpeed *
             //                 Gear^.Tag, _0, 5000);
             end;
-        Gear^.dX := Gear^.dX + int2hwFloat(30 * Gear^.Tag);
+        Gear^.dX := Gear^.dX + int2hwFloat(Gear^.Damage * Gear^.Tag);
         if CheckCoordInWater(hwRound(Gear^.X), hwRound(Gear^.Y)) then
             FollowGear^.State:= FollowGear^.State or gstSubmersible;
         StopSoundChan(Gear^.SoundChannel, 4000);
@@ -2700,7 +2709,7 @@ begin
         end;
 
     Gear^.Y := int2hwFloat(topY-300);
-    Gear^.dX := int2hwFloat(Gear^.Target.X - 5 * Gear^.Tag * 15);
+    Gear^.dX := int2hwFloat(Gear^.Target.X) - int2hwFloat(Gear^.Tag * Gear^.Health * Gear^.Damage) / 2;
 
     // calcs for Napalm Strike, so that it will hit the target (without wind at least :P)
     if (Gear^.State = 2) then
@@ -2710,7 +2719,6 @@ begin
             Gear^.dX := Gear^.dX - cBombsSpeed * hwSqrt((int2hwFloat(Gear^.Target.Y) - Gear^.Y) * 2 /
                 cGravity) * Gear^.Tag;
 
-    Gear^.Health := 6;
     Gear^.doStep := @doStepAirAttackWork;
     Gear^.SoundChannel := LoopSound(sndPlane, 4000);
 
@@ -2761,10 +2769,10 @@ begin
     if Gear^.AmmoType = amRubber then LandFlags:= lfBouncy
     else if cIce then LandFlags:= lfIce;
 
-    distFail:= ((Distance(tx - x, ty - y) > _256) and ((WorldEdge <> weWrap) or
+    distFail:= (cBuildMaxDist > 0) and ((hwRound(Distance(tx - x, ty - y)) > cBuildMaxDist) and ((WorldEdge <> weWrap) or
             (
-            (Distance(tx - int2hwFloat(rightX+(rx-leftX)), ty - y) > _256) and
-            (Distance(tx - int2hwFloat(leftX-(rightX-rx)), ty - y) > _256)
+            (hwRound(Distance(tx - int2hwFloat(rightX+(rx-leftX)), ty - y)) > cBuildMaxDist) and
+            (hwRound(Distance(tx - int2hwFloat(leftX-(rightX-rx)), ty - y)) > cBuildMaxDist)
             )));
     if distFail
     or (not TryPlaceOnLand(Gear^.Target.X - SpritesData[Ammoz[Gear^.AmmoType].PosSprite].Width div 2, Gear^.Target.Y - SpritesData[Ammoz[Gear^.AmmoType].PosSprite].Height div 2, Ammoz[Gear^.AmmoType].PosSprite, Gear^.State, true, LandFlags)) then
@@ -2799,11 +2807,12 @@ var
     HHGear: PGear;
 begin
     HHGear := Gear^.Hedgehog^.Gear;
-    doStepHedgehogMoving(HHGear);
+    if HHGear <> nil then doStepHedgehogMoving(HHGear);
     // if not infattack mode wait for hedgehog finish falling to collect cases
     if ((GameFlags and gfInfAttack) <> 0)
+    or (HHGear = nil)
     or ((HHGear^.State and gstMoving) = 0)
-    or (Gear^.Hedgehog^.Gear^.Damage > 0)
+    or (HHGear^.Damage > 0)
     or ((HHGear^.State and gstDrowning) = 1) then
         begin
         DeleteGear(Gear);
@@ -2813,7 +2822,7 @@ end;
 
 procedure doStepTeleportAnim(Gear: PGear);
 begin
-    if (Gear^.Hedgehog^.Gear^.Damage > 0) then
+    if (Gear^.Hedgehog^.Gear = nil) or (Gear^.Hedgehog^.Gear^.Damage > 0) then
         begin
         DeleteGear(Gear);
         AfterAttack;
@@ -2840,6 +2849,11 @@ begin
     AllInactive := false;
 
     HHGear := Gear^.Hedgehog^.Gear;
+    if HHGear = nil then
+    begin
+        DeleteGear(Gear);
+        exit
+    end; 
 
     valid:= false;
 
@@ -3663,7 +3677,14 @@ begin
     FollowGear := Gear;
 
     if Gear^.Timer > 0 then
+        begin
+        if Gear^.Timer = 1 then
+            begin
+            StopSoundChan(Gear^.SoundChannel);
+            Gear^.SoundChannel:= -1;
+            end;
         dec(Gear^.Timer);
+        end;
 
     fChanged := false;
     if (HHGear = nil) or ((HHGear^.State and gstHHDriven) = 0) or (Gear^.Timer = 0) then
@@ -5177,7 +5198,9 @@ end;
 ////////////////////////////////////////////////////////////////////////////////
 procedure doStepPoisonCloud(Gear: PGear);
 begin
-    WorldWrap(Gear);
+    // don't bounce
+    if WorldEdge <> weBounce then
+        WorldWrap(Gear);
     if Gear^.Timer = 0 then
         begin
         DeleteGear(Gear);
@@ -5198,11 +5221,14 @@ end;
 procedure doStepHammer(Gear: PGear);
 var HHGear, tmp, tmp2: PGear;
          t: PGearArray;
-         i: LongInt;
+ i, dmg, d: LongInt;
 begin
 HHGear:= Gear^.Hedgehog^.Gear;
 HHGear^.State:= HHGear^.State or gstNoDamage;
 DeleteCI(HHGear);
+SetLittle(HHGear^.dY);
+HHGear^.dY.IsNegative:= true;
+HHGear^.State:= HHGear^.State or gstMoving;
 
 t:= CheckGearsCollision(Gear);
 
@@ -5217,17 +5243,36 @@ while i > 0 do
     if (tmp^.State and gstNoDamage) = 0 then
         if (tmp^.Kind = gtHedgehog) or (tmp^.Kind = gtMine) or (tmp^.Kind = gtExplosives) then
             begin
+            dmg:= 0;
             //tmp^.State:= tmp^.State or gstFlatened;
             if (tmp^.Kind <> gtHedgehog) or (tmp^.Hedgehog^.Effects[heInvulnerable] = 0) then
-                ApplyDamage(tmp, CurrentHedgehog, tmp^.Health div 3, dsUnknown);
-            //DrawTunnel(tmp^.X, tmp^.Y - _1, _0, _0_5, cHHRadius * 6, cHHRadius * 3);
-            tmp2:= AddGear(hwRound(tmp^.X), hwRound(tmp^.Y), gtHammerHit, 0, _0, _0, 0);
-            tmp2^.LinkedGear:= tmp;
-            SetAllToActive
-            end
-        else
-            begin
-            end
+                begin
+                // base damage on remaining health
+                dmg:= (tmp^.Health - tmp^.Damage);
+                if dmg > 0 then
+                    begin
+                    // do 1/2 current hp worth of damage if extra damage is enabled (1/3 damage if not)
+                    if cDamageModifier > _1 then
+                        d:= 2
+                    else
+                        d:= 3;
+
+                    // always rounding down
+                    dmg:= dmg div d;
+
+                    if dmg > 0 then
+                        ApplyDamage(tmp, CurrentHedgehog, dmg, dsUnknown);
+                    end;
+                end;
+
+            if (tmp^.Kind <> gtHedgehog) or (dmg > 0) or (tmp^.Health > tmp^.Damage) then
+                begin
+                //DrawTunnel(tmp^.X, tmp^.Y - _1, _0, _0_5, cHHRadius * 6, cHHRadius * 3);
+                tmp2:= AddGear(hwRound(tmp^.X), hwRound(tmp^.Y), gtHammerHit, 0, _0, _0, 0);
+                tmp2^.LinkedGear:= tmp;
+                SetAllToActive
+                end;
+            end;
     end;
 
 HHGear^.State:= HHGear^.State and (not gstNoDamage);
@@ -5386,7 +5431,7 @@ begin
         for i:= 0 to graves.size - 1 do
             if graves.ar^[i]^.Health > 0 then
                 begin
-                resgear := AddGear(hwRound(graves.ar^[i]^.X), hwRound(graves.ar^[i]^.Y), gtHedgehog, gstWait, _0, _0, 0);
+                resgear := AddGear(hwRound(graves.ar^[i]^.X), hwRound(graves.ar^[i]^.Y), gtHedgehog, gstWait, _0, _0, 0,graves.ar^[i]^.Pos);
                 resgear^.Hedgehog := graves.ar^[i]^.Hedgehog;
                 resgear^.Health := graves.ar^[i]^.Health;
                 PHedgehog(graves.ar^[i]^.Hedgehog)^.Gear := resgear;
@@ -5748,9 +5793,16 @@ For now we assume a "ray" like a deagle projected out from the gun.
 All these effects assume the ray's angle is not changed and that the target type was unchanged over a number of ticks.  This is a simplifying assumption for "gun was applying freezing effect to the same target".
   * When fired at water a layer of ice textured land is added above the water.
   * When fired at non-ice land (land and lfLandMask and not lfIce) the land is overlaid with a thin layer of ice textured land around that point (say, 1 or 2px into land, 1px above). For attractiveness, a slope would probably be needed.
-  * When fired at a hog (land and $00FF <> 0), while the hog is targetted, the hog's state is set to frozen.  As long as the gun is on the hog, a frozen hog sprite creeps up from the feet to the head.  If the effect is interrupted before reaching the top, the freezing state is cleared.
-A frozen hog will animate differently.  To be decided, but possibly in a similar fashion to a grave when it comes to explosions.  The hog might (possibly) not be damaged by explosions.  This might make freezing potentially useful for friendlies in a bad position.  It might be better to allow damage though.
-A frozen hog stays frozen for a certain number of turns. Each turn the frozen overlay becomes fainter, until it fades and the hog animates normally again.
+  * When fired at a hog (land and $00FF <> 0), while the hog is targetted, the hog's state is set to frozen.
+    As long as the gun is on the hog, a frozen hog sprite creeps up from the feet to the head.
+    If the effect is interrupted before reaching the top, the freezing state is cleared.
+A frozen hog will animate differently.
+    To be decided, but possibly in a similar fashion to a grave when it comes to explosions.
+    The hog might (possibly) not be damaged by explosions.
+    This might make freezing potentially useful for friendlies in a bad position.
+    It might be better to allow damage though.
+A frozen hog stays frozen for a certain number of turns.
+    Each turn the frozen overlay becomes fainter, until it fades and the hog animates normally again.
 *)
 
 

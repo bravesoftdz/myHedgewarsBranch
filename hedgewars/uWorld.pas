@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -862,8 +862,8 @@ begin
         begin
         RenderClear();
         DrawWorldStereo(Lag, rmDefault)
-        end
 {$IFDEF USE_S3D_RENDERING}
+        end
     else
         begin
         // draw frame for left eye
@@ -873,8 +873,8 @@ begin
         // draw frame for right eye
         RenderClear(rmRightEye);
         DrawWorldStereo(0, rmRightEye);
-        end;
 {$ENDIF}
+        end;
 
 FinishRender();
 end;
@@ -1148,7 +1148,7 @@ var preShiftWorldDx: LongInt;
 procedure ShiftWorld(Dir: LongInt); inline;
 begin
     preShiftWorldDx:= WorldDx;
-    WorldDx:= WorldDx + Dir * LongInt(playWidth);
+    WorldDx:= WorldDx + LongInt(Dir * LongInt(playWidth));
 
 end;
 
@@ -1659,35 +1659,32 @@ SetScale(zoom);
 
 
 // Cursor
-if isCursorVisible then
+if isCursorVisible and (not bShowAmmoMenu) then
     begin
-    if (not bShowAmmoMenu) then
-        begin
-        if not CurrentTeam^.ExtDriven then TargetCursorPoint:= CursorPoint;
-        with CurrentHedgehog^ do
-            if (Gear <> nil) and ((Gear^.State and gstChooseTarget) <> 0) then
+    if not CurrentTeam^.ExtDriven then TargetCursorPoint:= CursorPoint;
+    with CurrentHedgehog^ do
+        if (Gear <> nil) and ((Gear^.State and gstChooseTarget) <> 0) then
+            begin
+        if (CurAmmoType = amNapalm) or (CurAmmoType = amMineStrike) or (((GameFlags and gfMoreWind) <> 0) and ((CurAmmoType = amDrillStrike) or (CurAmmoType = amAirAttack))) then
+            DrawLine(-3000, topY-300, 7000, topY-300, 3.0, (Team^.Clan^.Color shr 16), (Team^.Clan^.Color shr 8) and $FF, Team^.Clan^.Color and $FF, $FF);
+        i:= GetCurAmmoEntry(CurrentHedgehog^)^.Pos;
+        with Ammoz[CurAmmoType] do
+            if PosCount > 1 then
                 begin
-            if (CurAmmoType = amNapalm) or (CurAmmoType = amMineStrike) or (((GameFlags and gfMoreWind) <> 0) and ((CurAmmoType = amDrillStrike) or (CurAmmoType = amAirAttack))) then
-                DrawLine(-3000, topY-300, 7000, topY-300, 3.0, (Team^.Clan^.Color shr 16), (Team^.Clan^.Color shr 8) and $FF, Team^.Clan^.Color and $FF, $FF);
-            i:= GetCurAmmoEntry(CurrentHedgehog^)^.Pos;
-            with Ammoz[CurAmmoType] do
-                if PosCount > 1 then
+                if (CurAmmoType = amGirder) or (CurAmmoType = amTeleport) then
                     begin
-                    if (CurAmmoType = amGirder) or (CurAmmoType = amTeleport) then
-                        begin
-                    // pulsating transparency
-                        if ((GameTicks div 16) mod $80) >= $40 then
-                            Tint($FF, $FF, $FF, $C0 - (GameTicks div 16) mod $40)
-                        else
-                            Tint($FF, $FF, $FF, $80 + (GameTicks div 16) mod $40);
-                        end;
-                    DrawSprite(PosSprite, TargetCursorPoint.X - (SpritesData[PosSprite].Width shr 1), cScreenHeight - TargetCursorPoint.Y - (SpritesData[PosSprite].Height shr 1),i);
-                    Untint();
+                // pulsating transparency
+                    if ((GameTicks div 16) mod $80) >= $40 then
+                        Tint($FF, $FF, $FF, $C0 - (GameTicks div 16) mod $40)
+                    else
+                        Tint($FF, $FF, $FF, $80 + (GameTicks div 16) mod $40);
                     end;
+                DrawSprite(PosSprite, TargetCursorPoint.X - (SpritesData[PosSprite].Width shr 1), cScreenHeight - TargetCursorPoint.Y - (SpritesData[PosSprite].Height shr 1),i);
+                Untint();
                 end;
-        //DrawSprite(sprArrow, TargetCursorPoint.X, cScreenHeight - TargetCursorPoint.Y, (RealTicks shr 6) mod 8)
-        DrawTextureF(SpritesData[sprArrow].Texture, cDefaultZoomLevel / cScaleFactor, TargetCursorPoint.X + round(SpritesData[sprArrow].Width / cScaleFactor), cScreenHeight + round(SpritesData[sprArrow].Height / cScaleFactor) - TargetCursorPoint.Y, (RealTicks shr 6) mod 8, 1, SpritesData[sprArrow].Width, SpritesData[sprArrow].Height);
-        end
+            end;
+    //DrawSprite(sprArrow, TargetCursorPoint.X, cScreenHeight - TargetCursorPoint.Y, (RealTicks shr 6) mod 8)
+    DrawTextureF(SpritesData[sprArrow].Texture, cDefaultZoomLevel / cScaleFactor, TargetCursorPoint.X + round(SpritesData[sprArrow].Width / cScaleFactor), cScreenHeight + round(SpritesData[sprArrow].Height / cScaleFactor) - TargetCursorPoint.Y, (RealTicks shr 6) mod 8, 1, SpritesData[sprArrow].Width, SpritesData[sprArrow].Height);
     end;
 
 // debug stuff
@@ -1706,7 +1703,7 @@ end;
 var PrevSentPointTime: LongWord = 0;
 
 procedure MoveCamera;
-var EdgesDist, wdy, shs,z, amNumOffsetX, amNumOffsetY, cameraJump: LongInt;
+var EdgesDist, wdy, shs,z, amNumOffsetX, amNumOffsetY, dstX: LongInt;
     inbtwnTrgtAttks: Boolean;
 begin
 {$IFNDEF MOBILE}
@@ -1724,27 +1721,35 @@ if autoCameraOn and (not PlacingHogs) and (FollowGear <> nil) and (not isCursorV
         end
     else
         begin
-        if (WorldEdge = weWrap) then
-            cameraJump:= LongInt(playWidth) div 2 + 50
-        else
-            cameraJump:= LongInt(rightX) - leftX - 100;
+            dstX:= hwRound(FollowGear^.X) + hwSign(FollowGear^.dX) * z + WorldDx;
 
-        if abs(prevPoint.X - WorldDx - hwRound(FollowGear^.X)) > cameraJump then
-            begin
-            if prevPoint.X - WorldDx < LongInt(playWidth div 2) then
-                cameraJump:= LongInt(playWidth)
-            else
-                cameraJump:= -LongInt(playWidth);
-            WorldDx:= WorldDx - cameraJump;
-            end;
+            if (WorldEdge = weWrap) then
+                begin
+                    if dstX - prevPoint.X < (LongInt(leftX) - rightX) div 2 then
+                        CursorPoint.X:= (prevPoint.X * 7 + dstX - (leftX - rightX)) div 8
+                    else if dstX - prevPoint.X > (LongInt(rightX) - leftX) div 2 then
+                        CursorPoint.X:= (prevPoint.X * 7 + dstX - (rightX - leftX)) div 8
+                    else
+                        CursorPoint.X:= (prevPoint.X * 7 + dstX) div 8;
+                end
+            else // usual camera movement routine
+                begin
+                    CursorPoint.X:= (prevPoint.X * 7 + dstX) div 8;
+                end;
 
-        CursorPoint.X:= (prevPoint.X * 7 + hwRound(FollowGear^.X) + hwSign(FollowGear^.dX) * z + WorldDx) div 8;
-
-        if isPhone() or (cScreenHeight < 600) or ((hwSign(FollowGear^.dY) * z) < 10)  then
+        if isPhone() or (cScreenHeight < 600) or (hwFloat(FollowGear^.dY * z).Round < 10) then
             CursorPoint.Y:= (prevPoint.Y * 7 + cScreenHeight - (hwRound(FollowGear^.Y) + WorldDy)) div 8
         else
             CursorPoint.Y:= (prevPoint.Y * 7 + cScreenHeight - (hwRound(FollowGear^.Y) + hwSign(FollowGear^.dY) * z + WorldDy)) div 8;
         end;
+
+if (WorldEdge = weWrap) then
+    begin
+        if -WorldDx < leftX then
+            WorldDx:= WorldDx - LongInt(rightX) + leftX
+        else if -WorldDx > rightX then
+            WorldDx:= WorldDx + LongInt(rightX) - leftX;
+    end;
 
 wdy:= trunc(cScreenHeight / cScaleFactor) + cScreenHeight div 2 - cWaterLine - cVisibleWater;
 if WorldDy < wdy then
@@ -1925,7 +1930,7 @@ if(ammoType = amNothing)then
     ammoType:= CurrentHedgehog^.CurAmmoType;
 
 if(CurrentHedgehog <> nil)then
-    if (Ammoz[ammoType].Ammo.Propz and ammoprop_Timerable) <> 0 then
+    if ((Ammoz[ammoType].Ammo.Propz and ammoprop_Timerable) <> 0) and (ammoType <> amDrillStrike) then
         begin
         utilityWidget.sprite:= sprTimerButton;
         animateWidget(@utilityWidget, true, true);
@@ -1937,7 +1942,7 @@ if(CurrentHedgehog <> nil)then
         end
     else if ammoType = amSwitch then
         begin
-        utilityWidget.sprite:= sprTargetButton;
+        utilityWidget.sprite:= sprSwitchButton;
         animateWidget(@utilityWidget, true, true);
         end
     else if utilityWidget.show then

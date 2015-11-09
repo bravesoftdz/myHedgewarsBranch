@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -335,7 +335,7 @@ var paramIndex: LongInt;
 //var tmpInt: LongInt;
 begin
 
-    paramIndex:= 1;
+    paramIndex:= {$IFDEF HWLIBRARY}0{$ELSE}1{$ENDIF};
     paramTotal:= ParamCount; //-1 because pascal enumeration is inclusive
     (*
     WriteLn(stdout, 'total parameters: ' + inttostr(paramTotal));

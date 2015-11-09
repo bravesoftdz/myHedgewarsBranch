@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,8 @@ uses LuaPas,
     uIO,
     uVisualGearsList,
     uGearsHandlersMess,
-    uPhysFSLayer
+    uPhysFSLayer,
+    SDLh
 {$IFNDEF PAS2C}
     , typinfo
 {$ENDIF}
@@ -101,6 +102,7 @@ var luaState : Plua_State;
     ScriptLoaded : boolean;
     mapDims : boolean;
     PointsBuffer: shortstring;
+    prevCursorPoint: TPoint;  // why is tpoint still in sdlh...
 
 procedure ScriptPrepareAmmoStore; forward;
 procedure ScriptApplyAmmoStore; forward;
@@ -438,6 +440,26 @@ begin
     lc_setweapon:= 0;
 end;
 
+// no parameter means reset to default (and 0 means unlimited)
+function lc_setmaxbuilddistance(L : Plua_State) : LongInt; Cdecl;
+var np: LongInt;
+const
+    call = 'SetMaxBuildDistance';
+    params = '[ distInPx ]';
+begin
+    if CheckAndFetchParamCountRange(L, 0, 1, call, params, np) then
+        begin
+        if np = 0 then
+            begin
+            // no args? reset
+            cBuildMaxDist:= cDefaultBuildMaxDist;
+            end
+        else
+            CBuildMaxDist:= lua_tointeger(L, 1);
+        end;
+    lc_setmaxbuilddistance:= 0;
+end;
+
 // sets weapon to whatever weapons is next (wraps around, amSkip is skipped)
 function lc_setnextweapon(L : Plua_State) : LongInt; Cdecl;
 var at          : LongInt;
@@ -606,7 +628,9 @@ begin
         begin
         gear := SpawnFakeCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2),
         HealthCrate, lua_toboolean(L, 3), lua_toboolean(L, 4));
-        lua_pushinteger(L, gear^.uid);
+        if gear <> nil then
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L)
         end
     else
         lua_pushnil(L);
@@ -620,7 +644,9 @@ begin
         begin
         gear := SpawnFakeCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2),
         AmmoCrate, lua_toboolean(L, 3), lua_toboolean(L, 4));
-        lua_pushinteger(L, gear^.uid);
+        if gear <> nil then
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L)
         end
     else
         lua_pushnil(L);
@@ -634,7 +660,9 @@ begin
         begin
         gear := SpawnFakeCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2),
         UtilityCrate, lua_toboolean(L, 3), lua_toboolean(L, 4));
-        lua_pushinteger(L, gear^.uid);
+        if gear <> nil then
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L)
         end
     else
         lua_pushnil(L);
@@ -653,9 +681,8 @@ begin
             health:= cHealthCaseAmount;
         gear := SpawnCustomCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2), HealthCrate, health, 0);
         if gear <> nil then
-            lua_pushinteger(L, gear^.uid)
-        else
-            lua_pushnil(L);
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L);
         end
     else
         lua_pushnil(L);
@@ -672,9 +699,8 @@ begin
              gear := SpawnCustomCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2), AmmoCrate, lua_tointeger(L, 3), 0)
         else gear := SpawnCustomCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2), AmmoCrate, lua_tointeger(L, 3), lua_tointeger(L, 4));
         if gear <> nil then
-            lua_pushinteger(L, gear^.uid)
-        else
-            lua_pushnil(L);
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L);
         end
     else
         lua_pushnil(L);
@@ -691,9 +717,8 @@ begin
              gear := SpawnCustomCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2), UtilityCrate, lua_tointeger(L, 3), 0)
         else gear := SpawnCustomCrateAt(lua_tointeger(L, 1), lua_tointeger(L, 2), UtilityCrate, lua_tointeger(L, 3), lua_tointeger(L, 4));
         if gear <> nil then
-            lua_pushinteger(L, gear^.uid)
-        else
-            lua_pushnil(L);
+             lua_pushinteger(L, gear^.uid)
+        else lua_pushnil(L);
        end
     else
         lua_pushnil(L);
@@ -895,29 +920,30 @@ begin
             lua_pushinteger(L, gear^.AdvBounce);
             lua_pushinteger(L, Integer(gear^.ImpactSound));
             lua_pushinteger(L, gear^.nImpactSounds);
-            lua_pushinteger(L, gear^.Tint)
+            lua_pushinteger(L, gear^.Tint);
+            lua_pushinteger(L, gear^.Damage)
             end
         else
             begin
             lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
             lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
-            lua_pushnil(L)
+            lua_pushnil(L); lua_pushnil(L)
             end
         end
     else
         begin
         lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
         lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L); lua_pushnil(L);
-        lua_pushnil(L)
+        lua_pushnil(L); lua_pushnil(L)
         end;
-    lc_getgearvalues:= 11
+    lc_getgearvalues:= 12
 end;
 
 function lc_setgearvalues(L : Plua_State) : LongInt; Cdecl;
 var gear : PGear;
 begin
-// Currently allows 1-12 params
-//    if CheckLuaParamCount(L, 12, 'SetGearValues', 'gearUid, Angle, Power, WDTimer, Radius, Density, Karma, DirAngle, AdvBounce, ImpactSound, # ImpactSounds, Tint') then
+// Currently allows 1-13 params
+//    if CheckLuaParamCount(L, 13, 'SetGearValues', 'gearUid, Angle, Power, WDTimer, Radius, Density, Karma, DirAngle, AdvBounce, ImpactSound, # ImpactSounds, Tint, Damage') then
 //        begin
         gear:= GearByUID(lua_tointeger(L, 1));
         if gear <> nil then
@@ -943,7 +969,9 @@ begin
             if not lua_isnoneornil(L, 11) then
                 gear^.nImpactSounds := lua_tointeger(L, 11);
             if not lua_isnoneornil(L, 12) then
-                gear^.Tint := lua_tointeger(L, 12)
+                gear^.Tint := lua_tointeger(L, 12);
+            if not lua_isnoneornil(L, 13) then
+                gear^.Damage := lua_tointeger(L, 13);
             end;
 //        end
 //    else
@@ -1211,6 +1239,54 @@ begin
     lc_setclancolor:= 0
 end;
 
+function lc_gethogvoicepack(L : Plua_State) : LongInt; Cdecl;
+var gear : PGear;
+begin
+    if CheckLuaParamCount(L, 1, 'GetHogVoicepack', 'gearUid') then
+        begin
+        gear:= GearByUID(lua_tointeger(L, 1));
+        if (gear <> nil) and (gear^.Kind = gtHedgehog) and (gear^.Hedgehog <> nil) then
+            lua_pushstring(L, str2pchar(gear^.Hedgehog^.Team^.Voicepack^.name))
+        else
+            lua_pushnil(L);
+        end
+    else
+        lua_pushnil(L); // return value on stack (nil)
+    lc_gethogvoicepack:= 1
+end;
+
+function lc_gethoggrave(L : Plua_State) : LongInt; Cdecl;
+var gear : PGear;
+begin
+    if CheckLuaParamCount(L, 1, 'GetHogGrave', 'gearUid') then
+        begin
+        gear:= GearByUID(lua_tointeger(L, 1));
+        if (gear <> nil) and ((gear^.Kind = gtHedgehog) or (gear^.Kind = gtGrave)) and (gear^.Hedgehog <> nil) then
+            lua_pushstring(L, str2pchar(gear^.Hedgehog^.Team^.GraveName))
+        else
+            lua_pushnil(L);
+        end
+    else
+        lua_pushnil(L); // return value on stack (nil)
+    lc_gethoggrave:= 1
+end;
+
+function lc_gethogflag(L : Plua_State) : LongInt; Cdecl;
+var gear : PGear;
+begin
+    if CheckLuaParamCount(L, 1, 'GetHogFlag', 'gearUid') then
+        begin
+        gear:= GearByUID(lua_tointeger(L, 1));
+        if (gear <> nil) and (gear^.Kind = gtHedgehog) and (gear^.Hedgehog <> nil) then
+            lua_pushstring(L, str2pchar(gear^.Hedgehog^.Team^.Flag))
+        else
+            lua_pushnil(L);
+        end
+    else
+        lua_pushnil(L); // return value on stack (nil)
+    lc_gethogflag:= 1
+end;
+
 function lc_gethogteamname(L : Plua_State) : LongInt; Cdecl;
 var gear : PGear;
 begin
@@ -1414,7 +1490,7 @@ begin
                vgear^.Text:= lua_tostring(L, 2);
                if Gear^.Kind = gtHedgehog then
                    begin
-                   AddChatString(#1+'[' + gear^.Hedgehog^.Name + '] '+vgear^.text);
+                   AddChatString(#9+'[' + gear^.Hedgehog^.Name + '] '+vgear^.text);
                    vgear^.Hedgehog:= gear^.Hedgehog
                    end
                else vgear^.Frame:= gear^.uid;
@@ -2226,7 +2302,7 @@ begin
         else flipVert := false;
         lf:= 0;
 
-        // accept any amount of landflags, loop is never executed if n>6
+        // accept any amount of landflags, loop is never executed if n<9
         for i:= 9 to n do
             lf:= lf or lua_tointeger(L, i);
 
@@ -2255,7 +2331,7 @@ var spr   : TSprite;
     eraseOnLFMatch, onlyEraseLF, flipHoriz, flipVert : boolean;
 const
     call = 'EraseSprite';
-    params = 'x, y, sprite, frameIdx, eraseOnLFMatch, flipHoriz, flipVert, [, landFlag, ... ]';
+    params = 'x, y, sprite, frameIdx, eraseOnLFMatch, onlyEraseLF, flipHoriz, flipVert, [, landFlag, ... ]';
 begin
     if CheckAndFetchLuaParamMinCount(L, 4, call, params, n) then
         begin
@@ -2273,7 +2349,7 @@ begin
         else flipVert := false;
         lf:= 0;
 
-        // accept any amount of landflags, loop is never executed if n>6
+        // accept any amount of landflags, loop is never executed if n<9
         for i:= 9 to n do
             lf:= lf or lua_tointeger(L, i);
 
@@ -2422,7 +2498,7 @@ begin
     lc_setwaterline:= 0
 end;
 
-function lc_setaihintsongear(L : Plua_State) : LongInt; Cdecl;
+function lc_setgearaihints(L : Plua_State) : LongInt; Cdecl;
 var gear: PGear;
 begin
     if CheckLuaParamCount(L, 2, 'SetAIHintOnGear', 'gearUid, aiHints') then
@@ -2431,7 +2507,7 @@ begin
         if gear <> nil then
             gear^.aihints:= lua_tointeger(L, 2);
         end;
-    lc_setaihintsongear:= 0
+    lc_setgearaihints:= 0
 end;
 
 
@@ -2597,6 +2673,7 @@ ScriptSetString('Seed', cSeed);
 ScriptSetInteger('TemplateFilter', cTemplateFilter);
 ScriptSetInteger('TemplateNumber', LuaTemplateNumber);
 ScriptSetInteger('MapGen', ord(cMapGen));
+ScriptSetInteger('MapFeatureSize', cFeatureSize);
 
 ScriptCall('onPreviewInit');
 
@@ -2605,6 +2682,7 @@ ParseCommand('seed ' + ScriptGetString('Seed'), true, true);
 cTemplateFilter  := ScriptGetInteger('TemplateFilter');
 LuaTemplateNumber:= ScriptGetInteger('TemplateNumber');
 cMapGen          := TMapGen(ScriptGetInteger('MapGen'));
+cFeatureSize     := ScriptGetInteger('MapFeatureSize');
 end;
 
 procedure ScriptOnGameInit;
@@ -2615,12 +2693,15 @@ if not ScriptLoaded then
     exit;
 
 // push game variables so they may be modified by the script
+ScriptSetInteger('CursorX', CursorPoint.X);
+ScriptSetInteger('CursorY', CursorPoint.Y);
 ScriptSetInteger('BorderColor', ExplosionBorderColor);
 ScriptSetInteger('GameFlags', GameFlags);
 ScriptSetString('Seed', cSeed);
 ScriptSetInteger('TemplateFilter', cTemplateFilter);
 ScriptSetInteger('TemplateNumber', LuaTemplateNumber);
 ScriptSetInteger('MapGen', ord(cMapGen));
+ScriptSetInteger('MapFeatureSize', cFeatureSize);
 ScriptSetInteger('ScreenHeight', cScreenHeight);
 ScriptSetInteger('ScreenWidth', cScreenWidth);
 ScriptSetInteger('TurnTime', cHedgehogTurnTime);
@@ -2650,6 +2731,7 @@ ParseCommand('seed ' + ScriptGetString('Seed'), true, true);
 cTemplateFilter  := ScriptGetInteger('TemplateFilter');
 LuaTemplateNumber:= ScriptGetInteger('TemplateNumber');
 cMapGen          := TMapGen(ScriptGetInteger('MapGen'));
+cFeatureSize     := ScriptGetInteger('MapFeatureSize');
 GameFlags        := ScriptGetInteger('GameFlags');
 cHedgehogTurnTime:= ScriptGetInteger('TurnTime');
 cCaseFactor      := ScriptGetInteger('CaseFreq');
@@ -2773,6 +2855,25 @@ ScriptSetInteger('TurnTimeLeft', TurnTimeLeft);
 ScriptSetInteger('GameTime', GameTicks);
 ScriptSetInteger('TotalRounds', TotalRounds);
 ScriptSetInteger('WaterLine', cWaterLine);
+if isCursorVisible and (not bShowAmmoMenu) then
+    begin
+    if (prevCursorPoint.X <> CursorPoint.X) or 
+       (prevCursorPoint.Y <> CursorPoint.Y) then
+        begin
+        ScriptSetInteger('CursorX', CursorPoint.X - WorldDx);
+        ScriptSetInteger('CursorY', cScreenHeight - CursorPoint.Y- WorldDy);
+        prevCursorPoint.X:= CursorPoint.X;
+        prevCursorPoint.Y:= CursorPoint.Y;
+        end
+    end
+else
+    begin
+    ScriptSetInteger('CursorX', NoPointX);
+    ScriptSetInteger('CursorY', NoPointX);
+    prevCursorPoint.X:= NoPointX;
+    prevCursorPoint.Y:= NoPointX
+    end;
+
 if not mapDims then
     begin
     mapDims:= true;
@@ -2790,6 +2891,12 @@ end;
 
 procedure GetGlobals;
 begin
+// TODO
+// Use setters instead, because globals should be read-only!
+// Otherwise globals might be changed by Lua, but then unexpectatly overwritten by engine when a ScriptCall is triggered by whatever Lua is doing!
+// Sure, one could work around that in engine (e.g. by setting writable globals in SetGlobals only when their engine-side value has actually changed since SetGlobals was called the last time...), but things just get messier and messier then.
+// It is inconsistent anyway to have some globals be read-only and others not with no indication whatsoever.
+// -- sheepluva
 TurnTimeLeft:= ScriptGetInteger('TurnTimeLeft');
 end;
 
@@ -3085,7 +3192,7 @@ ScriptSetInteger('gstMoving'        , gstMoving);
 ScriptSetInteger('gstAttacked'      , gstAttacked);
 ScriptSetInteger('gstAttacking'     , gstAttacking);
 ScriptSetInteger('gstCollision'     , gstCollision);
-ScriptSetInteger('gstChooseTarget', gstChooseTarget);
+ScriptSetInteger('gstChooseTarget'  , gstChooseTarget);
 ScriptSetInteger('gstHHJumping'     , gstHHJumping);
 ScriptSetInteger('gsttmpFlag'       , gsttmpFlag);
 ScriptSetInteger('gstHHThinking'    , gstHHThinking);
@@ -3099,6 +3206,9 @@ ScriptSetInteger('gstNotKickable'   , gstNotKickable);
 ScriptSetInteger('gstLoser'         , gstLoser);
 ScriptSetInteger('gstHHGone'        , gstHHGone);
 ScriptSetInteger('gstInvisible'     , gstInvisible);
+ScriptSetInteger('gstSubmersible'   , gstSubmersible);
+ScriptSetInteger('gstFrozen'        , gstFrozen);
+ScriptSetInteger('gstNoGravity'     , gstNoGravity);
 
 // ai hints
 ScriptSetInteger('aihUsualProcessing', aihUsualProcessing);
@@ -3170,6 +3280,9 @@ lua_register(luaState, _P'GetEffect', @lc_geteffect);
 lua_register(luaState, _P'GetHogClan', @lc_gethogclan);
 lua_register(luaState, _P'GetClanColor', @lc_getclancolor);
 lua_register(luaState, _P'SetClanColor', @lc_setclancolor);
+lua_register(luaState, _P'GetHogVoicepack', @lc_gethogvoicepack);
+lua_register(luaState, _P'GetHogFlag', @lc_gethogflag);
+lua_register(luaState, _P'GetHogGrave', @lc_gethoggrave);
 lua_register(luaState, _P'GetHogTeamName', @lc_gethogteamname);
 lua_register(luaState, _P'SetHogTeamName', @lc_sethogteamname);
 lua_register(luaState, _P'GetHogName', @lc_gethogname);
@@ -3224,11 +3337,12 @@ lua_register(luaState, _P'SetGravity', @lc_setgravity);
 lua_register(luaState, _P'SetWaterLine', @lc_setwaterline);
 lua_register(luaState, _P'SetNextWeapon', @lc_setnextweapon);
 lua_register(luaState, _P'SetWeapon', @lc_setweapon);
+lua_register(luaState, _P'SetMaxBuildDistance', @lc_setmaxbuilddistance);
 // drawn map functions
 lua_register(luaState, _P'AddPoint', @lc_addPoint);
 lua_register(luaState, _P'FlushPoints', @lc_flushPoints);
 
-lua_register(luaState, _P'SetGearAIHints', @lc_setaihintsongear);
+lua_register(luaState, _P'SetGearAIHints', @lc_setgearaihints);
 lua_register(luaState, _P'HedgewarsScriptLoad', @lc_hedgewarsscriptload);
 lua_register(luaState, _P'DeclareAchievement', @lc_declareachievement);
 
@@ -3329,6 +3443,8 @@ procedure initModule;
 begin
 mapDims:= false;
 PointsBuffer:= '';
+prevCursorPoint.X:= NoPointX;
+prevCursorPoint.Y:= 0;
 end;
 
 procedure freeModule;

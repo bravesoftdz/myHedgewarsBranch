@@ -1,6 +1,6 @@
 (*
  * Hedgewars, a free turn based strategy game
- * Copyright (c) 2004-2014 Andrey Korotaev <unC0Rr@gmail.com>
+ * Copyright (c) 2004-2015 Andrey Korotaev <unC0Rr@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ interface
 uses uFloat, uTypes, SDLh;
 
 function  AddGear(X, Y: LongInt; Kind: TGearType; State: Longword; dX, dY: hwFloat; Timer: LongWord): PGear;
+function  AddGear(X, Y: LongInt; Kind: TGearType; State: Longword; dX, dY: hwFloat; Timer, newUid: LongWord): PGear;
 procedure DeleteGear(Gear: PGear);
 procedure InsertGearToList(Gear: PGear);
 procedure RemoveGearFromList(Gear: PGear);
@@ -155,7 +156,7 @@ if Gear^.NextGear <> nil then
     Gear^.NextGear^.PrevGear:= Gear^.PrevGear;
 if Gear^.PrevGear <> nil then
     Gear^.PrevGear^.NextGear:= Gear^.NextGear
-else 
+else
     GearsList:= Gear^.NextGear;
 
 Gear^.NextGear:= nil;
@@ -164,11 +165,16 @@ end;
 
 
 function AddGear(X, Y: LongInt; Kind: TGearType; State: Longword; dX, dY: hwFloat; Timer: LongWord): PGear;
+begin
+AddGear:= AddGear(X, Y, Kind, State, dX, dY, Timer, 0);
+end;
+function AddGear(X, Y: LongInt; Kind: TGearType; State: Longword; dX, dY: hwFloat; Timer, newUid: LongWord): PGear;
 var gear: PGear;
     //c: byte;
     cakeData: PCakeData;
 begin
-inc(GCounter);
+if newUid = 0 then
+    inc(GCounter);
 
 AddFileLog('AddGear: #' + inttostr(GCounter) + ' (' + inttostr(x) + ',' + inttostr(y) + '), d(' + floattostr(dX) + ',' + floattostr(dY) + ') type = ' + EnumToStr(Kind));
 
@@ -186,7 +192,9 @@ gear^.dY:= dY;
 gear^.doStep:= doStepHandlers[Kind];
 gear^.CollisionIndex:= -1;
 gear^.Timer:= Timer;
-gear^.uid:= GCounter;
+if newUid = 0 then
+     gear^.uid:= GCounter
+else gear^.uid:= newUid;
 gear^.SoundChannel:= -1;
 gear^.ImpactSound:= sndNone;
 gear^.Density:= _1;
@@ -238,6 +246,8 @@ case Kind of
   gtMelonPiece: begin
                 gear^.AdvBounce:= 1;
                 gear^.Density:= _2;
+                gear^.Elasticity:= _0_8;
+                gear^.Friction:= _0_995;
                 gear^.Radius:= 4
                 end;
     gtHedgehog: begin
@@ -464,6 +474,8 @@ case Kind of
                 gear^.Tag:= Y
                 end;
    gtAirAttack: begin
+                gear^.Health:= 6;
+                gear^.Damage:= 30;
                 gear^.Z:= cHHZ+2;
                 gear^.Tint:= gear^.Hedgehog^.Team^.Clan^.Color shl 8 or $FF
                 end;
@@ -669,6 +681,7 @@ var team: PTeam;
     t,i: Longword;
     k: boolean;
     cakeData: PCakeData;
+    iterator: PGear;
 begin
 
 ScriptCall('onGearDelete', gear^.uid);
@@ -676,6 +689,31 @@ ScriptCall('onGearDelete', gear^.uid);
 DeleteCI(Gear);
 
 FreeAndNilTexture(Gear^.Tex);
+
+// remove potential links to this gear
+// currently relevant to: gears linked by hammer
+if (Gear^.Kind = gtHedgehog) or (Gear^.Kind = gtMine) or (Gear^.Kind = gtExplosives) then
+    begin
+    // check all gears for stuff to port through
+    iterator := nil;
+    while true do
+        begin
+
+        // iterate through GearsList
+        if iterator = nil then
+            iterator := GearsList
+        else
+            iterator := iterator^.NextGear;
+
+        // end of list?
+        if iterator = nil then
+            break;
+
+        if iterator^.LinkedGear = Gear then
+            iterator^.LinkedGear:= nil;
+        end;
+
+    end;
 
 // make sure that portals have their link removed before deletion
 if (Gear^.Kind = gtPortal) then
@@ -733,10 +771,12 @@ else if Gear^.Kind = gtHedgehog then
                     k:= true;
             if not k then
                 for i:= 0 to Pred(team^.Clan^.TeamsNumber) do
-                    begin
-                    team^.Clan^.Teams[i]^.hasGone:= true;
-                    TeamGoneEffect(team^.Clan^.Teams[i]^)
-                    end
+                    with team^.Clan^.Teams[i]^ do
+                        for t:= 0 to cMaxHHIndex do
+                            if Hedgehogs[t].Gear <> nil then
+                                Hedgehogs[t].Gear^.Health:= 0
+                            else if (Hedgehogs[t].GearHidden <> nil) then
+                                Hedgehogs[t].GearHidden^.Health:= 0  // hog is still hidden. if tardis should return though, lua, eh...
             end;
 
         // should be not CurrentHedgehog, but hedgehog of the last gear which caused damage to this hog

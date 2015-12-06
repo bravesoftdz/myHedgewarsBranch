@@ -135,17 +135,18 @@ end;
 {$IFDEF HWLIBRARY}
 procedure LoadLocaleWrapper(path: pchar; filename: pchar); cdecl; export;
 begin
-    PathPrefix := Strpas(path);
+// FIXME
+{    PathPrefix := Strpas(path);
  
     uUtils.initModule(false);
     uVariables.initModule;
     uPhysFSLayer.initModule;
- 
+} 
     LoadLocale(Strpas(filename));
- 
+{ 
     uPhysFSLayer.freeModule;
     uVariables.freeModule;
-    uUtils.freeModule;
+    uUtils.freeModule;}
 end;
 {$ENDIF}
 

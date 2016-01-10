@@ -587,7 +587,7 @@ else if Gear^.Timer = 1 then
     begin
     Gear^.Hedgehog^.Effects[heFrozen]:= 0;
     Gear^.State:= Gear^.State or gstNoDamage;
-    doMakeExplosion(hwRound(Gear^.X), hwRound(Gear^.Y), 30, CurrentHedgehog, EXPLAutoSound);
+    doMakeExplosion(hwRound(Gear^.X), hwRound(Gear^.Y), Gear^.Boom, CurrentHedgehog, EXPLAutoSound);
     grave:= AddGear(hwRound(Gear^.X), hwRound(Gear^.Y), gtGrave, 0, _0, _0, 0);
     grave^.Hedgehog:= Gear^.Hedgehog;
     grave^.Pos:= Gear^.uid;
@@ -876,6 +876,7 @@ end;
 procedure doStepHedgehogMoving(Gear: PGear);
 var isFalling, isUnderwater: boolean;
     land: Word;
+    cnt: LongWord;
 begin
 if Gear^.Hedgehog^.Unplaced then
     begin
@@ -1037,15 +1038,24 @@ if (Gear^.State and gstMoving) <> 0 then
                         else
                             begin
                             Gear^.State:= Gear^.State and (not gstMoving);
-                            while TestCollisionYWithGear(Gear,1) = 0 do
-                                Gear^.Y:= Gear^.Y+_1;
+                            cnt:= 0;
+                            while (cnt < 6) and (not CheckGearDrowning(Gear)) and (Gear <> nil) and (TestCollisionYWithGear(Gear,1) = 0) do
+                                begin
+                                Gear^.Y:= Gear^.Y + _1;
+                                inc(cnt)
+                                end;
+
                             SetLittle(Gear^.dX)
                             end
             else
                 begin
                 Gear^.State:= Gear^.State and (not gstMoving);
-                while TestCollisionYWithGear(Gear,1) = 0 do
-                    Gear^.Y:= Gear^.Y+_1;
+                cnt:= 0;
+                while (cnt < 6) and (not CheckGearDrowning(Gear)) and (Gear <> nil) and (TestCollisionYWithGear(Gear,1) = 0) do
+                    begin
+                    Gear^.Y:= Gear^.Y + _1;
+                    inc(cnt)
+                    end;
                 SetLittle(Gear^.dX)
                 end
         else if (hwAbs(Gear^.dX) > cLittle)
@@ -1059,8 +1069,12 @@ if (not isFalling)
     begin
     Gear^.State:= Gear^.State and (not gstWinner);
     Gear^.State:= Gear^.State and (not gstMoving);
-    while (not CheckGearDrowning(Gear)) and (Gear <> nil) and (TestCollisionYWithGear(Gear,1) = 0) do
+    cnt:= 0;
+    while (cnt < 6) and (not CheckGearDrowning(Gear)) and (Gear <> nil) and (TestCollisionYWithGear(Gear,1) = 0) do
+        begin
         Gear^.Y:= Gear^.Y + _1;
+        inc(cnt)
+        end;
 
     // could become nil in CheckGearDrowning if ai's hog fails to respawn in ai survival
     if Gear = nil then exit;

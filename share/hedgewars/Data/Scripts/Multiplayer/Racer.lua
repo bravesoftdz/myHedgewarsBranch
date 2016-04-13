@@ -692,7 +692,7 @@ function onGameTick20()
                                 trackTime = 0
 
                                 SetGearPosition(CurrentHedgehog, wpX[0], wpY[0])
-                                AddGear(GetX(CurrentHedgehog), GetY(CurrentHedgehog), gtGrenade, 0, 0, 0, 1)
+                                AddGear(GetX(CurrentHedgehog)+boostX, GetY(CurrentHedgehog)+boostY, gtGrenade, 0, 0, 0, 1)
                                 FollowGear(CurrentHedgehog)
 
                                 HideMission()

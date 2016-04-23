@@ -78,6 +78,8 @@ end
 
 function onGameStart()
 
+	SetWind(100)
+
 	MineArray[0] = AddGear(840, 1847, gtMine, 0, 0, 0, 0)
 	MineArray[1] = AddGear(900, 1847, gtMine, 0, 0, 0, 0)
 	MineArray[2] = AddGear(1000, 1847, gtMine, 0, 0, 0, 0)

@@ -25,7 +25,6 @@ uses SDLh, uTypes;
 procedure initModule;
 procedure freeModule;
 
-procedure InitIPC;
 procedure SendIPC(s: shortstring);
 procedure SendIPCXY(cmd: char; X, Y: LongInt);
 procedure SendIPCRaw(p: pointer; len: Longword);
@@ -39,7 +38,7 @@ procedure NetGetNextCmd;
 procedure doPut(putX, putY: LongInt; fromAI: boolean);
 
 implementation
-uses uConsole, uConsts, uVariables, uCommands, uUtils, uDebug;
+uses uFLIPC, uFLTypes, uConsole, uConsts, uVariables, uCommands, uUtils, uDebug;
 
 const
     cSendEmptyPacketTime = 1000;
@@ -55,15 +54,14 @@ type PCmd = ^TCmd;
             2: (str: shortstring);
             end;
 
-var IPCSock: PTCPSocket;
-    fds: PSDLNet_SocketSet;
+var
     isPonged: boolean;
-    SocketString: shortstring;
 
     headcmd: PCmd;
     lastcmd: PCmd;
 
     flushDelayTicks: LongWord;
+    SocketString: shortstring;
     sendBuffer: record
                 buf: array[0..Pred(cSendBufferSize)] of byte;
                 count: Word;
@@ -107,23 +105,6 @@ headcmd:= headcmd^.Next;
 if headcmd = nil then
     lastcmd:= nil;
 dispose(tmp)
-end;
-
-procedure InitIPC;
-var ipaddr: TIPAddress;
-begin
-    WriteToConsole('Init SDL_Net... ');
-    SDLCheck(SDLNet_Init = 0, 'SDLNet_Init', true);
-    fds:= SDLNet_AllocSocketSet(1);
-    SDLCheck(fds <> nil, 'SDLNet_AllocSocketSet', true);
-    WriteLnToConsole(msgOK);
-    WriteToConsole('Establishing IPC connection to tcp 127.0.0.1:' + IntToStr(ipcPort) + ' ');
-    {$HINTS OFF}
-    SDLCheck(SDLNet_ResolveHost(ipaddr, PChar('127.0.0.1'), ipcPort) = 0, 'SDLNet_ResolveHost', true);
-    {$HINTS ON}
-    IPCSock:= SDLNet_TCP_Open(ipaddr);
-    SDLCheck(IPCSock <> nil, 'SDLNet_TCP_Open', true);
-    WriteLnToConsole(msgOK)
 end;
 
 procedure ParseChatCommand(command: shortstring; message: shortstring;
@@ -184,31 +165,37 @@ case s[1] of
 end;
 
 procedure IPCCheckSock;
-var i: LongInt;
-    s: shortstring;
+var i, t: LongInt;
+    msg: TIPCMessage;
 begin
-    if IPCSock = nil then
-        exit;
-
-    fds^.numsockets:= 0;
-    SDLNet_AddSocket(fds, IPCSock);
-
-    while SDLNet_CheckSockets(fds, 0) > 0 do
+    while ipcCheckFromFrontend() do
     begin
-        i:= SDLNet_TCP_Recv(IPCSock, @s[1], 255 - Length(SocketString));
-        if i > 0 then
-        begin
-            s[0]:= char(i);
-            SocketString:= SocketString + s;
-            while (Length(SocketString) > 1) and (Length(SocketString) > byte(SocketString[1])) do
+        msg:= ipcReadFromFrontend();
+        if msg.str[0] > #0 then
+            ParseIPCCommand(msg.str)
+        else begin
+            i:= 0;
+            while (i < msg.len) do
             begin
-                ParseIPCCommand(copy(SocketString, 2, byte(SocketString[1])));
-                Delete(SocketString, 1, Succ(byte(SocketString[1])))
-            end
+                if LongInt(SocketString[0]) + msg.len - i > 255 then
+                    t:= 255 - byte(SocketString[0])
+                else
+                    t:= msg.len - i;
+
+                Move(PByteArray(msg.buf)^[i], SocketString[byte(SocketString[0]) + 1], t);
+                inc(byte(SocketString[0]), t);
+                inc(i, t);
+
+                while byte(SocketString[0]) > byte(SocketString[1]) do
+                begin
+                    ParseIPCCommand(copy(SocketString, 2, byte(SocketString[1])));
+                    Delete(SocketString, 1, Succ(byte(SocketString[1])))
+                end;
+            end;
+
+            FreeMem(msg.buf, msg.len)
         end
-    else
-        OutError('IPC connection lost', true)
-    end;
+    end
 end;
 
 procedure LoadRecordFromFile(fileName: shortstring);
@@ -269,18 +256,11 @@ end;
 
 procedure flushBuffer();
 begin
-    if IPCSock <> nil then
-        begin
-        SDLNet_TCP_Send(IPCSock, @sendBuffer.buf, sendBuffer.count);
-        flushDelayTicks:= 0;
-        sendBuffer.count:= 0
-        end
+    flushDelayTicks:= 0;
 end;
 
 procedure SendIPC(s: shortstring);
 begin
-if IPCSock <> nil then
-    begin
     if s[0] > #251 then
         s[0]:= #251;
 
@@ -289,37 +269,22 @@ if IPCSock <> nil then
     AddFileLog('[IPC out] '+ sanitizeCharForLog(s[1]));
     inc(s[0], 2);
 
-    if isSyncedCommand(s[1]) then
-        begin
-        if sendBuffer.count + byte(s[0]) >= cSendBufferSize then
-            flushBuffer();
-
-        Move(s, sendBuffer.buf[sendBuffer.count], byte(s[0]) + 1);
-        inc(sendBuffer.count, byte(s[0]) + 1);
-
-        if (s[1] = 'N') or (s[1] = '#') then
-            flushBuffer();
-        end else
-        SDLNet_TCP_Send(IPCSock, @s, Succ(byte(s[0])))
-    end
+    ipcToFrontend(s)
 end;
 
 procedure SendIPCRaw(p: pointer; len: Longword);
 begin
-if IPCSock <> nil then
-    begin
-    SDLNet_TCP_Send(IPCSock, p, len)
-    end
+    ipcToFrontendRaw(p, len)
 end;
 
 procedure SendIPCXY(cmd: char; X, Y: LongInt);
 var s: shortstring;
 begin
-s[0]:= #9;
-s[1]:= cmd;
-SDLNet_Write32(X, @s[2]);
-SDLNet_Write32(Y, @s[6]);
-SendIPC(s)
+    s[0]:= #9;
+    s[1]:= cmd;
+    SDLNet_Write32(X, @s[2]);
+    SDLNet_Write32(Y, @s[6]);
+    SendIPC(s)
 end;
 
 procedure IPCWaitPongEvent;
@@ -453,13 +418,13 @@ end;
 procedure chFatalError(var s: shortstring);
 begin
     SendIPC('E' + s);
-    // TODO: should we try to clean more stuff here?
+{    // TODO: should we try to clean more stuff here?
     SDL_Quit;
 
     if IPCSock <> nil then
         halt(HaltFatalError)
     else
-        halt(HaltFatalErrorNoIPC);
+        halt(HaltFatalErrorNoIPC);}
 end;
 
 procedure doPut(putX, putY: LongInt; fromAI: boolean);
@@ -511,9 +476,6 @@ procedure initModule;
 begin
     RegisterVariable('fatal', @chFatalError, true );
 
-    IPCSock:= nil;
-    fds:= nil;
-
     headcmd:= nil;
     lastcmd:= nil;
     isPonged:= false;
@@ -527,10 +489,6 @@ end;
 procedure freeModule;
 begin
     while headcmd <> nil do RemoveCmd;
-    SDLNet_FreeSocketSet(fds);
-    SDLNet_TCP_Close(IPCSock);
-    SDLNet_Quit();
-
 end;
 
 end.

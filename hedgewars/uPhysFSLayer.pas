@@ -25,12 +25,15 @@ function pfsOpenRead(fname: shortstring): PFSFile;
 function pfsOpenWrite(fname: shortstring): PFSFile;
 function pfsFlush(f: PFSFile): boolean;
 function pfsClose(f: PFSFile): boolean;
+function pfsSeek(f: PFSFile; pos: QWord): boolean;
 
 procedure pfsReadLn(f: PFSFile; var s: shortstring);
 procedure pfsReadLnA(f: PFSFile; var s: ansistring);
 procedure pfsWriteLn(f: PFSFile; s: shortstring);
 function pfsBlockRead(f: PFSFile; buf: pointer; size: Int64): Int64;
 function pfsEOF(f: PFSFile): boolean;
+function pfsEnumerateFiles(dir: shortstring): PPChar;
+procedure pfsFreeList(list: PPChar);
 
 function pfsExists(fname: shortstring): boolean;
 function pfsMakeDir(path: shortstring): boolean;
@@ -103,6 +106,11 @@ end;
 function pfsClose(f: PFSFile): boolean;
 begin
     exit(PHYSFS_close(f))
+end;
+
+function pfsSeek(f: PFSFile; pos: QWord): boolean;
+begin
+    exit(PHYSFS_seek(f, 0));
 end;
 
 function pfsExists(fname: shortstring): boolean;
@@ -196,12 +204,8 @@ var i: LongInt;
     fp: PChar;
 {$ENDIF}
 begin
-{$IFDEF HWLIBRARY}
     //TODO: http://icculus.org/pipermail/physfs/2011-August/001006.html
     cPhysfsId:= shortstring(GetCurrentDir()) + {$IFDEF DARWIN}{$IFNDEF IPHONEOS}'/Hedgewars.app/Contents/MacOS/' + {$ENDIF}{$ENDIF} ' hedgewars';
-{$ELSE}
-    cPhysfsId:= ParamStr(0);
-{$ENDIF}
 
     i:= PHYSFS_init(Str2PChar(cPhysfsId));
     //AddFileLog('[PhysFS] init: ' + inttostr(i));
@@ -224,9 +228,6 @@ begin
     PHYSFS_setWriteDir(userPrefix);
 
     hedgewarsMountPackages;
-
-    // need access to teams and frontend configs (for bindings)
-    pfsMountAtRoot(userPrefix);
 
     if cTestLua then
         begin

@@ -22,12 +22,8 @@
 {$R res/hwengine.rc}
 {$ENDIF}
 
-{$IFDEF HWLIBRARY}
 unit hwengine;
 interface
-{$ELSE}
-program hwengine;
-{$ENDIF}
 
 uses {$IFDEF IPHONEOS}cmem, {$ENDIF} SDLh, uMisc, uConsole, uGame, uConsts, uLand, uAmmos, uVisualGears, uGears, uStore, uWorld, uInputHandler
      , uSound, uScript, uTeams, uStats, uIO, uLocale, uChat, uAI, uAIMisc, uAILandMarks, uLandTexture, uCollisions
@@ -38,19 +34,13 @@ uses {$IFDEF IPHONEOS}cmem, {$ENDIF} SDLh, uMisc, uConsole, uGame, uConsts, uLan
      {$IFDEF ANDROID}, GLUnit{$ENDIF}
      ;
 
-{$IFDEF HWLIBRARY}
-function RunEngine(argc: LongInt; argv: PPChar): LongInt; cdecl; export;
-
+function  RunEngine(argc: LongInt; argv: PPChar): Longint; cdecl; export;
 procedure preInitEverything();
 procedure initEverything(complete:boolean);
 procedure freeEverything(complete:boolean);
 
 implementation
-{$ELSE}
-procedure preInitEverything(); forward;
-procedure initEverything(complete:boolean); forward;
-procedure freeEverything(complete:boolean); forward;
-{$ENDIF}
+uses uFLUICallback, uFLTypes;
 
 ///////////////////////////////////////////////////////////////////////////////
 function DoTimer(Lag: LongInt): boolean;
@@ -336,8 +326,8 @@ var s: shortstring;
 begin
     WriteLnToConsole('Hedgewars engine ' + cVersionString + '-r' + cRevisionString +
                      ' (' + cHashString + ') with protocol #' + inttostr(cNetProtoVersion));
-    AddFileLog('Prefix: "' + shortstring(PathPrefix) +'"');
-    AddFileLog('UserPrefix: "' + shortstring(UserPathPrefix) +'"');
+    //AddFileLog('Prefix: "' + shortstring(PathPrefix) +'"');
+    //AddFileLog('UserPrefix: "' + shortstring(UserPathPrefix) +'"');
 
     for i:= 0 to ParamCount do
         AddFileLog(inttostr(i) + ': ' + ParamStr(i));
@@ -398,7 +388,6 @@ begin
         begin
         if recordFileName = '' then
             begin
-            InitIPC;
             SendIPCAndWaitReply(_S'C');        // ask for game config
             end
         else
@@ -457,12 +446,6 @@ end;
 
 procedure initEverything (complete:boolean);
 begin
-    PathPrefix:= PathPrefix + #0;
-    UserPathPrefix:= UserPathPrefix + #0;
-    uPhysFSLayer.initModule(@PathPrefix[1], @UserPathPrefix[1]);
-    PathPrefix:= copy(PathPrefix, 1, length(PathPrefix) - 1);
-    UserPathPrefix:= copy(UserPathPrefix, 1, length(UserPathPrefix) - 1);
-
     uUtils.initModule(complete);    // opens the debug file, must be the first
     uVariables.initModule;          // inits all global variables
     uCommands.initModule;           // helps below
@@ -473,6 +456,7 @@ begin
     uIO.initModule;                 // sets up sockets
 
     uScript.initModule;
+    uTeams.initModule;              // clear CurrentTeam variable
 
     if complete then
     begin
@@ -496,7 +480,6 @@ begin
         uStats.initModule;
         uStore.initModule;
         uRender.initModule;
-        uTeams.initModule;
         uVisualGears.initModule;
         uVisualGearsHandlers.initModule;
         uWorld.initModule;
@@ -540,7 +523,6 @@ begin
     uCommands.freeModule;
     uVariables.freeModule;
     uUtils.freeModule;              // closes debug file
-    uPhysFSLayer.freeModule;
     uScript.freeModule;
 end;
 
@@ -554,7 +536,6 @@ var Preview: TPreviewAlpha;
 begin
     initEverything(false);
 
-    InitIPC;
     if allOK then
     begin
         IPCWaitPongEvent;
@@ -575,18 +556,25 @@ begin
     freeEverything(false);
 end;
 
-{$IFDEF HWLIBRARY}
-function RunEngine(argc: LongInt; argv: PPChar): LongInt; cdecl; export;
+function EngineThread(p: pointer): Longint; cdecl; export;
+var e: TFLIBEvent;
+begin
+    if GameType = gmtLandPreview then
+        GenLandPreview()
+    else Game();
+
+    e:= flibGameFinished;
+    sendUI(mtFlibEvent, @e, sizeof(e));
+    EngineThread:= 0
+end;
+
+
+function RunEngine(argc: LongInt; argv: PPChar): Longint; cdecl; export;
+var t: PSDL_Thread;
 begin
     operatingsystem_parameter_argc:= argc;
     operatingsystem_parameter_argv:= argv;
-{$ELSE}
-begin
-{$ENDIF}
 
-///////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////// m a i n ///////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 {$IFDEF PAS2C}
     // workaround for pascal's ParamStr and ParamCount
     init(argc, argv);
@@ -595,40 +583,14 @@ begin
 
     GetParams();
 
-    if GameType = gmtLandPreview then
-        GenLandPreview()
-    else if GameType <> gmtSyntax then
-        Game();
-
-    // return 1 when engine is not called correctly
     if GameType = gmtSyntax then
-        {$IFDEF PAS2C}
-        exit(HaltUsageError);
-        {$ELSE}
-        halt(HaltUsageError);
-        {$ENDIF}
-
-    if cTestLua then
-        begin
-        WriteLnToConsole(errmsgLuaTestTerm);
-        {$IFDEF PAS2C}
-        exit(HaltTestUnexpected);
-        {$ELSE}
-        halt(HaltTestUnexpected);
-        {$ENDIF}
-        end;
-
-    {$IFDEF PAS2C}
-        exit(HaltNoError);
-    {$ELSE}
-        {$IFDEF IPHONEOS}
-            exit(HaltNoError);
-        {$ELSE}
-            halt(HaltNoError);
-        {$ENDIF}
-    {$ENDIF}
-{$IFDEF HWLIBRARY}
+        RunEngine:= HaltUsageError
+    else
+    begin
+        t:= SDL_CreateThread(@EngineThread, 'engine', nil);
+        SDL_DetachThread(t);
+        RunEngine:= 0
+    end
 end;
-{$ENDIF}
 
 end.

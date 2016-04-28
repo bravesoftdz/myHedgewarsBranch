@@ -252,7 +252,10 @@ var cInitVolume: LongInt;
             (FileName:               'TARDIS.ogg'; Path: ptSounds),// sndTardis
             (FileName:    'frozen_hog_impact.ogg'; Path: ptSounds),// sndFrozenHogImpact
             (FileName:             'ice_beam.ogg'; Path: ptSounds),// sndIceBeam
-            (FileName:           'hog_freeze.ogg'; Path: ptSounds) // sndHogFreeze
+            (FileName:           'hog_freeze.ogg'; Path: ptSounds),// sndHogFreeze
+            (FileName:       'airmine_impact.ogg'; Path: ptSounds),// sndAirMineImpact
+            (FileName:         'knife_impact.ogg'; Path: ptSounds),// sndKnifeImpact
+            (FileName:            'extratime.ogg'; Path: ptSounds) // sndExtraTime
             );
 
 
@@ -425,7 +428,7 @@ begin
             s:= cPathz[Soundz[snd].Path] + '/' + Soundz[snd].FileName;
             WriteToConsole(msgLoading + s + ' ');
             defVoicepack^.chunks[snd]:= Mix_LoadWAV_RW(rwopsOpenRead(s), 1);
-            if not SDLCheck(defVoicepack^.chunks[snd] <> nil, 'Mix_LoadWAV_RW', true) then exit;
+            if SDLCheck(defVoicepack^.chunks[snd] <> nil, 'Mix_LoadWAV_RW', true) then exit;
             WriteLnToConsole(msgOK);
             end;
         lastChan[snd]:= Mix_PlayChannelTimed(-1, defVoicepack^.chunks[snd], 0, -1)

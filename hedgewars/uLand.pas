@@ -33,7 +33,7 @@ implementation
 uses uConsole, uStore, uRandom, uLandObjects, uIO, uLandTexture, SysUtils,
      uVariables, uUtils, uCommands, adler32, uDebug, uLandPainted, uTextures,
      uLandGenMaze, uPhysFSLayer, uScript, uLandGenPerlin,
-     uLandGenTemplateBased, uLandUtils;
+     uLandGenTemplateBased, uLandUtils, uRenderUtils;
 
 var digest: shortstring;
     maskOnly: boolean;
@@ -49,7 +49,7 @@ end;
 
 procedure DrawBorderFromImage(Surface: PSDL_Surface);
 var tmpsurf: PSDL_Surface;
-    r, rr: TSDL_Rect;
+    //r, rr: TSDL_Rect;
     x, yd, yu: LongInt;
     targetMask: Word;
 begin
@@ -79,25 +79,9 @@ begin
             while (yu < yd ) and ((Land[yu, x] and targetMask) =  0) do inc(yu);
 
             if (yd < LAND_HEIGHT - 1) and ((yd - yu) >= 16) then
-                begin
-                rr.x:= x;
-                rr.y:= yd - 15;
-                r.x:= x mod tmpsurf^.w;
-                r.y:= 16;
-                r.w:= 1;
-                r.h:= 16;
-                SDL_UpperBlit(tmpsurf, @r, Surface, @rr);
-                end;
+                copyToXYFromRect(tmpsurf, Surface, x mod tmpsurf^.w, 16, 1, 16, x, yd - 15);
             if (yu > 0) then
-                begin
-                rr.x:= x;
-                rr.y:= yu;
-                r.x:= x mod tmpsurf^.w;
-                r.y:= 0;
-                r.w:= 1;
-                r.h:= Min(16, yd - yu + 1);
-                SDL_UpperBlit(tmpsurf, @r, Surface, @rr);
-                end;
+                copyToXYFromRect(tmpsurf, Surface, x mod tmpsurf^.w, 0, 1, Min(16, yd - yu + 1), x, yu);
             yd:= yu - 1;
         until yd < 0;
     end;
@@ -194,7 +178,8 @@ begin
         r.x:= 0;
         while r.x < LAND_WIDTH do
             begin
-            SDL_UpperBlit(tmpsurf, nil, Surface, @r);
+            copyToXY(tmpsurf, Surface, r.x, r.y);
+            //SDL_UpperBlit(tmpsurf, nil, Surface, @r);
             inc(r.x, tmpsurf^.w)
             end;
         inc(y, tmpsurf^.h);
@@ -363,35 +348,131 @@ begin
     AddProgress();
 end;
 
-procedure MakeFortsMap;
-var tmpsurf: PSDL_Surface;
+procedure MakeFortsPreview;
+var gap: LongInt;
+    h1, h2, w1, w2, x, y, lastX, wbm, bmref: LongWord;
+const fortHeight = 960;
+      fortWidth  = 704;
+      bmHeight = 53;
+      bmWidth = 64;
 begin
 ResizeLand(4096,2048);
-MaxHedgehogs:= 32;
+
+lastX:= LAND_WIDTH-1;
+
+gap:= (1024 - fortWidth) + 60 + 20 * cFeatureSize;
+
+h2:= LAND_HEIGHT-1;
+h1:= h2 - fortHeight;
+w2:= (LAND_WIDTH - gap) div 2;
+w1:= w2 - fortWidth;
+wbm:= h1 + bmHeight;
+
+// generate 2 forts in center
+for y:= h1 to h2 do
+    for x:= w1 to w2 do
+        begin
+        if x mod 4 <> 0 then
+            begin
+            if (y <= wbm) and ((x - w1) mod (bmWidth * 2) >= bmWidth) then
+                continue;
+            Land[y,x]:= lfBasic;
+            Land[y,lastX-x]:= lfBasic;
+            end;
+        end;
+
+w2:= w1 - gap;
+w1:= max(0, w2 - fortWidth);
+wbm:= h1 + bmHeight;
+bmref:= w2 + bmWidth;
+
+for y:= h1 to h2 do
+    for x:= w1 to w2 do
+        begin
+        if ((y - x) mod 2) = 0 then
+            begin
+            // align battlement on inner edge, because real outer edge could be offscreen
+            if (y <= wbm) and ((LAND_WIDTH + x - bmref) mod (bmWidth * 2) >= bmWidth) then
+                continue;
+            Land[y,x]:= lfBasic;
+            Land[y,lastX-x]:= lfBasic;
+            end;
+        end;
+end;
+
+procedure MakeFortsMap;
+var tmpsurf: PSDL_Surface;
+    sectionWidth, i, t, p: integer;
+    mirror: boolean;
+    pc: PClan;
+begin
+
+// make the gaps between forts adjustable if fort map was selected
+if cMapGen = mgForts then
+    sectionWidth:= 1024 + 60 + 20 * cFeatureSize
+else
+    sectionWidth:= 1024 * 300;
+
+// mix up spawn/fort order of clans
+for i:= 0 to ClansCount - 1 do
+    begin
+    t:= GetRandom(ClansCount);
+    p:= GetRandom(ClansCount);
+    if t <> p then
+        begin
+        pc:= SpawnClansArray[t];
+        SpawnClansArray[t]:= SpawnClansArray[p];
+        SpawnClansArray[p]:= pc;
+        end;
+    end;
+
+// figure out how much space we need
+playWidth:= sectionWidth * ClansCount;
+
+// note: LAND_WIDTH might be bigger than specified below (rounded to next power of 2)
+ResizeLand(playWidth, 2048);
+
 // For now, defining a fort is playable area as 3072x1200 - there are no tall forts.  The extra height is to avoid triggering border with current code, also if user turns on a border, it will give a bit more maneuvering room.
 playHeight:= 1200;
-playWidth:= 2560;
-leftX:= (LAND_WIDTH - playWidth) div 2;
+
+// center playable area in land array
+leftX:= ((LAND_WIDTH - playWidth) div 2);
 rightX:= ((playWidth + (LAND_WIDTH - playWidth) div 2) - 1);
 topY:= LAND_HEIGHT - playHeight;
 
 WriteLnToConsole('Generating forts land...');
 
-tmpsurf:= LoadDataImage(ptForts, ClansArray[0]^.Teams[0]^.FortName + 'L', ifAlpha or ifCritical or ifTransparent or ifIgnoreCaps);
-BlitImageAndGenerateCollisionInfo(leftX+150, LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf);
-SDL_FreeSurface(tmpsurf);
-
-// not critical because if no R we can fallback to mirrored L
-tmpsurf:= LoadDataImage(ptForts, ClansArray[1]^.Teams[0]^.FortName + 'R', ifAlpha or ifTransparent or ifIgnoreCaps);
-// fallback
-if tmpsurf = nil then
+for i := 0 to ClansCount - 1 do
     begin
-    tmpsurf:= LoadDataImage(ptForts, ClansArray[1]^.Teams[0]^.FortName + 'L', ifAlpha or ifCritical or ifTransparent or ifIgnoreCaps);
-    BlitImageAndGenerateCollisionInfo(rightX - 150 - tmpsurf^.w, LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf, 0, true);
-    end
-else
-    BlitImageAndGenerateCollisionInfo(rightX - 150 - tmpsurf^.w, LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf);
-SDL_FreeSurface(tmpsurf);
+
+    // face in random direction
+    mirror:= (GetRandom(2) = 0);
+    // make first/last fort face inwards
+    if (WorldEdge <> weWrap) or (ClansCount = 2) then
+        mirror:= (i <> 0) and (mirror or (i = ClansCount - 1));
+
+    if mirror then
+        begin
+        // not critical because if no R we can fallback to mirrored L
+        tmpsurf:= LoadDataImage(ptForts, SpawnClansArray[i]^.Teams[0]^.FortName + 'R', ifAlpha or ifTransparent or ifIgnoreCaps);
+        // fallback
+        if tmpsurf = nil then
+            begin
+            tmpsurf:= LoadDataImage(ptForts, SpawnClansArray[i]^.Teams[0]^.FortName + 'L', ifAlpha or ifCritical or ifTransparent or ifIgnoreCaps);
+            BlitImageAndGenerateCollisionInfo(leftX + sectionWidth * i + ((sectionWidth - tmpsurf^.w) div 2), LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf, 0, true);
+            end
+        else
+            BlitImageAndGenerateCollisionInfo(leftX + sectionWidth * i + ((sectionWidth - tmpsurf^.w) div 2), LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf);
+        SDL_FreeSurface(tmpsurf);
+        end
+    else
+        begin
+        tmpsurf:= LoadDataImage(ptForts, SpawnClansArray[i]^.Teams[0]^.FortName + 'L', ifAlpha or ifCritical or ifTransparent or ifIgnoreCaps);
+        BlitImageAndGenerateCollisionInfo(leftX + sectionWidth * i + ((sectionWidth - tmpsurf^.w) div 2), LAND_HEIGHT - tmpsurf^.h, tmpsurf^.w, tmpsurf);
+        SDL_FreeSurface(tmpsurf);
+        end;
+
+    end;
 end;
 
 procedure LoadMapConfig;
@@ -570,10 +651,12 @@ begin
                 mgMaze  : begin ResizeLand(4096,2048); GenMaze; end;
                 mgPerlin: begin ResizeLand(4096,2048); GenPerlin; end;
                 mgDrawn : GenDrawnMap;
+                mgForts : begin GameFlags:= (GameFlags or gfForts or gfDivideTeams); MakeFortsMap(); end;
             else
                 OutError('Unknown mapgen', true);
             end;
-            GenLandSurface
+            if cMapGen <> mgForts then
+                GenLandSurface
             end
     else
         MakeFortsMap;
@@ -713,6 +796,7 @@ begin
         mgMaze: begin ResizeLand(4096,2048); GenMaze; end;
         mgPerlin: begin ResizeLand(4096,2048); GenPerlin; end;
         mgDrawn: GenDrawnMap;
+        mgForts: MakeFortsPreview();
     else
         OutError('Unknown mapgen', true);
     end;
@@ -761,6 +845,7 @@ begin
         mgMaze: begin ResizeLand(4096,2048); GenMaze; end;
         mgPerlin: begin ResizeLand(4096,2048); GenPerlin; end;
         mgDrawn: GenDrawnMap;
+        mgForts: MakeFortsPreview;
     else
         OutError('Unknown mapgen', true);
     end;

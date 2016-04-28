@@ -3413,7 +3413,7 @@ begin
         Gear^.Timer := 0;
         inc(Gear^.Pos);
         if Gear^.Pos = 5 then
-            PlaySoundV(sndYoohoo, Gear^.Hedgehog^.Team^.voicepack)
+            PlaySound(sndYoohoo);
         end;
 
     if (Gear^.Pos = 14) and (RealTicks and $3 = 0) then
@@ -6244,8 +6244,6 @@ begin
         if TestCollisionXwithGear(Gear, 1)  <> 0 then ox:=  1;
         if TestCollisionXwithGear(Gear, -1) <> 0 then ox:= -1;
         if TestCollisionYwithGear(Gear, 1)  <> 0 then oy:=  1;
-        if Gear^.Health > 0 then
-            PlaySound(sndRopeAttach);
 
         la:= _10000;
         if (ox <> 0) or (oy <> 0) then
@@ -6255,6 +6253,9 @@ begin
             // debug for when we couldn't get an angle
             //AddVisualGear(hwRound(Gear^.X), hwRound(Gear^.Y), vgtSmokeWhite);
 *)
+        if Gear^.Health > 0 then
+            PlaySound(Gear^.ImpactSound);
+
             Gear^.DirAngle:= DxDy2Angle(Gear^.dX, Gear^.dY) + (random(30)-15);
             if (Gear^.dX.isNegative and Gear^.dY.isNegative) or
              ((not Gear^.dX.isNegative) and (not Gear^.dY.isNegative)) then Gear^.DirAngle:= Gear^.DirAngle-90;

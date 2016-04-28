@@ -63,6 +63,7 @@ HWMapContainer::HWMapContainer(QWidget * parent) :
     m_script = QString();
     m_prevMapFeatureSize = 12;
     m_mapFeatureSize = 12;
+    m_withoutDLC = false;
 
     hhSmall.load(":/res/hh_small.png");
     hhLimit = 18;
@@ -109,6 +110,7 @@ HWMapContainer::HWMapContainer(QWidget * parent) :
     cType->insertItem(3, tr("Randomly generated"), MapModel::GeneratedMap);
     cType->insertItem(4, tr("Random maze"), MapModel::GeneratedMaze);
     cType->insertItem(5, tr("Random perlin"), MapModel::GeneratedPerlin);
+    cType->insertItem(6, tr("Forts"), MapModel::FortsMap);
     connect(cType, SIGNAL(currentIndexChanged(int)), this, SLOT(mapTypeChanged(int)));
     m_childWidgets << cType;
 
@@ -461,6 +463,10 @@ void HWMapContainer::intSetMap(const QString & map)
     {
         //changeMapType(MapModel::HandDrawnMap);
     }
+    else if (map == "+forts+")
+    {
+        //nuffin
+    }
     else if (m_staticMapModel->mapExists(map))
     {
         changeMapType(MapModel::StaticMap, m_staticMapModel->index(m_staticMapModel->findMap(map), 0));
@@ -495,18 +501,34 @@ void HWMapContainer::setRandomMap()
     if (!m_master) return;
 
     setRandomSeed();
+
+    QSortFilterProxyModel * mmodel = NULL;
+
     switch(m_mapInfo.type)
     {
         case MapModel::GeneratedMap:
         case MapModel::GeneratedMaze:
         case MapModel::GeneratedPerlin:
+        case MapModel::FortsMap:
             setRandomTheme();
             break;
         case MapModel::MissionMap:
-            missionMapChanged(m_missionMapModel->index(rand() % m_missionMapModel->rowCount(), 0));
+            if (m_withoutDLC)
+            {
+                mmodel = m_missionMapModel->withoutDLC();
+                missionMapChanged(mmodel->mapToSource(mmodel->index(rand() % mmodel->rowCount(),0)));
+            }
+            else
+                missionMapChanged(m_missionMapModel->index(rand() % m_missionMapModel->rowCount(),0));
             break;
         case MapModel::StaticMap:
-            staticMapChanged(m_staticMapModel->index(rand() % m_staticMapModel->rowCount(), 0));
+            if (m_withoutDLC)
+            {
+                mmodel = m_staticMapModel->withoutDLC();
+                staticMapChanged(mmodel->mapToSource(mmodel->index(rand() % mmodel->rowCount(),0)));
+            }
+            else
+                staticMapChanged(m_staticMapModel->index(rand() % m_staticMapModel->rowCount(),0));
             break;
         default:
             break;
@@ -519,11 +541,23 @@ void HWMapContainer::setRandomSeed()
     emit seedChanged(m_seed);
 }
 
+void HWMapContainer::setRandomWithoutDLC(bool withoutDLC)
+{
+    m_withoutDLC = withoutDLC;
+}
+
 void HWMapContainer::setRandomTheme()
 {
-    if(!m_themeModel->rowCount()) return;
-    quint32 themeNum = rand() % m_themeModel->rowCount();
-    updateTheme(m_themeModel->index(themeNum));
+    QAbstractItemModel * tmodel;
+
+    if (m_withoutDLC)
+        tmodel = m_themeModel->withoutDLC();
+    else
+        tmodel = m_themeModel;
+
+    if(!tmodel->rowCount()) return;
+    quint32 themeNum = rand() % tmodel->rowCount();
+    updateTheme(tmodel->index(themeNum,0));
     emit themeChanged(m_theme);
 }
 
@@ -588,6 +622,10 @@ void HWMapContainer::intSetMapgen(MapGenerator m)
                 m_mapInfo.type = MapModel::HandDrawnMap;
                 f = true;
                 break;
+            case MAPGEN_FORTS:
+                m_mapInfo.type = MapModel::FortsMap;
+                f = true;
+                break;
             case MAPGEN_MAP:
                 switch (m_mapInfo.type)
                 {
@@ -595,6 +633,7 @@ void HWMapContainer::intSetMapgen(MapGenerator m)
                     case MapModel::GeneratedMaze:
                     case MapModel::GeneratedPerlin:
                     case MapModel::HandDrawnMap:
+                    case MapModel::FortsMap:
                         m_mapInfo.type = MapModel::Invalid;
                     default:
                         break;
@@ -679,6 +718,7 @@ void HWMapContainer::updatePreview()
         case MapModel::GeneratedMaze:
         case MapModel::GeneratedPerlin:
         case MapModel::HandDrawnMap:
+        case MapModel::FortsMap:
             askForGeneratedPreview();
             break;
         default:
@@ -803,6 +843,11 @@ void HWMapContainer::changeMapType(MapModel::MapType type, const QModelIndex & n
             mapFeatureSize->hide();
             staticMapList->show();
             emit mapChanged(m_curMap);
+            break;
+        case MapModel::FortsMap:
+            mapgen = MAPGEN_FORTS;
+            setMapInfo(MapModel::MapInfoForts);
+            lblMapList->hide();
             break;
         default:
             break;

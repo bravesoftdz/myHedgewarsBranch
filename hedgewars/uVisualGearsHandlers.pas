@@ -162,7 +162,12 @@ with Gear^ do
             X:= X - cScreenSpace;
             moved:= true
             end;
-            // if round(Y) < (LAND_HEIGHT - 1024 - 75) then Y:= Y + 25.0; // For if flag is set for flakes rising upwards?
+	if round(Y) < (LAND_HEIGHT - 1024 - 75) then
+		begin
+		X:= cLeftScreenBorder + random(cScreenSpace);
+		Y:= Y+(1024 + 200 + random(50));
+		moved:= true
+		end
         if (Gear^.Layer = 2) and (round(Y) - 400 > LAND_HEIGHT) and (cGravityf >= 0) then
             begin
             X:= cLeftScreenBorder + random(cScreenSpace);

@@ -140,7 +140,7 @@ var cInitVolume: LongInt;
             (FileName:            'explosion.ogg'; Path: ptSounds; AltPath: ptNone),// sndExplosion
             (FileName:         'throwpowerup.ogg'; Path: ptSounds; AltPath: ptNone),// sndThrowPowerUp
             (FileName:         'throwrelease.ogg'; Path: ptSounds; AltPath: ptNone),// sndThrowRelease
-            (FileName:               'splash.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndSplash
+            (FileName:          'splash.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndSplash
             (FileName:        'shotgunreload.ogg'; Path: ptSounds; AltPath: ptNone),// sndShotgunReload
             (FileName:          'shotgunfire.ogg'; Path: ptSounds; AltPath: ptNone),// sndShotgunFire
             (FileName:          'graveimpact.ogg'; Path: ptSounds; AltPath: ptNone),// sndGraveImpact
@@ -219,9 +219,9 @@ var cInitVolume: LongInt;
             (FileName:              'hell_ow.ogg'; Path: ptSounds; AltPath: ptNone),// sndHellishImpact3
             (FileName:             'hell_ugh.ogg'; Path: ptSounds; AltPath: ptNone),// sndHellishImpact4
             (FileName:          'melonimpact.ogg'; Path: ptSounds; AltPath: ptNone),// sndMelonImpact
-            (FileName:             'Droplet1.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet1
-            (FileName:             'Droplet2.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet2
-            (FileName:             'Droplet3.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet3
+            (FileName:        'Droplet1.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet1
+            (FileName:        'Droplet2.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet2
+            (FileName:        'Droplet3.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndDroplet3
             (FileName:                  'egg.ogg'; Path: ptSounds; AltPath: ptNone),// sndEggBreak
             (FileName:             'drillgun.ogg'; Path: ptSounds; AltPath: ptNone),// sndDrillRocket
             (FileName:          'PoisonCough.ogg'; Path: ptVoices; AltPath: ptNone),// sndPoisonCough
@@ -238,7 +238,7 @@ var cInitVolume: LongInt;
             (FileName:                   '7B.ogg'; Path: ptSounds; AltPath: ptNone),// sndPiano6
             (FileName:                   '8C.ogg'; Path: ptSounds; AltPath: ptNone),// sndPiano7
             (FileName:                   '9D.ogg'; Path: ptSounds; AltPath: ptNone),// sndPiano8
-            (FileName:                 'skip.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndSkip
+            (FileName:            'skip.ogg'; Path: ptCurrTheme; AltPath: ptSounds),// sndSkip
             (FileName:              'sinegun.ogg'; Path: ptSounds; AltPath: ptNone),// sndSineGun
             (FileName:                'Ooff1.ogg'; Path: ptVoices; AltPath: ptNone),// sndOoff1
             (FileName:                'Ooff2.ogg'; Path: ptVoices; AltPath: ptNone),// sndOoff2

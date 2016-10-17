@@ -1024,6 +1024,22 @@ begin
     lc_getgeartype:= 1
 end;
 
+function lc_getvisualgeartype(L : Plua_State) : LongInt; Cdecl;
+var gear : PVisualGear;
+begin
+    if CheckLuaParamCount(L, 1, 'GetVisualGearType', 'vgUid') then
+        begin
+        gear:= VisualGearByUID(lua_tointeger(L, 1));
+        if gear <> nil then
+            lua_pushinteger(L, ord(gear^.Kind))
+        else
+            lua_pushnil(L);
+        end
+    else
+        lua_pushnil(L); // return value on stack (nil)
+    lc_getvisualgeartype:= 1
+end;
+
 function lc_getgearmessage(L : Plua_State) : LongInt; Cdecl;
 var gear : PGear;
 begin
@@ -3312,6 +3328,7 @@ lua_register(luaState, _P'SpawnFakeAmmoCrate', @lc_spawnfakeammocrate);
 lua_register(luaState, _P'SpawnFakeUtilityCrate', @lc_spawnfakeutilitycrate);
 lua_register(luaState, _P'WriteLnToConsole', @lc_writelntoconsole);
 lua_register(luaState, _P'GetGearType', @lc_getgeartype);
+lua_register(luaState, _P'GetVisualGearType', @lc_getvisualgeartype);
 lua_register(luaState, _P'EndGame', @lc_endgame);
 lua_register(luaState, _P'SendStat', @lc_sendstat);
 lua_register(luaState, _P'SendHealthStatsOff', @lc_sendhealthstatsoff);

@@ -86,6 +86,7 @@ class HWMapContainer : public QWidget
         void onPreviewMapDestroyed(QObject * map);
         void setMaster(bool master);
         void setRandomWithoutDLC(bool withoutDLC);
+        void handleLocatorRequest(const QString &, const QString &);
 
     signals:
         void seedChanged(const QString & seed);
@@ -97,6 +98,9 @@ class HWMapContainer : public QWidget
         void mapFeatureSizeChanged(int s);
         void drawMapRequested();
         void drawnMapChanged(const QByteArray & data);
+        void resourceUpdate(const QString &);
+        void locatorRequest(const QString &);
+        void locatorReply(const QString &, const QString &, const QString &);
 
     private slots:
         void setImage(const QPixmap & newImage);

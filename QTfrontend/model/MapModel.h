@@ -105,6 +105,7 @@ class MapModel : public QStandardItemModel
 
         /// Loads the maps
         bool loadMaps();
+        void reset();
 
         /// returns this model but excluding DLC themes
         QSortFilterProxyModel * withoutDLC();

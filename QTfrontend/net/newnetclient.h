@@ -141,6 +141,8 @@ class HWNewNet : public QObject
         void setMyReadyStatus(bool isReady);
 
         void messageProcessed();
+        void handleLocatorRequest(const QString &);
+        void fetchLocator(const QString &);
 
     public slots:
         void ToggleReady();
@@ -182,6 +184,9 @@ class HWNewNet : public QObject
         void banIP(const QString & ip, const QString & reason, int seconds);
         void banNick(const QString & nick, const QString & reason, int seconds);
         void roomPasswordEntered(const QString & password);
+        
+        void locatorRequest(const QString &);
+        void locatorReply(const QString &, const QString &, const QString &);
 
     private slots:
         void ClientRead();

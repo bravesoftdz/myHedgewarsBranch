@@ -1256,7 +1256,8 @@ void HWForm::_NetConnect(const QString & hostName, quint16 port, QString nick)
             ui.pageNetGame->chatWidget, SLOT(adminAccess(bool)), Qt::QueuedConnection);
     connect(ui.pageNetGame->chatWidget, SIGNAL(chatLine(const QString&)),
             hwnet, SLOT(chatLineToNetWithEcho(const QString&)));
-    connect(ui.pageNetGame->BtnGo, SIGNAL(clicked()), hwnet, SLOT(ToggleReady()));
+    connect(ui.pageNetGame->BtnGo, SIGNAL(clicked()), ui.pageNetGame, SLOT(btnGoClicked()));
+    connect(ui.pageNetGame, SIGNAL(toggleReady()), hwnet, SLOT(ToggleReady()));
     connect(hwnet, SIGNAL(setMyReadyStatus(bool)),
             ui.pageNetGame, SLOT(setReadyStatus(bool)), Qt::QueuedConnection);
 
@@ -1366,6 +1367,16 @@ void HWForm::_NetConnect(const QString & hostName, quint16 port, QString nick)
     ui.pageNetGame->setUser(nickname);
 
     hwnet->Connect(hostName, port, nickname);
+    
+// locators
+    connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorRequest(const QString &)), hwnet, SLOT(locatorRequest(const QString &)));
+    connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorRequest(const QString &)), ui.pageNetGame, SLOT(resourceMissing(const QString &)));
+    connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorReply(const QString &, const QString &, const QString &)), hwnet, SLOT(locatorReply(const QString &, const QString &, const QString &)));
+    connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(resourceUpdate(const QString &)), ui.pageNetGame, SLOT(resourceUpdate(const QString &)));
+    
+//CHATHACK
+    connect(ui.pageNetGame->chatWidget, SIGNAL(hackMessage1(const QString &, const QString &)), ui.pageNetGame->pGameCFG->pMapContainer, SLOT(handleLocatorRequest(const QString &, const QString &)));
+    connect(ui.pageNetGame->chatWidget, SIGNAL(hackMessage2(const QString &, const QString &, const QString &)), ui.pageNetGame, SLOT(loadLocator(const QString &, const QString &, const QString &)));
 }
 
 int HWForm::AskForNickAndPwd(void)

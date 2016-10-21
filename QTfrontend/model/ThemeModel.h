@@ -40,12 +40,14 @@ class ThemeModel : public QAbstractListModel
         Q_OBJECT
 
     public:
+        void reset();
         enum Roles { ActualNameRole = Qt::UserRole, IsDlcRole, IconPathRole };
         explicit ThemeModel(QObject *parent = 0);
 
         int rowCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex &index, int role) const;
         QSortFilterProxyModel * withoutDLC();
+        QStringList themes;
 
     private:
         mutable QList<QMap<int, QVariant> > m_data;

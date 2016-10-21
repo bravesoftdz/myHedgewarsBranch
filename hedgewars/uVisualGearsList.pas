@@ -36,7 +36,7 @@ var VGCounter: LongWord;
     VisualGearLayers: array[0..6] of PVisualGear;
 
 implementation
-uses uCollisions, uFloat, uVariables, uConsts, uTextures, uVisualGearsHandlers, uScript;;
+uses uCollisions, uFloat, uVariables, uConsts, uTextures, uVisualGearsHandlers, uScript;
 
 function AddVisualGear(X, Y: LongInt; Kind: TVisualGearType): PVisualGear; inline;
 begin

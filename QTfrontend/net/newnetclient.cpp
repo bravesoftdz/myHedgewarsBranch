@@ -1172,3 +1172,15 @@ void HWNewNet::maybeSendPassword()
 
     RawSendNet(QString("PASSWORD%1%2%1%3").arg(delimiter).arg(hash).arg(m_clientSalt));
 }
+
+void HWNewNet::locatorRequest(const QString &type)
+{
+    // RawSendNet(QString("LOCATOR_REQUEST%1%2").arg(delimiter).arg(type)); //CHATHACK: should be something like this, but there's no handler for server (also needs to pass nick somehow)
+    RawSendNet(QString("CHAT%1hackyMessage,,LOCATOR_REQUEST,,%2").arg(delimiter).arg(type));
+}
+
+void HWNewNet::locatorReply(const QString &where, const QString &type, const QString &location)
+{
+    // RawSendNet(QString("LOCATOR%1%2").arg(delimiter).arg(type)); //CHATHACK: as above
+    RawSendNet(QString("CHAT%1hackyMessage,,LOCATOR,,%2,,%3,,%4").arg(delimiter).arg(where).arg(type).arg(location));
+}

@@ -23,11 +23,20 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QProgressBar>
+#include <QTime>
+#include <QDate>
+#include <QProgressBar>
 
 #include "pagenetgame.h"
 #include "gamecfgwidget.h"
 #include "teamselect.h"
 #include "chatwidget.h"
+#include "ThemeModel.h"
+#include "FileEngine.h"
 
 const int cutoffHeight = 688; /* Don't make this number below 605, or else it'll
                                  let the GameCFGWidget shrink too much before switching to tabbed mode. */
@@ -124,6 +133,12 @@ QLayout * PageNetGame::footerLayoutLeftDefinition()
 QLayout * PageNetGame::footerLayoutDefinition()
 {
     QHBoxLayout * bottomLayout = new QHBoxLayout;
+    
+    // Transfer Bars
+    
+    progressBarsLayout = new QVBoxLayout();
+    bottomLayout->addLayout(progressBarsLayout);
+    bottomLayout->addStretch();
 
     // Ready button
 
@@ -286,4 +301,147 @@ void PageNetGame::setUser(const QString & nickname)
 void PageNetGame::setSettings(QSettings *settings)
 {
     m_gameSettings = settings;
+}
+
+void PageNetGame::btnGoClicked() {
+    if (resourcesMissing.isEmpty())
+        emit toggleReady();
+    else {
+        QHashIterator<QString, QString> i(resourcesMissing);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value() != QString("")) {
+                fetchLocator(i.key(), i.value());
+                resourcesMissing.insert(i.key(), "");
+            }
+        }
+    }
+}
+
+void PageNetGame::resourceMissing(const QString & type) {
+    BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
+    resourcesMissing.insert(type, "");
+    
+    if (amReady)
+        emit toggleReady();
+}
+
+void PageNetGame::loadLocator(const QString & nick, const QString & type, const QString & location) {
+    if (location == QString("?") || nick != chatWidget->getUser())
+        return;
+    BtnGo->setIcon(QIcon(":/res/download.png"));
+    resourcesMissing.insert(type, location);
+}
+
+void PageNetGame::fetchLocator(const QString & type, const QString & location)
+{
+    QString finalLocation(location);
+    
+    if (finalLocation.contains("dropbox") && !finalLocation.endsWith("?dl=1") && !finalLocation.endsWith("?raw=1")) {
+        if (finalLocation.endsWith("?dl=0"))
+            finalLocation = finalLocation.left(finalLocation.length() - 5);
+        finalLocation.append("?dl=1");
+    }
+    
+    qWarning() << "Download Request" << finalLocation;
+
+    QUrl url(finalLocation);
+    QNetworkRequest newRequest(url);
+
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(locatorDone(QNetworkReply*)));
+    
+    QNetworkReply *reply = manager->get(newRequest);
+    connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)));
+
+    QProgressBar *progressBar = new QProgressBar(this);
+    progressBarsLayout->addWidget(progressBar);
+    progressBars.insert(reply, progressBar);
+    resourceLocators.insert(reply, type);
+}
+
+void PageNetGame::locatorDone(QNetworkReply* reply) {
+    QProgressBar *progressBar = progressBars.value(reply, 0);
+
+    if(progressBar)
+    {
+        progressBars.remove(reply);
+        progressBar->deleteLater();
+        resourcesMissing.remove(resourceLocators.value(reply));
+        resourceLocators.remove(reply);
+    }
+    
+    if (!reply->attribute(QNetworkRequest::RedirectionTargetAttribute).isNull()) {
+        QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+        qWarning() << "Request Redirect" << redirect;
+        
+        QNetworkRequest newRequest = QNetworkRequest(redirect);
+        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+        connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(locatorDone(QNetworkReply*)));
+        
+        QNetworkReply *reply = manager->get(newRequest);
+        connect(reply, SIGNAL(downloadProgress(qint64, qint64)), this, SLOT(downloadProgress(qint64, qint64)));
+
+        QProgressBar *progressBar = new QProgressBar(this);
+        progressBarsLayout->addWidget(progressBar);
+        progressBars.insert(reply, progressBar);
+        return;
+    }
+    
+    QDir extractDir(*cfgdir);
+    extractDir.cd("Data");
+
+    QString fileName = extractDir.filePath(QFileInfo(reply->request().url().path()).fileName());
+    if (fileName.endsWith(".zip"))
+        fileName = fileName.left(fileName.length() - 4) + ".hwp";
+    else if (!fileName.endsWith(".hwp")) { //file is without extension, so assuming a non-unique name
+        QDate timestamp = QDate::currentDate();
+        QTime timestamp2 = QTime::currentTime();
+        fileName = extractDir.filePath(QString("CachedData") + QString::number(timestamp.day()) + QString::number(timestamp.month()) + QString::number(timestamp.year()) + QString::number(timestamp2.hour()) + QString::number(timestamp2.minute()) + QString::number(timestamp2.second()) + QString(".hwp"));
+    }
+
+    QFile out(fileName);
+    if(!out.open(QFile::WriteOnly))
+    {
+        qWarning() << "out.open():" << out.errorString();
+        return ;
+    }
+
+    QByteArray data(reply->readAll());
+    out.write(data);
+
+    out.close();
+
+    FileEngineHandler::mount(fileName);
+    
+    DataManager::instance().themeModel()->reset(); //should probably check if theme was just download, not map etc.
+    //also, should update gamecfg widget if there are icons missing or such
+    DataManager::instance().staticMapModel()->reset();
+    DataManager::instance().missionMapModel()->reset();
+    
+    if (resourcesMissing.isEmpty())
+        BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
+}
+
+void PageNetGame::downloadProgress(qint64 bytesRecieved, qint64 bytesTotal)
+{
+    QNetworkReply * reply = qobject_cast<QNetworkReply *>(sender());
+
+    if(reply)
+    {
+        QProgressBar *progressBar = progressBars.value(reply, 0);
+
+        if(progressBar)
+        {
+            progressBar->setValue(bytesRecieved);
+            progressBar->setMaximum(bytesTotal);
+        }
+    }
+}
+
+void PageNetGame::resourceUpdate(const QString & type) {
+    resourcesMissing.remove(type);
+    
+    if (resourcesMissing.isEmpty())
+        BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
 }

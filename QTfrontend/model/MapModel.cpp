@@ -231,3 +231,7 @@ QStandardItem * MapModel::infoToItem(
 
     return item;
 }
+
+void MapModel::reset() {
+    m_loaded = false;
+}

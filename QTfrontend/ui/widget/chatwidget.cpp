@@ -412,6 +412,15 @@ void HWChatWidget::onChatAction(const QString & nick, const QString & action)
 
 void HWChatWidget::onChatMessage(const QString & nick, const QString & message)
 {
+    if (message.startsWith(QString("hackyMessage,,"))) { //CHATHACK: chat hack should be replaced with a proper server commands (note that on chat we can get nick for free)
+        QStringList	command = message.split(",,");
+        
+        if (command.at(1) == QString("LOCATOR_REQUEST"))
+            emit hackMessage1(nick, command.at(2));
+        else if (command.at(1) == QString("LOCATOR"))
+            emit hackMessage2(command.at(2), command.at(3), command.at(4));
+        return;
+    }
     printChatString(nick, linkedNick(nick) + ": " + messageToHTML(message), "Chat", containsHighlight(nick, message));
 }
 
@@ -986,4 +995,9 @@ void HWChatWidget::showEvent(QShowEvent * event)
     Q_UNUSED(event);
 
      afterContentAdd();
+}
+
+QString HWChatWidget::getUser()
+{
+    return m_userNick;
 }

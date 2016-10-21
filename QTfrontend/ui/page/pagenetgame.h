@@ -19,6 +19,8 @@
 #ifndef PAGE_NETGAME_H
 #define PAGE_NETGAME_H
 
+#include <QNetworkReply>
+#include <QProgressBar>
 #include "HistoryLineEdit.h"
 
 #include "AbstractPage.h"
@@ -62,6 +64,13 @@ class PageNetGame : public AbstractPage
         void setUser(const QString & nickname);
         void onUpdateClick();
         void setMasterMode(bool isMaster);
+    
+        void btnGoClicked();
+        void resourceUpdate(const QString &);
+        void resourceMissing(const QString &);
+        void loadLocator(const QString &, const QString &, const QString &);
+        void locatorDone(QNetworkReply*);
+        void downloadProgress(qint64, qint64);
 
     private slots:
         void onRoomNameEdited();
@@ -69,6 +78,7 @@ class PageNetGame : public AbstractPage
     signals:
         void SetupClicked();
         void askForUpdateRoomName(const QString &);
+        void toggleReady();
 
     protected:
         void resizeEvent(QResizeEvent * event);
@@ -82,6 +92,13 @@ class PageNetGame : public AbstractPage
         QSettings * m_gameSettings;
         QPushButton * btnSetup;
         QLabel * lblRoomNameReadOnly;
+    
+        void fetchLocator(const QString &, const QString &);
+        bool amReady;
+        QVBoxLayout *progressBarsLayout;
+        QHash<QNetworkReply*, QProgressBar *> progressBars;
+        QHash<QNetworkReply*, QString> resourceLocators;
+        QHash<QString, QString> resourcesMissing;
 };
 
 #endif

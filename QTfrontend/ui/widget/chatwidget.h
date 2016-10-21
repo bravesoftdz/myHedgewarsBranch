@@ -65,6 +65,7 @@ class HWChatWidget : public QWidget
         void setUser(const QString & nickname);
         void setUsersModel(QAbstractItemModel * model);
         void setSettings(QSettings * settings);
+        QString getUser();
 
     protected:
         virtual void dragEnterEvent(QDragEnterEvent * event);
@@ -133,6 +134,9 @@ class HWChatWidget : public QWidget
         void follow(const QString &);
         void nickCountUpdate(int cnt);
         void consoleCommand(const QString & command);
+        //CHATHACK: these signals shouldn't exist. Ever.
+        void hackMessage1(const QString&, const QString&);
+        void hackMessage2(const QString&, const QString&, const QString&);
 
     private:
         PlayersListModel* m_usersModel;

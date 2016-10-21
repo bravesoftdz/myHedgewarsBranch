@@ -30,9 +30,9 @@ ThemeModel::ThemeModel(QObject *parent) :
 {
     m_data = QList<QMap<int, QVariant> >();
 
-    m_themesLoaded = false;
-
     m_filteredNoDLC = NULL;
+    
+    reset();
 }
 
 QSortFilterProxyModel * ThemeModel::withoutDLC()
@@ -81,12 +81,6 @@ void ThemeModel::loadThemes() const
 
     m_themesLoaded = true;
 
-
-    DataManager & datamgr = DataManager::instance();
-
-    QStringList themes =
-        datamgr.entryList("Themes", QDir::AllDirs | QDir::NoDotAndDotDot);
-
     m_data.clear();
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
@@ -123,4 +117,11 @@ void ThemeModel::loadThemes() const
 
         m_data.append(dataset);
     }
+}
+
+void ThemeModel::reset() {
+    m_themesLoaded = false;
+    
+    DataManager & datamgr = DataManager::instance();
+    themes = datamgr.entryList("Themes", QDir::AllDirs | QDir::NoDotAndDotDot);
 }

@@ -1371,11 +1371,15 @@ void HWForm::_NetConnect(const QString & hostName, quint16 port, QString nick)
 // locators
     connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorRequest(const QString &)), hwnet, SLOT(locatorRequest(const QString &)));
     connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorRequest(const QString &)), ui.pageNetGame, SLOT(resourceMissing(const QString &)));
-    connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(locatorReply(const QString &, const QString &, const QString &)), hwnet, SLOT(locatorReply(const QString &, const QString &, const QString &)));
+    connect(ui.pageNetGame->pNetTeamsWidget, SIGNAL(requestResource(const QString &, const QString &)), hwnet, SLOT(locatorRequest(const QString &, const QString &)));
+    connect(ui.pageNetGame->pNetTeamsWidget, SIGNAL(requestResource(const QString &, const QString &)), ui.pageNetGame, SLOT(resourceMissing(const QString &)));
+    // connect(hwnet, SIGNAL(handleLocatorRequest(const QString &)), ui.pageNetGame->pGameCFG->pMapContainer, SLOT(handleLocatorRequest(const QString &)));
+    connect(ui.pageNetGame, SIGNAL(locatorReply(const QString &, const QString &, const QString &)), hwnet, SLOT(locatorReply(const QString &, const QString &, const QString &)));
+    // connect(hwnet, SIGNAL(fetchLocator(const QString &)), ui.pageNetGame, SLOT(loadLocator(const QString &)));
     connect(ui.pageNetGame->pGameCFG->pMapContainer, SIGNAL(resourceUpdate(const QString &)), ui.pageNetGame, SLOT(resourceUpdate(const QString &)));
     
 //CHATHACK
-    connect(ui.pageNetGame->chatWidget, SIGNAL(hackMessage1(const QString &, const QString &)), ui.pageNetGame->pGameCFG->pMapContainer, SLOT(handleLocatorRequest(const QString &, const QString &)));
+    connect(ui.pageNetGame->chatWidget, SIGNAL(hackMessage1(const QString &, const QString &, const QString &)), ui.pageNetGame, SLOT(handleLocatorRequest(const QString &, const QString &, const QString &)));
     connect(ui.pageNetGame->chatWidget, SIGNAL(hackMessage2(const QString &, const QString &, const QString &)), ui.pageNetGame, SLOT(loadLocator(const QString &, const QString &, const QString &)));
 }
 

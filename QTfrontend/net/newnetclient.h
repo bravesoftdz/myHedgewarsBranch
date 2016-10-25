@@ -65,6 +65,7 @@ class HWNewNet : public QObject
 
     private:
         bool isChief;
+        QString roomChief;
         QString mynick;
         QString myroom;
         QString myhost;
@@ -186,6 +187,7 @@ class HWNewNet : public QObject
         void roomPasswordEntered(const QString & password);
         
         void locatorRequest(const QString &);
+        void locatorRequest(const QString &, const QString &);
         void locatorReply(const QString &, const QString &, const QString &);
 
     private slots:

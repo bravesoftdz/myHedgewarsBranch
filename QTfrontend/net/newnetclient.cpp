@@ -499,6 +499,7 @@ void HWNewNet::ParseCmd(const QStringList & lst)
                             }
 
                             m_playersModel->setFlag(nick, PlayersListModel::RoomAdmin, setFlag);
+                            roomChief = nick;
                         }
                         break;
 
@@ -1175,8 +1176,14 @@ void HWNewNet::maybeSendPassword()
 
 void HWNewNet::locatorRequest(const QString &type)
 {
-    // RawSendNet(QString("LOCATOR_REQUEST%1%2").arg(delimiter).arg(type)); //CHATHACK: should be something like this, but there's no handler for server (also needs to pass nick somehow)
-    RawSendNet(QString("CHAT%1hackyMessage,,LOCATOR_REQUEST,,%2").arg(delimiter).arg(type));
+    //no username = request is for room owner
+    locatorRequest(roomChief, type);
+}
+
+void HWNewNet::locatorRequest(const QString &from, const QString &type)
+{
+    // RawSendNet(QString("LOCATOR_REQUEST%1%2").arg(delimiter).arg(type)); //CHATHACK: should be like this, but there's no handler for server (also needs to pass nick somehow)
+    RawSendNet(QString("CHAT%1hackyMessage,,LOCATOR_REQUEST,,%2,,%3").arg(delimiter).arg(from).arg(type));
 }
 
 void HWNewNet::locatorReply(const QString &where, const QString &type, const QString &location)

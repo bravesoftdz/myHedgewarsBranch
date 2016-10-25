@@ -62,6 +62,7 @@ class TeamSelWidget : public QGroupBox
         void hhogsNumChanged(const HWTeam&);
         void teamColorChanged(const HWTeam&);
         void acceptRequested(const HWTeam& team);
+        void requestResource(const QString&, const QString&);
 
     private slots:
         void pre_changeTeamStatus(const HWTeam&);

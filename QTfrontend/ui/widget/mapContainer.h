@@ -56,6 +56,7 @@ class HWMapContainer : public QWidget
         QString getCurrentSeed() const;
         QString getCurrentMap() const;
         QString getCurrentTheme() const;
+        QString getCurrentScript() const;
         int     getCurrentHHLimit() const;
         QString getCurrentScheme() const;
         QString getCurrentWeapons() const;
@@ -86,7 +87,6 @@ class HWMapContainer : public QWidget
         void onPreviewMapDestroyed(QObject * map);
         void setMaster(bool master);
         void setRandomWithoutDLC(bool withoutDLC);
-        void handleLocatorRequest(const QString &, const QString &);
 
     signals:
         void seedChanged(const QString & seed);

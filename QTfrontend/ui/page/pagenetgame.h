@@ -68,6 +68,7 @@ class PageNetGame : public AbstractPage
         void btnGoClicked();
         void resourceUpdate(const QString &);
         void resourceMissing(const QString &);
+        void handleLocatorRequest(const QString &, const QString &, const QString &);
         void loadLocator(const QString &, const QString &, const QString &);
         void locatorDone(QNetworkReply*);
         void downloadProgress(qint64, qint64);
@@ -79,6 +80,7 @@ class PageNetGame : public AbstractPage
         void SetupClicked();
         void askForUpdateRoomName(const QString &);
         void toggleReady();
+        void locatorReply(const QString &, const QString &, const QString &);
 
     protected:
         void resizeEvent(QResizeEvent * event);
@@ -93,12 +95,17 @@ class PageNetGame : public AbstractPage
         QPushButton * btnSetup;
         QLabel * lblRoomNameReadOnly;
     
+        void initTeamResources();
+        void initTeamResource(const QStringList&, const QString&);
         void fetchLocator(const QString &, const QString &);
+        bool isMissingResource(bool);
+    
         bool amReady;
         QVBoxLayout *progressBarsLayout;
         QHash<QNetworkReply*, QProgressBar *> progressBars;
         QHash<QNetworkReply*, QString> resourceLocators;
-        QHash<QString, QString> resourcesMissing;
+        QHash<QString, QSet<QString> > resourcesMissing;
+        QHash<QString, QString> teamResourceLocators;
 };
 
 #endif

@@ -460,6 +460,9 @@ void HWMapContainer::setScript(const QString & script, const QString & scriptpar
             || (m_mapInfo.type == MapModel::GeneratedPerlin)
             || (m_mapInfo.type == MapModel::HandDrawnMap))
         updatePreview();
+    
+    if (script == "")
+        emit locatorRequest(QString("SCRIPT"));
 }
 
 void HWMapContainer::intSetMap(const QString & map)
@@ -1159,26 +1162,7 @@ void HWMapContainer::setupStaticMapsView()
     staticSelectionModel->setCurrentIndex(m_staticMapModel->index(0, 0), QItemSelectionModel::Clear | QItemSelectionModel::SelectCurrent);
 }
 
-void HWMapContainer::handleLocatorRequest(const QString & nick, const QString & type)
+QString HWMapContainer::getCurrentScript() const
 {
-    if (!isMaster()) return;
-    QString locator;
-    QString location;
-    
-    if (type == QString("THEME"))
-        locator = QString("physfs://Themes/%1/locator").arg(getCurrentTheme());
-    else if (type == QString("MAP"))
-        locator = QString("physfs://Maps/%1/locator").arg(getCurrentMap());
-    
-    if (!QFile::exists(locator))
-        location = "?";
-    else {
-        QFile locatorFile(locator);
-        locatorFile.open(QIODevice::ReadOnly);
-        QTextStream in(&locatorFile);
-        
-        location = in.readLine();
-    }
-    
-    emit locatorReply(nick, type, location);
+    return(m_script);
 }

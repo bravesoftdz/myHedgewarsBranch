@@ -48,8 +48,10 @@ class GameCFGWidget : public QGroupBox
         QComboBox * GameSchemes;
         QComboBox * WeaponsName;
         HWMapContainer* pMapContainer;
+        QString cachedScriptName;
         QVariant schemeData(int column) const;
         bool isMaster();
+        bool setScript(const QString&);
 
     public slots:
         void setParam(const QString & param, const QStringList & value);

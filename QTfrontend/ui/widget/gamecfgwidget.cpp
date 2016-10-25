@@ -462,8 +462,7 @@ void GameCFGWidget::setParam(const QString & param, const QStringList & slValue)
         }
         if (param == "SCRIPT")
         {
-            Scripts->setCurrentIndex(Scripts->findText(value));
-            pMapContainer->setScript(Scripts->itemData(Scripts->currentIndex(), GameStyleModel::ScriptRole).toString().toUtf8(), schemeData(43).toString());
+            setScript(value);
             return;
         }
         if (param == "DRAWNMAP")
@@ -728,4 +727,16 @@ void GameCFGWidget::setMaster(bool master)
 
     foreach (QWidget *widget, m_childWidgets)
         widget->setEnabled(master);
+}
+
+bool GameCFGWidget::setScript(const QString& value) {
+    Scripts->setCurrentIndex(Scripts->findText(value));
+    QByteArray scriptName = Scripts->itemData(Scripts->currentIndex(), GameStyleModel::ScriptRole).toString().toUtf8();
+    pMapContainer->setScript(scriptName, schemeData(43).toString());
+    
+    if (scriptName == "") {
+        cachedScriptName = value;
+        return false;
+    }
+    return true;
 }

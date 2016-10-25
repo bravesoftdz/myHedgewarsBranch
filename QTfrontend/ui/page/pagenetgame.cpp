@@ -37,6 +37,7 @@
 #include "chatwidget.h"
 #include "ThemeModel.h"
 #include "FileEngine.h"
+#include "GameStyleModel.h"
 
 const int cutoffHeight = 688; /* Don't make this number below 605, or else it'll
                                  let the GameCFGWidget shrink too much before switching to tabbed mode. */
@@ -200,6 +201,8 @@ PageNetGame::PageNetGame(QWidget* parent) : AbstractPage(parent)
 
     if (height() < cutoffHeight)
         pGameCFG->setTabbed(true);
+    
+    initTeamResources();
 }
 
 void PageNetGame::resizeEvent(QResizeEvent * event)
@@ -237,13 +240,10 @@ void PageNetGame::displayWarning(const QString & message)
 void PageNetGame::setReadyStatus(bool isReady)
 {
     if(isReady)
-    {
         BtnGo->setIcon(QIcon(":/res/lightbulb_on.png"));
-    }
-    else
-    {
+    else if (!isMissingResource(false))
         BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
-    }
+    amReady = isReady;
 }
 
 void PageNetGame::onRoomNameEdited()
@@ -303,34 +303,108 @@ void PageNetGame::setSettings(QSettings *settings)
     m_gameSettings = settings;
 }
 
+
+
 void PageNetGame::btnGoClicked() {
-    if (resourcesMissing.isEmpty())
+    if (!isMissingResource(false))
         emit toggleReady();
     else {
-        QHashIterator<QString, QString> i(resourcesMissing);
+        QHashIterator<QString, QSet<QString> > i(resourcesMissing);
         while (i.hasNext()) {
             i.next();
-            if (i.value() != QString("")) {
-                fetchLocator(i.key(), i.value());
-                resourcesMissing.insert(i.key(), "");
-            }
+            foreach (QString loc, i.value())
+                fetchLocator(i.key(), loc);
         }
     }
 }
 
 void PageNetGame::resourceMissing(const QString & type) {
-    BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
-    resourcesMissing.insert(type, "");
+    resourcesMissing.insert(type, QSet<QString>());
     
-    if (amReady)
-        emit toggleReady();
+    if (type != "FLAG" && type != "HAT" && type != "GRAVE" && type != "VOICE") {
+        BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
+        
+        if (amReady)
+            emit toggleReady();
+    }
+}
+
+void PageNetGame::handleLocatorRequest(const QString & from, const QString & nick, const QString & type)
+{
+    if (from != chatWidget->getUser()) return;
+    QString locator = "";
+    QString location = "";
+    
+    if (type == QString("THEME"))
+        locator = QString("physfs://Themes/%1/locator").arg(pGameCFG->pMapContainer->getCurrentTheme());
+    else if (type == QString("MAP"))
+        locator = QString("physfs://Maps/%1/locator").arg(pGameCFG->pMapContainer->getCurrentMap());
+    else if (type == QString("SCRIPT"))
+        locator = QString("physfs://Scripts/Multiplayer/%1.lua").arg(pGameCFG->pMapContainer->getCurrentScript());
+    else { //searching in user teams
+        foreach (HWTeam team, pNetTeamsWidget->getPlayingTeams()) {
+            if (team.owner() == "") {
+                if (type == QString("VOICE")) {
+                    locator = QString("physfs://Sounds/voices/%1/locator").arg(team.voicepack());
+                } else if (type == QString("FLAG")) {
+                    if (teamResourceLocators.contains(".Flags." + team.flag()))
+                        location = teamResourceLocators.value(".Flags." + team.flag());
+                } else if (type == QString("GRAVE")) {
+                    if (teamResourceLocators.contains(".Graves." + team.grave()))
+                        location = teamResourceLocators.value(".Graves." + team.grave());
+                } else if (type == QString("FORT")) {
+                    if (teamResourceLocators.contains(".Forts." + team.fort()))
+                        location = teamResourceLocators.value(".Forts." + team.fort());
+                } else if (type == QString("HAT")) { //check hat of each hedgehog
+                    for (int i=0; i<8; i++)
+                        if (teamResourceLocators.contains(".Hats." + team.hedgehog(i).Hat))
+                            emit locatorReply(nick, type, teamResourceLocators.value(".Hats." + team.hedgehog(i).Hat));
+                        
+                    return; //^ separate emit for hats
+                }
+            }
+            
+            if (location == "") {
+                if (!QFile::exists(locator))
+                    location = "?";
+                else {
+                    QFile locatorFile(locator);
+                    locatorFile.open(QIODevice::ReadOnly);
+                    QTextStream in(&locatorFile);
+                    
+                    location = in.readLine();
+                }
+            }
+            emit locatorReply(nick, type, location);
+        }
+        
+        return; //^ separate emit for team resources
+    }
+    
+    if (location == "") {
+        if (!QFile::exists(locator))
+            location = "?";
+        else {
+            QFile locatorFile(locator);
+            locatorFile.open(QIODevice::ReadOnly);
+            QTextStream in(&locatorFile);
+            
+            location = in.readLine();
+            
+            if (type == "SCRIPT")
+                location = location.right(location.size()-2);
+        }
+    }
+    
+    emit locatorReply(nick, type, location);
 }
 
 void PageNetGame::loadLocator(const QString & nick, const QString & type, const QString & location) {
     if (location == QString("?") || nick != chatWidget->getUser())
         return;
     BtnGo->setIcon(QIcon(":/res/download.png"));
-    resourcesMissing.insert(type, location);
+    
+    resourcesMissing[type].insert(location);
 }
 
 void PageNetGame::fetchLocator(const QString & type, const QString & location)
@@ -367,7 +441,7 @@ void PageNetGame::locatorDone(QNetworkReply* reply) {
     {
         progressBars.remove(reply);
         progressBar->deleteLater();
-        resourcesMissing.remove(resourceLocators.value(reply));
+        resourcesMissing[resourceLocators.value(reply)].remove(reply->url().toString());
         resourceLocators.remove(reply);
     }
     
@@ -414,13 +488,17 @@ void PageNetGame::locatorDone(QNetworkReply* reply) {
 
     FileEngineHandler::mount(fileName);
     
-    DataManager::instance().themeModel()->reset(); //should probably check if theme was just download, not map etc.
+    DataManager::instance().themeModel()->reset(); //should probably check if theme was just downloaded, not map etc.
     //also, should update gamecfg widget if there are icons missing or such
     DataManager::instance().staticMapModel()->reset();
     DataManager::instance().missionMapModel()->reset();
+    if (pGameCFG->cachedScriptName != "") {
+        DataManager::instance().gameStyleModel()->loadGameStyles();
+        if (pGameCFG->setScript(pGameCFG->cachedScriptName))
+            pGameCFG->cachedScriptName = "";
+    }
     
-    if (resourcesMissing.isEmpty())
-        BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
+    isMissingResource(true);
 }
 
 void PageNetGame::downloadProgress(qint64 bytesRecieved, qint64 bytesTotal)
@@ -442,6 +520,71 @@ void PageNetGame::downloadProgress(qint64 bytesRecieved, qint64 bytesTotal)
 void PageNetGame::resourceUpdate(const QString & type) {
     resourcesMissing.remove(type);
     
-    if (resourcesMissing.isEmpty())
+    isMissingResource(true);
+}
+
+void PageNetGame::initTeamResources() {
+    DataManager & datamgr = DataManager::instance();
+    initTeamResource(datamgr.entryList("Graphics/Flags", QDir::Files), "Flags");
+    initTeamResource(datamgr.entryList("Graphics/Hats", QDir::Files), "Hats");
+    initTeamResource(datamgr.entryList("Graphics/Graves", QDir::Files), "Graves");
+    
+    foreach (QString file, datamgr.entryList("Forts", QDir::Files)) {
+        if (file.startsWith("locator")) {
+            QFile locatorFile("physfs://Forts/" + file);
+            locatorFile.open(QIODevice::ReadOnly);
+            QTextStream in(&locatorFile);
+            
+            QString url;
+            QString line = in.readLine();
+            
+            if (line.isNull()) continue;
+            else url = line;
+            
+            line = in.readLine();
+            while (!line.isNull()) {
+                teamResourceLocators.insert(".Forts." + line, url);
+                line = in.readLine();
+            }
+        }
+    }
+}
+
+void PageNetGame::initTeamResource(const QStringList& source, const QString& type) {
+    foreach (QString file, source) {
+        if (file.startsWith("locator")) {
+            QFile locatorFile("physfs://Graphics/" + type + "/" + file);
+            locatorFile.open(QIODevice::ReadOnly);
+            QTextStream in(&locatorFile);
+            
+            QString url;
+            QString line = in.readLine();
+            
+            if (line.isNull()) continue;
+            else url = line;
+            
+            line = in.readLine();
+            while (!line.isNull()) {
+                teamResourceLocators.insert("." + type + "." + line, url);
+                line = in.readLine();
+            }
+        }
+    }
+}
+
+bool PageNetGame::isMissingResource(bool updateBulb) {
+    bool allDone = true;
+    QHashIterator<QString, QSet<QString> > i(resourcesMissing);
+    while (i.hasNext()) {
+        i.next();
+        if (!i.value().isEmpty())
+            allDone = false;
+        else
+            resourcesMissing.remove(i.key());
+    }
+    
+    if (allDone && updateBulb)
         BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
+    
+    return !allDone;
 }

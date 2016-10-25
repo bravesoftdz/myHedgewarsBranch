@@ -135,7 +135,7 @@ class HWChatWidget : public QWidget
         void nickCountUpdate(int cnt);
         void consoleCommand(const QString & command);
         //CHATHACK: these signals shouldn't exist. Ever.
-        void hackMessage1(const QString&, const QString&);
+        void hackMessage1(const QString&, const QString&, const QString&);
         void hackMessage2(const QString&, const QString&, const QString&);
 
     private:

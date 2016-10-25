@@ -43,6 +43,21 @@ void TeamSelWidget::addTeam(HWTeam team)
         blockSignals(false);
         connect(framePlaying->getTeamWidget(team), SIGNAL(teamColorChanged(const HWTeam&)),
                 this, SLOT(proxyTeamColorChanged(const HWTeam&)));
+        
+        if (!QFile::exists("physfs://Graphics/Flags/" + team.flag() + ".png"))
+            emit requestResource(team.owner(), "FLAG");
+        if (!QFile::exists("physfs://Graphics/Graves/" + team.grave() + ".png"))
+            emit requestResource(team.owner(), "GRAVE");
+        if (!QDir("physfs://Sounds/voices/" + team.voicepack()).exists())
+            emit requestResource(team.owner(), "VOICE");
+        if (!QFile::exists("physfs://Forts/" + team.fort() + "L.png"))
+            emit requestResource(team.owner(), "FORT");
+        
+        for (int i=0; i<8; i++)
+            if (team.hedgehog(i).Hat != "NoHat" && !QFile::exists("physfs://Graphics/Hats/" + team.hedgehog(i).Hat + ".png")) {
+                emit requestResource(team.owner(), "HAT");
+                break;
+            }
     }
     else
     {

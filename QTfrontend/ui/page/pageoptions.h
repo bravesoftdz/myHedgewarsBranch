@@ -110,6 +110,7 @@ class PageOptions : public AbstractPage
         QLineEdit *editNetPassword;
         QSlider *SLQuality;
         QCheckBox *CBFrontendEffects;
+        QComboBox *CBDLC;
         QComboBox * cbProxyType;
         QSpinBox * sbProxyPort;
         QLineEdit * leProxy;

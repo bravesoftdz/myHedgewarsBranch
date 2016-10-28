@@ -22,7 +22,8 @@ public:
         Ignore      = Qt::UserRole + 5,
         InGame      = Qt::UserRole + 6,
         InRoom      = Qt::UserRole + 7,
-        Contributor = Qt::UserRole + 8
+        Contributor = Qt::UserRole + 8,
+        DLCMissing = Qt::UserRole + 9
         // if you add a role that will affect the player icon,
         // then also add it to the flags Qlist in updateIcon()!
     };

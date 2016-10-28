@@ -188,6 +188,7 @@
         <file>res/chat/friend.png</file>
         <file>res/chat/ignore.png</file>
         <file>res/chat/lamp.png</file>
+        <file>res/chat/dlc_missing.png</file>
         <file>res/chat/hedgehog.png</file>
         <file>res/chat/hedgehog_gray.png</file>
         <file>res/chat/roomadmin.png</file>

@@ -322,10 +322,10 @@ void PageNetGame::resourceMissing(const QString & type) {
     resourcesMissing.insert(type, QSet<QString>());
     
     if (type != "FLAG" && type != "HAT" && type != "GRAVE" && type != "VOICE") {
-        BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
-        
-        if (amReady)
+        if (amReady) {
+            amReady = false;
             emit toggleReady();
+        }
     }
 }
 
@@ -391,8 +391,12 @@ void PageNetGame::handleLocatorRequest(const QString & from, const QString & nic
             
             location = in.readLine();
             
-            if (type == "SCRIPT")
-                location = location.right(location.size()-2);
+            if (type == "SCRIPT") {
+                if (location.startsWith("--http"))
+                    location = location.right(location.size()-2);
+                else
+                    location = "?";
+            }
         }
     }
     
@@ -400,15 +404,51 @@ void PageNetGame::handleLocatorRequest(const QString & from, const QString & nic
 }
 
 void PageNetGame::loadLocator(const QString & nick, const QString & type, const QString & location) {
-    if (location == QString("?") || nick != chatWidget->getUser())
+    if (nick != chatWidget->getUser() || (location == "?" && (type == "HAT" || type == "GRAVE" || type == "VOICE" || type == "FLAG")))
         return;
-    BtnGo->setIcon(QIcon(":/res/download.png"));
+    QString location2;
     
-    resourcesMissing[type].insert(location);
+    if (location != "?")
+    {
+        bool restricted = true;
+        bool registered = true;
+        if (location.startsWith("?")) {
+            location2 = location.right(location.size()-1);
+            registered = false;
+        }
+        else
+            location2 = location;
+        
+        int restriction = m_gameSettings->value("net/dlc", 2).toInt();
+        if (restriction == 3) restricted = false;
+        else if (restriction == 2 && registered) restricted = false;
+        else if (restriction == 1 && (location.contains("hedgewars.org") || location.contains("hh.unit22.org"))) restricted = false;
+        
+        if (restricted) {
+            if (type == "HAT" || type == "GRAVE" || type == "VOICE" || type == "FLAG") return;
+            BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
+            BtnGo->setWhatsThis(tr("You are missing some required DLC and download is restricted"));
+            location2 = "?";
+        }
+        else {
+            BtnGo->setIcon(QIcon(":/res/download.png"));
+            BtnGo->setWhatsThis(tr("Download the missing DLC"));
+        }
+    }
+    else
+    {
+        BtnGo->setIcon(QIcon(":/res/btnOverlay@2x.png"));
+        BtnGo->setWhatsThis(tr("You are missing some required DLC and no download is available"));
+    }
+    
+    resourcesMissing[type].insert(location2);
 }
 
 void PageNetGame::fetchLocator(const QString & type, const QString & location)
 {
+    if (location == "?")
+        return;
+    
     QString finalLocation(location);
     
     if (finalLocation.contains("dropbox") && !finalLocation.endsWith("?dl=1") && !finalLocation.endsWith("?raw=1")) {
@@ -436,12 +476,13 @@ void PageNetGame::fetchLocator(const QString & type, const QString & location)
 
 void PageNetGame::locatorDone(QNetworkReply* reply) {
     QProgressBar *progressBar = progressBars.value(reply, 0);
+    QString type = resourceLocators.value(reply);
 
     if(progressBar)
     {
         progressBars.remove(reply);
         progressBar->deleteLater();
-        resourcesMissing[resourceLocators.value(reply)].remove(reply->url().toString());
+        resourcesMissing[type].remove(reply->url().toString());
         resourceLocators.remove(reply);
     }
     
@@ -459,6 +500,7 @@ void PageNetGame::locatorDone(QNetworkReply* reply) {
         QProgressBar *progressBar = new QProgressBar(this);
         progressBarsLayout->addWidget(progressBar);
         progressBars.insert(reply, progressBar);
+        resourceLocators.insert(reply, type);
         return;
     }
     
@@ -488,11 +530,18 @@ void PageNetGame::locatorDone(QNetworkReply* reply) {
 
     FileEngineHandler::mount(fileName);
     
-    DataManager::instance().themeModel()->reset(); //should probably check if theme was just downloaded, not map etc.
-    //also, should update gamecfg widget if there are icons missing or such
-    DataManager::instance().staticMapModel()->reset();
-    DataManager::instance().missionMapModel()->reset();
-    if (pGameCFG->cachedScriptName != "") {
+    if (type == "THEME") {
+        DataManager::instance().themeModel()->reset();
+        pGameCFG->pMapContainer->setTheme(pGameCFG->pMapContainer->getCurrentTheme());
+    } else if (type == "MAP") {
+        DataManager::instance().staticMapModel()->reset();
+        DataManager::instance().missionMapModel()->reset();
+        if (pGameCFG->pMapContainer->cachedMapName != "") {
+            QString tempName = pGameCFG->pMapContainer->cachedMapName;
+            pGameCFG->pMapContainer->cachedMapName = "";
+            pGameCFG->pMapContainer->setMap(tempName);
+        }
+    } else if (type == "SCRIPT" && pGameCFG->cachedScriptName != "") {
         DataManager::instance().gameStyleModel()->loadGameStyles();
         if (pGameCFG->setScript(pGameCFG->cachedScriptName))
             pGameCFG->cachedScriptName = "";
@@ -583,8 +632,10 @@ bool PageNetGame::isMissingResource(bool updateBulb) {
             resourcesMissing.remove(i.key());
     }
     
-    if (allDone && updateBulb)
+    if (allDone && updateBulb && !amReady) {
         BtnGo->setIcon(QIcon(":/res/lightbulb_off.png"));
+        BtnGo->setWhatsThis(tr("Turn on the lightbulb to show the other players when you're ready to fight"));
+    }
     
     return !allDone;
 }

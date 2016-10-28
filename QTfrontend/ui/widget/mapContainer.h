@@ -53,6 +53,7 @@ class HWMapContainer : public QWidget
 
     public:
         HWMapContainer(QWidget * parent=0);
+        QString cachedMapName;
         QString getCurrentSeed() const;
         QString getCurrentMap() const;
         QString getCurrentTheme() const;

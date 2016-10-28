@@ -463,6 +463,8 @@ void HWMapContainer::setScript(const QString & script, const QString & scriptpar
     
     if (script == "")
         emit locatorRequest(QString("SCRIPT"));
+    else
+        emit resourceUpdate(QString("SCRIPT"));
 }
 
 void HWMapContainer::intSetMap(const QString & map)
@@ -497,6 +499,7 @@ void HWMapContainer::intSetMap(const QString & map)
     } else
     {
         // qDebug() << "HWMapContainer::intSetMap: Map doesn't exist: " << map; //probably not needed anymore
+        cachedMapName = map;
         emit locatorRequest(QString("MAP"));
     }
 }

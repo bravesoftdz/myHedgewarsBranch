@@ -179,6 +179,9 @@ void PlayersListModel::setFlag(const QString &nickname, StateFlag flagType, bool
     if(mi.isValid())
     {
         setData(mi, isSet, flagType);
+        
+        if (flagType == Ready && isSet && isFlagSet(nickname, DLCMissing))
+             setData(mi, false, DLCMissing);
 
         if(flagType == Friend || flagType == ServerAdmin
                 || flagType == Ignore || flagType == RoomAdmin)
@@ -238,6 +241,7 @@ void PlayersListModel::updateIcon(const QModelIndex & index)
         << index.data(RoomFilterRole).toBool()
         << index.data(InRoom).toBool()
         << index.data(Contributor).toBool()
+        << index.data(DLCMissing).toBool()
         ;
 
     for(int i = flags.size() - 1; i >= 0; --i)
@@ -266,7 +270,10 @@ void PlayersListModel::updateIcon(const QModelIndex & index)
                 if(index.data(Ready).toBool())
                     painter.drawPixmap(0, 0, 16, 16, QPixmap(":/res/chat/lamp.png"));
                 else
-                    painter.drawPixmap(0, 0, 16, 16, QPixmap(":/res/chat/lamp_off.png"));
+                    if(index.data(DLCMissing).toBool())
+                        painter.drawPixmap(0, 0, 16, 16, QPixmap(":/res/chat/dlc_missing.png"));
+                    else
+                        painter.drawPixmap(0, 0, 16, 16, QPixmap(":/res/chat/lamp_off.png"));
             }
         } else
         { // we're in lobby

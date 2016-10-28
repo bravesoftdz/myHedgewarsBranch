@@ -609,7 +609,9 @@ void GameCFGWidget::schemeChanged(int index)
             }
         }
     }
-    pMapContainer->setScript(Scripts->itemData(Scripts->currentIndex(), GameStyleModel::ScriptRole).toString().toUtf8(), schemeData(43).toString());
+    
+    QByteArray script = Scripts->itemData(Scripts->currentIndex(), GameStyleModel::ScriptRole).toString().toUtf8();
+    pMapContainer->setScript(script == "" ? "?" : script, schemeData(43).toString());
 }
 
 void GameCFGWidget::scriptChanged(int index)
@@ -665,7 +667,7 @@ void GameCFGWidget::scriptChanged(int index)
     }
     if (!index)
     {
-        pMapContainer->setScript(QString(""), QString(""));
+        pMapContainer->setScript(QString("?"), QString(""));
     }
     else
     {
@@ -732,7 +734,8 @@ void GameCFGWidget::setMaster(bool master)
 bool GameCFGWidget::setScript(const QString& value) {
     Scripts->setCurrentIndex(Scripts->findText(value));
     QByteArray scriptName = Scripts->itemData(Scripts->currentIndex(), GameStyleModel::ScriptRole).toString().toUtf8();
-    pMapContainer->setScript(scriptName, schemeData(43).toString());
+    
+    pMapContainer->setScript(value == "Normal" ? "?" : scriptName, schemeData(43).toString());
     
     if (scriptName == "") {
         cachedScriptName = value;

@@ -552,6 +552,26 @@ QLayout * PageOptions::bodyLayoutDefinition()
             groupAccount->layout()->addWidget(editNetPassword, 1, 1);
         }
 
+        { // group: DLC
+            OptionGroupBox * groupDLC = new OptionGroupBox(":/res/download.png", tr("DLC transfer"), this);
+            leftColumn->addWidget(groupDLC);
+
+            // DLC
+
+            QLabel * lblRestriction = new QLabel(groupDLC);
+            lblRestriction->setText(QLabel::tr("Restriction level"));
+            groupDLC->layout()->addWidget(lblRestriction, 4, 0);
+
+            CBDLC = new QComboBox(groupDLC);
+            CBDLC->setMaxVisibleItems(50);
+            CBDLC->addItem(QComboBox::tr("3: Disable all"));
+            CBDLC->addItem(QComboBox::tr("2: Allow trusted sources"));
+            CBDLC->addItem(QComboBox::tr("1: Allow registered users"));
+            CBDLC->addItem(QComboBox::tr("0: Enable everything"));
+            CBDLC->setFixedWidth(CBResolution->width());
+            groupDLC->layout()->addWidget(CBDLC, 4, 1);
+        }
+
         { // group: proxy
             OptionGroupBox * groupProxy = new OptionGroupBox(":/res/net.png", tr("Proxy settings"), this);
             rightColumn->addWidget(groupProxy);

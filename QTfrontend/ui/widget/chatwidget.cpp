@@ -416,9 +416,38 @@ void HWChatWidget::onChatMessage(const QString & nick, const QString & message)
         QStringList	command = message.split(",,");
         
         if (command.at(1) == QString("LOCATOR_REQUEST"))
+        {
+            if (m_isAdmin)
+            {
+                QSortFilterProxyModel * playersSortFilterModel = qobject_cast<QSortFilterProxyModel *>(chatNicks->model());
+                if(!playersSortFilterModel)
+                    return;
+
+                PlayersListModel * players = qobject_cast<PlayersListModel *>(playersSortFilterModel->sourceModel());
+
+                if(!players)
+                    return;
+        
+                players->setFlag(nick, PlayersListModel::DLCMissing, true);
+            }
+            
             emit hackMessage1(command.at(2), nick, command.at(3));
+        }
         else if (command.at(1) == QString("LOCATOR"))
-            emit hackMessage2(command.at(2), command.at(3), command.at(4));
+        {
+            QSortFilterProxyModel * playersSortFilterModel = qobject_cast<QSortFilterProxyModel *>(chatNicks->model());
+            if(!playersSortFilterModel)
+                return;
+
+            PlayersListModel * players = qobject_cast<PlayersListModel *>(playersSortFilterModel->sourceModel());
+
+            if(!players)
+                return;
+
+            bool registered = players->isFlagSet(nick, PlayersListModel::Registered);
+            
+            emit hackMessage2(command.at(2), command.at(3), registered ? command.at(4) : "?" + command.at(4));
+        }
         return;
     }
     printChatString(nick, linkedNick(nick) + ": " + messageToHTML(message), "Chat", containsHighlight(nick, message));

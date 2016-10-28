@@ -136,6 +136,7 @@ void GameUIConfig::reloadValues(void)
 
     Form->ui.pageNetServer->leServerDescr->setText(value("net/servername", "hedgewars server").toString());
     Form->ui.pageNetServer->sbPort->setValue(value("net/serverport", NETGAME_DEFAULT_PORT).toUInt());
+    Form->ui.pageOptions->CBDLC->setCurrentIndex(value("net/dlc", 2).toInt());
 
     Form->ui.pageOptions->CBShowFPS->setChecked(value("fps/show", false).toBool());
     Form->ui.pageOptions->fpsedit->setValue(value("fps/limit", 27).toUInt());
@@ -153,7 +154,7 @@ void GameUIConfig::reloadValues(void)
 #endif
 
     Form->ui.pageOptions->CBLanguage->setCurrentIndex(Form->ui.pageOptions->CBLanguage->findData(value("misc/locale", "").toString()));
-
+    
     Form->ui.pageOptions->cbProxyType->setCurrentIndex(value("proxy/type", 0).toInt());
     Form->ui.pageOptions->leProxy->setText(value("proxy/host", "").toString());
     Form->ui.pageOptions->sbProxyPort->setValue(value("proxy/port", "8080").toInt());
@@ -283,6 +284,7 @@ void GameUIConfig::SaveOptions()
     setValue("net/port", netPort);
     setValue("net/servername", Form->ui.pageNetServer->leServerDescr->text());
     setValue("net/serverport", Form->ui.pageNetServer->sbPort->value());
+    setValue("net/dlc", Form->ui.pageOptions->CBDLC->currentIndex());
 
     setValue("fps/show", isShowFPSEnabled());
     setValue("fps/limit", Form->ui.pageOptions->fpsedit->value());

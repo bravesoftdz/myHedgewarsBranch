@@ -395,6 +395,10 @@ with Obj do
     x:= 0;
     repeat
         y:= topY+32; // leave room for a hedgie to teleport in
+    
+        if inland[1].x + inland[1].y + inland[1].w + inland[1].h = 0 then
+            y := LAND_HEIGHT - Height;
+        
         repeat
             if CheckCanPlace(x, y, Obj) then
                 begin

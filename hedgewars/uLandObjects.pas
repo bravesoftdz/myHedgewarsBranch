@@ -61,6 +61,8 @@ type TRectsArray = array[0..MaxRects] of TSDL_Rect;
                      Surf: PSDL_Surface;
                      Width, Height: Longword;
                      Maxcnt: Longword;
+                     validAreas: array[0..Pred(MAXOBJECTRECTS)] of TSDL_Rect;
+                     validAreaCount: Longword;
                      end;
      TSprayObjects = record
                      Count: LongInt;
@@ -467,10 +469,11 @@ function TryPut2(var Obj: TSprayObject; Surface: PSDL_Surface): boolean;
 const MaxPointsIndex = 8095;
 var x, y: Longword;
     ar: array[0..MaxPointsIndex] of TPoint;
-    cnt, i: Longword;
+    cnt, i, randRect: Longword;
     r: TSDL_Rect;
     bRes: boolean;
     corner, dx, dy : Shortint;
+    tempd: Smallint;
 begin
 TryPut2:= false;
 cnt:= 0;
@@ -507,7 +510,26 @@ with Obj do
         else
             y:= LAND_HEIGHT - Height;
         
+        if validAreaCount > 0 then
+            begin
+            randRect:= getRandom(validAreaCount);
+            tempd:= (validAreas[randRect].x + getrandom(validAreas[randRect].w+1) - (x mod cLandTexWidth));
+            if (tempd > 0) = (dx > 0) then
+                x:= x + (tempd - Round(Width/2))
+            else
+                x:= x + ((cLandTexWidth + tempd * dx) * dx - Round(Width/2));
+             end;
+        
         repeat
+            if validAreaCount > 0 then
+                begin
+                tempd:= validAreas[randRect].y + getrandom(validAreas[randRect].h+1) - ((y+8) mod cLandTexHeight);
+                if (tempd > 0) = (dy > 0) then
+                    y:= y + tempd - Round(Height/2)
+                else
+                    y:= y + (cLandTexHeight + tempd * dy) * dy - Round(Height/2);
+                end;
+            
             if CheckLand(r, x, y, lfBasic)
             and (not CheckIntersect(x, y, Width, Height)) then
                 begin
@@ -553,7 +575,7 @@ end;
 
 procedure CheckRect(Width, Height, x, y, w, h: LongWord);
 begin
-    if (x + w > Width) then
+    if (x + w > Width) or true then
         OutError('Object''s rectangle exceeds image: x + w (' + inttostr(x) + ' + ' + inttostr(w) + ') > Width (' + inttostr(Width) + ')', true);
     if (y + h > Height) then
         OutError('Object''s rectangle exceeds image: y + h (' + inttostr(y) + ' + ' + inttostr(h) + ') > Height (' + inttostr(Height) + ')', true);
@@ -804,7 +826,54 @@ while (not pfsEOF(f)) and allOK do
             Width:= Surf^.w;
             Height:= Surf^.h;
             Delete(s, 1, i);
-            Maxcnt:= StrToInt(Trim(s));
+            
+            t:= 0;
+            for ii := 1 to Length(S) do
+              if S[ii] = ',' then
+                inc(t);
+            
+            if (t < 3) then
+                Maxcnt:= StrToInt(Trim(s))
+            else
+                begin
+                i:= Pos(',', s);
+                Maxcnt:= StrToInt(Trim(Copy(s, 1, Pred(i))));
+                Delete(s, 1, i);
+                end;
+            
+            while (t >= 4) do
+                begin
+                with validAreas[validAreaCount] do
+                    begin
+                    i:= Pos(',', s);
+                    x:= StrToInt(Trim(Copy(s, 1, Pred(i))));
+                    Delete(s, 1, i);
+                      
+                    i:= Pos(',', s);
+                    y:= StrToInt(Trim(Copy(s, 1, Pred(i))));
+                    Delete(s, 1, i);
+                      
+                    i:= Pos(',', s);
+                    w:= StrToInt(Trim(Copy(s, 1, Pred(i))));
+                    Delete(s, 1, i);
+                      
+                    if t = 4 then
+                        h:= StrToInt(Trim(s))
+                    else
+                        begin
+                        i:= Pos(',', s);
+                        h:= StrToInt(Trim(Copy(s, 1, Pred(i))));
+                        Delete(s, 1, i)
+                        end;
+                    end;
+                
+                inc(validAreaCount);
+                t:= 1;
+                for ii := 1 to Length(S) do
+                  if S[ii] = ',' then
+                    inc(t);
+                    
+                end;
             end;
         end
     else if key = 'water-animation' then

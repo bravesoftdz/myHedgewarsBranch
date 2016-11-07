@@ -51,6 +51,8 @@ var
     cFlattenClouds     : boolean;
     cIce               : boolean;
     cSnow              : boolean;
+    cLandTexWidth      : longword;
+    cLandTexHeight     : longword;
 
     cAltDamage         : boolean;
     cReducedQuality    : LongWord;

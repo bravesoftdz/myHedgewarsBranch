@@ -171,6 +171,8 @@ var tmpsurf: PSDL_Surface;
     y: LongInt; // stupid SDL 1.2 uses stupid SmallInt for y which limits us to 32767.  But is even worse if LandTex is large, can overflow on 32767 map.
 begin
     tmpsurf:= LoadDataImage(ptCurrTheme, 'LandTex', ifCritical or ifIgnoreCaps);
+    cLandTexWidth:= tmpsurf^.w;
+    cLandTexHeight:= tmpsurf^.h;
     r.y:= 0;
     y:= 0;
     while y < LAND_HEIGHT do

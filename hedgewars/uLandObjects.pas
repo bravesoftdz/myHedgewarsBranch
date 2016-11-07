@@ -385,6 +385,7 @@ var x, y: Longword;
     ar: array[0..MaxPointsIndex] of TPoint;
     cnt, i: Longword;
     bRes: boolean;
+    corner, dx, dy : Shortint;
 begin
 TryPut:= false;
 cnt:= 0;
@@ -392,12 +393,36 @@ with Obj do
     begin
     if Maxcnt = 0 then
         exit;
-    x:= 0;
+    
+    corner:= getrandom(4); //up-left, up-right, down-right, down-left
+    
+    if (corner = 0) or (corner = 3) then
+        begin
+        x:= 0;
+        dx:= 1;
+        end
+    else
+        begin
+        x:= LAND_WIDTH - Width;
+        dx:= -1;
+        end;
+    
+    if (corner < 2) then
+        dy:= 1
+    else
+        dy:= -1;
+    
     repeat
-        y:= topY+32; // leave room for a hedgie to teleport in
+        if (dy > 0) then
+            y:= topY+32 // leave room for a hedgie to teleport in
+        else
+            y:= LAND_HEIGHT - Height;
     
         if inland[1].x + inland[1].y + inland[1].w + inland[1].h = 0 then
-            y := LAND_HEIGHT - Height;
+            begin
+            y:= LAND_HEIGHT - Height;
+            dy:= 1;
+            end;
         
         repeat
             if CheckCanPlace(x, y, Obj) then
@@ -406,15 +431,23 @@ with Obj do
                 ar[cnt].y:= y;
                 if cnt >= MaxPointsIndex then // buffer is full, do not check the rest land
                     begin
-                    y:= LAND_HEIGHT;
-                    x:= LAND_WIDTH;
+                    if (dx > 0) then
+                        x:= LAND_WIDTH
+                    else
+                        x:= 0;
+                    
+                    if (dy > 0) then
+                        y:= LAND_HEIGHT
+                    else
+                        y:= 0;
+                    
                     end
                     else inc(cnt);
                 end;
-            inc(y, 3);
-        until y >= LAND_HEIGHT - Height;
-        inc(x, getrandom(6) + 3)
-    until x >= LAND_WIDTH - Width;
+            inc(y, 3 * dy);
+        until ((dy > 0) and (y >= LAND_HEIGHT - Height)) or ((dy < 0) and ((y <= topY) or (y >= $FF000000)));
+        inc(x, (getrandom(6) + 3) * dx)
+    until (((dx > 0) and (x >= LAND_WIDTH - Width)) or ((dx < 0) and ((x = 0) or (x >= $FF000000))));
     bRes:= cnt <> 0;
     if bRes then
         begin
@@ -437,6 +470,7 @@ var x, y: Longword;
     cnt, i: Longword;
     r: TSDL_Rect;
     bRes: boolean;
+    corner, dx, dy : Shortint;
 begin
 TryPut2:= false;
 cnt:= 0;
@@ -444,30 +478,60 @@ with Obj do
     begin
     if Maxcnt = 0 then
         exit;
-    x:= 0;
+    
+    corner:= getrandom(4); //up-left, up-right, down-right, down-left
+    
+    if (corner = 0) or (corner = 3) then
+        begin
+        x:= 0;
+        dx:= 1;
+        end
+    else
+        begin
+        x:= LAND_WIDTH - Width;
+        dx:= -1;
+        end;
+    
+    if (corner < 2) then
+        dy:= 1
+    else
+        dy:= -1;
+    
     r.x:= 0;
     r.y:= 0;
     r.w:= Width;
     r.h:= Height + 16;
     repeat
-        y:= 8;
+        if (dy > 0) then
+            y:= 0
+        else
+            y:= LAND_HEIGHT - Height;
+        
         repeat
-            if CheckLand(r, x, y - 8, lfBasic)
+            if CheckLand(r, x, y, lfBasic)
             and (not CheckIntersect(x, y, Width, Height)) then
                 begin
                 ar[cnt].x:= x;
-                ar[cnt].y:= y;
+                ar[cnt].y:= y + 8;
                 if cnt >= MaxPointsIndex then // buffer is full, do not check the rest land
                     begin
-                    y:= $FF000000;
-                    x:= $FF000000;
+                    if (dx > 0) then
+                        x:= $FF000000
+                    else
+                        x:= 0;
+                    
+                    if (dy > 0) then
+                        y:= $FF000000
+                    else
+                        y:= 0;
+                    
                     end
                     else inc(cnt);
                 end;
-            inc(y, 12);
-        until y >= LAND_HEIGHT - Height - 8;
-        inc(x, getrandom(12) + 12)
-    until x >= LAND_WIDTH - Width;
+            inc(y, 12 * dy);
+        until ((dy > 0) and (y >= LAND_HEIGHT - Height)) or ((dy < 0) and ((y <= topY) or (y >= $FF000000)));
+        inc(x, (getrandom(12) + 12) * dx)
+    until (((dx > 0) and (x >= LAND_WIDTH - Width)) or ((dx < 0) and ((x = 0) or (x >= $FF000000))));
     bRes:= cnt <> 0;
 AddFileLog('CHECKPOINT 004');
     if bRes then

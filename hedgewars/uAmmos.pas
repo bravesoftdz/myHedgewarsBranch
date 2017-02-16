@@ -50,7 +50,7 @@ function  GetAmmoEntry(var Hedgehog: THedgehog; am: TAmmoType): PAmmo;
 var StoreCnt: LongInt;
 
 implementation
-uses uVariables, uCommands, uUtils, uCaptions, uDebug;
+uses uVariables, uCommands, uUtils, uCaptions, uDebug, uScript;
 
 type TAmmoCounts = array[TAmmoType] of Longword;
      TAmmoArray = array[TAmmoType] of TAmmo;
@@ -284,6 +284,7 @@ end;
 procedure OnUsedAmmo(var Hedgehog: THedgehog);
 var CurWeapon: PAmmo;
 begin
+ScriptCall('onUsedAmmo');
 CurWeapon:= GetCurAmmoEntry(Hedgehog);
 with Hedgehog do
     begin

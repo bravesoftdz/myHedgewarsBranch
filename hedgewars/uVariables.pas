@@ -2729,7 +2729,7 @@ begin
     vobFallSpeed:= 100;
     watFrames:= 1;
     watFrameTicks:= 0;
-    watMove:= 10;
+    watMove:= 1;
 
     vobSDFrameTicks:= 0;
     vobSDFramesCount:= 4;
@@ -2738,7 +2738,7 @@ begin
     vobSDFallSpeed:= 250;
     watSDFrames:= 1;
     watSDFrameTicks:= 0;
-    watSDMove:= 10;
+    watSDMove:= 1;
 
 {$IFDEF MOBILE}
     cMinScreenWidth  := min(cScreenWidth, 480);

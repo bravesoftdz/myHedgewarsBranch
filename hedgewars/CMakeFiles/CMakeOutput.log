@@ -1,0 +1,30 @@
+Determining if the Pascal compiler works passed with the following output:
+Change Dir: /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars//CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make
+/usr/bin/cmake -H/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp -B/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles/progress.marks
+/usr/bin/make -f CMakeFiles/Makefile2 all
+make[1]: Wejście do katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/testpascalcompiler.dir/build.make CMakeFiles/testpascalcompiler.dir/depend
+make[2]: Wejście do katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+cd /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles/testpascalcompiler.dir/DependInfo.cmake
+Scanning dependencies of target testpascalcompiler
+make[2]: Opuszczenie katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/testpascalcompiler.dir/build.make CMakeFiles/testpascalcompiler.dir/build
+make[2]: Wejście do katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles 1
+[100%] Building Pascal object CMakeFiles/testpascalcompiler.dir/testpascalcompiler.o
+/usr/bin/fpc -l- -v0ewn -Cn -FE/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp -FU/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles/testpascalcompiler.dir    /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/testpascalcompiler.pas
+Linking Pascal executable testpascalcompiler
+/usr/bin/cmake -E cmake_link_script CMakeFiles/testpascalcompiler.dir/link.txt --verbose=1
+/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/ppas.sh
+Linking /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/testpascalcompiler
+/usr/bin/ld: warning: /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/link.res contains output sections; did you forget -T?
+make[2]: Opuszczenie katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles  1
+[100%] Built target testpascalcompiler
+make[1]: Opuszczenie katalogu `/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_start /home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/CMakeTmp/CMakeFiles 0
+
+

@@ -1,0 +1,4 @@
+program testPascalCompiler;
+          begin
+          end.
+         

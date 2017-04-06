@@ -1,0 +1,1 @@
+/home/tomek/hg/hedgewars/myHedgewarsBranch/bin/ppas.sh

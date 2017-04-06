@@ -1,0 +1,3 @@
+Hedgewars versioning information, do not modify
+rev GIT
+hash de9bf6f

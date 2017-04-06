@@ -1,0 +1,12 @@
+set(CMAKE_Pascal_COMPILER "/usr/bin/fpc")
+set(CMAKE_Pascal_COMPILER_ARG1 "-l- -v0ewn")
+set(CMAKE_Pascal_COMPILER_LOADED 1)
+set(CMAKE_Pascal_COMPILER_VERSION "2.6.0")
+
+set(CMAKE_Pascal_COMPILER_ENV_VAR "FPC")
+
+set(CMAKE_Pascal_SOURCE_FILE_EXTENSIONS "pas" "pp")
+set(CMAKE_Pascal_IGNORE_EXTENSIONS ppu;PPU;h;H;o;O;obj;OBJ;def;DEF;rc;RC)
+set(CMAKE_Pascal_LINKER_PREFERENCE Prefered)
+set(CMAKE_Pascal_OUTPUT_EXTENSION_REPLACE 1)
+set(CMAKE_Pascal_OUTPUT_EXTENSION ".o")

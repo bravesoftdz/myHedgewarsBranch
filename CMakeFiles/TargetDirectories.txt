@@ -1,0 +1,7 @@
+/home/tomek/hg/hedgewars/myHedgewarsBranch/QTfrontend/CMakeFiles/hedgewars.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/hedgewars/CMakeFiles/hwengine.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/misc/libphyslayer/CMakeFiles/physlayer.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/share/hedgewars/Data/Locale/CMakeFiles/release-translation.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/CMakeFiles/test_normal.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/CMakeFiles/test_verbose.dir
+/home/tomek/hg/hedgewars/myHedgewarsBranch/tools/CMakeFiles/uninstall.dir
